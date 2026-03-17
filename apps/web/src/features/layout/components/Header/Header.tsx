@@ -6,6 +6,7 @@ import { Badge, IconButton } from "@mui/material";
 import { useTranslations } from "next-intl";
 
 import { useSidebar } from "../../context/SidebarContext";
+import { LanguageMenu } from "./LanguageMenu";
 import { SearchBar } from "./SearchBar";
 import { UserMenu } from "./UserMenu";
 import styles from "./header.module.css";
@@ -28,6 +29,7 @@ export function Header() {
       </div>
 
       <div className={styles.right}>
+        <LanguageMenu />
         <IconButton size="small" aria-label={t("notificationsAriaLabel")}>
           <Badge badgeContent={5} color="error">
             <NotificationsNoneOutlinedIcon />
@@ -38,4 +40,3 @@ export function Header() {
     </header>
   );
 }
-

@@ -90,7 +90,7 @@ export function Sidebar() {
       >
         <div className={styles.brand}>
           <span className={styles.brandMark}>D</span>
-          {!isCollapsed ? <span className={styles.brandName}>SupportOps</span> : null}
+          {!isCollapsed ? <span className={styles.brandName}>ServiceOps</span> : null}
         </div>
 
         <nav className={styles.nav}>

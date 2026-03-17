@@ -941,6 +941,13 @@ function getMonthNames(locale) {
     (_, i) => new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(2e3, i, 1))
   );
 }
+function getDayHeaders(locale) {
+  const sunday = new Date(2023, 0, 1);
+  return Array.from(
+    { length: 7 },
+    (_, i) => new Intl.DateTimeFormat(locale, { weekday: "short" }).format(new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + i)).replace(".", "")
+  );
+}
 function buildCalendarGrid(year, month) {
   const firstDay = new Date(year, month, 1);
   const startOffset = firstDay.getDay();
@@ -972,7 +979,15 @@ function isToday(cell) {
   return cell.day === today.getDate() && cell.month === today.getMonth() && cell.year === today.getFullYear();
 }
 var YEAR_OPTIONS = Array.from({ length: 201 }, (_, i) => 1900 + i);
-var DAY_HEADERS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+var DEFAULT_TEXTS = {
+  monthLabel: "Month",
+  yearLabel: "Year",
+  todayLabel: "Today",
+  clearLabel: "Clear",
+  keyboardHint: "Cursor keys can navigate dates",
+  selectMonthAriaLabel: "Select month",
+  selectYearAriaLabel: "Select year"
+};
 var textSmStyle4 = {
   fontSize: 14,
   fontWeight: 600,
@@ -1118,6 +1133,7 @@ function SelectDateFieldInner(props) {
     hideEmptyHelperText = false,
     disabled,
     locale,
+    texts,
     "aria-label": ariaLabel
   } = props;
   const {
@@ -1141,6 +1157,14 @@ function SelectDateFieldInner(props) {
     return formatDisplayDate(val, locale);
   }, [field.value, locale]);
   const monthNames = useMemo(() => getMonthNames(locale), [locale]);
+  const dayHeaders = useMemo(() => texts?.dayHeaders ?? getDayHeaders(locale), [locale, texts]);
+  const uiTexts = useMemo(
+    () => ({
+      ...DEFAULT_TEXTS,
+      ...texts
+    }),
+    [texts]
+  );
   const selectMenuProps = useMemo(
     () => ({
       PaperProps: {
@@ -1373,7 +1397,7 @@ function SelectDateFieldInner(props) {
                         {
                           sx: { fontSize: 10, color: "grey.500", lineHeight: 1, mb: 0.25, textAlign: "center" },
                           variant: "caption",
-                          children: "Month"
+                          children: uiTexts.monthLabel
                         }
                       ),
                       /* @__PURE__ */ jsxs(
@@ -1386,7 +1410,7 @@ function SelectDateFieldInner(props) {
                               {
                                 IconComponent: () => null,
                                 MenuProps: selectMenuProps,
-                                inputProps: { "aria-label": "Select month" },
+                                inputProps: { "aria-label": uiTexts.selectMonthAriaLabel },
                                 onChange: (e) => setViewMonth(Number(e.target.value)),
                                 size: "small",
                                 value: viewMonth,
@@ -1421,7 +1445,7 @@ function SelectDateFieldInner(props) {
                         {
                           sx: { fontSize: 10, color: "grey.500", lineHeight: 1, mb: 0.25, textAlign: "center" },
                           variant: "caption",
-                          children: "Year"
+                          children: uiTexts.yearLabel
                         }
                       ),
                       /* @__PURE__ */ jsxs(
@@ -1434,7 +1458,7 @@ function SelectDateFieldInner(props) {
                               {
                                 IconComponent: () => null,
                                 MenuProps: selectMenuProps,
-                                inputProps: { "aria-label": "Select year" },
+                                inputProps: { "aria-label": uiTexts.selectYearAriaLabel },
                                 onChange: (e) => setViewYear(Number(e.target.value)),
                                 size: "small",
                                 value: viewYear,
@@ -1467,7 +1491,7 @@ function SelectDateFieldInner(props) {
                   gridTemplateColumns: "repeat(7, 1fr)",
                   mb: 0.5
                 },
-                children: DAY_HEADERS.map((h) => /* @__PURE__ */ jsx(
+                children: dayHeaders.map((h, idx) => /* @__PURE__ */ jsx(
                   Box4,
                   {
                     sx: {
@@ -1479,7 +1503,7 @@ function SelectDateFieldInner(props) {
                     },
                     children: h
                   },
-                  h
+                  `${idx}-${h}`
                 ))
               }
             ),
@@ -1557,14 +1581,14 @@ function SelectDateFieldInner(props) {
                     size: "small",
                     startIcon: /* @__PURE__ */ jsx(CalendarTodayIcon, { sx: { fontSize: "16px !important" } }),
                     variant: "text",
-                    children: "Today"
+                    children: uiTexts.todayLabel
                   }
                 ),
-                /* @__PURE__ */ jsx(Button, { onClick: handleClear, size: "small", sx: { color: "grey.500" }, variant: "text", children: "Clear" })
+                /* @__PURE__ */ jsx(Button, { onClick: handleClear, size: "small", sx: { color: "grey.500" }, variant: "text", children: uiTexts.clearLabel })
               ]
             }
           ),
-          /* @__PURE__ */ jsx(Box4, { sx: { px: 1.5, pb: 1.5 }, children: /* @__PURE__ */ jsx(Typography, { sx: { fontSize: 11, color: "grey.400" }, children: "Cursor keys can navigate dates" }) })
+          /* @__PURE__ */ jsx(Box4, { sx: { px: 1.5, pb: 1.5 }, children: /* @__PURE__ */ jsx(Typography, { sx: { fontSize: 11, color: "grey.400" }, children: uiTexts.keyboardHint }) })
         ]
       }
     )

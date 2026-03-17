@@ -11,6 +11,7 @@ const intlMiddleware = createMiddleware({
 });
 
 const publicPaths = ["/login", "/register", "/forgot-password", "/pricing", "/reset-password"];
+const refreshCookieNames = ["supportops_refresh_token", "refresh_token"];
 
 function getLocaleFromPath(pathname: string): string {
   const match = pathname.match(/^\/(en|vi)(\/|$)/);
@@ -23,7 +24,7 @@ export default function middleware(request: NextRequest) {
 
   const pathWithoutLocale = pathname.replace(/^\/(en|vi)/, "") || "/";
   const isPublicRoute = publicPaths.some((path) => pathWithoutLocale.startsWith(path));
-  const hasRefreshToken = request.cookies.has("supportops_refresh_token");
+  const hasRefreshToken = refreshCookieNames.some((cookieName) => request.cookies.has(cookieName));
 
   if (!isPublicRoute && !hasRefreshToken) {
     const locale = getLocaleFromPath(pathname);

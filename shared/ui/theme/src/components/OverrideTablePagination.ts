@@ -1,4 +1,4 @@
-import type { Theme} from '@mui/material';
+import type {Theme} from '@mui/material'
 import {Button} from '@mui/material'
 import type {Components} from '@mui/material/styles'
 import {
@@ -7,7 +7,6 @@ import {
   RiArrowRightDoubleLine,
   RiArrowRightSLine,
 } from '@remixicon/react'
-
 
 export function OverrideTablePagination(theme: Theme): Components['MuiTablePagination'] {
   const {grey} = theme.palette

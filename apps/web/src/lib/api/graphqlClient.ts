@@ -12,6 +12,29 @@ type GraphqlResponse<TData> = {
   errors?: GraphqlError[];
 };
 
+async function tryRefreshToken(): Promise<boolean> {
+  try {
+    const response = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`, {
+      method: "POST",
+      credentials: "include"
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const payload = (await response.json()) as { data?: { accessToken?: string } };
+    if (!payload.data?.accessToken) {
+      return false;
+    }
+
+    tokenManager.setAccessToken(payload.data.accessToken);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function getGraphqlEndpoint(): string {
   const baseUrl = env.NEXT_PUBLIC_API_BASE_URL.replace(/\/api\/v\d+\/?$/, "");
   return `${baseUrl}/graphql`;
@@ -21,17 +44,26 @@ export async function graphqlQuery<TData, TVariables extends Record<string, unkn
   document: string | TypedDocumentNode<TData, TVariables>,
   variables?: TVariables
 ): Promise<TData> {
+  const execute = async () =>
+    fetch(getGraphqlEndpoint(), {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(tokenManager.getAccessToken() ? { Authorization: `Bearer ${tokenManager.getAccessToken()}` } : {})
+      },
+      body: JSON.stringify({ query, variables })
+    });
+
   const query = typeof document === "string" ? document : print(document);
-  const accessToken = tokenManager.getAccessToken();
-  const response = await fetch(getGraphqlEndpoint(), {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
-    },
-    body: JSON.stringify({ query, variables })
-  });
+  let response = await execute();
+
+  if (response.status === 401) {
+    const refreshed = await tryRefreshToken();
+    if (refreshed) {
+      response = await execute();
+    }
+  }
 
   if (!response.ok) {
     throw new Error(`GraphQL request failed with status ${response.status}`);

@@ -1,0 +1,15 @@
+.content {
+  flex: 1;
+  min-height: 0;
+  margin: 6px 4px 4px 0;
+  border: 1px solid var(--mui-palette-divider);
+  border-radius: 8px;
+  background: var(--mui-palette-background-paper);
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 16px;
+  }
+}

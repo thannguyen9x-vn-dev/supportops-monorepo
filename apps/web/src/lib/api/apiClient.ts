@@ -47,6 +47,38 @@ class HttpClient {
     endpoint: string,
     config: RequestConfigWithBody = {}
   ): Promise<ApiResponse<T>> {
+    try {
+      const response = await this.fetchWithAuthRetry(method, endpoint, config);
+
+      if (response.status === 204) {
+        return { data: null as T };
+      }
+
+      return (await response.json()) as ApiResponse<T>;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw new ApiError(408, {
+          code: "REQUEST_TIMEOUT",
+          message: "Request timed out"
+        });
+      }
+
+      throw new ApiError(0, {
+        code: "NETWORK_ERROR",
+        message: "Network error — please check your connection"
+      });
+    }
+  }
+
+  private async fetchWithAuthRetry(
+    method: string,
+    endpoint: string,
+    config: RequestConfigWithBody = {}
+  ): Promise<Response> {
     const {
       params,
       skipAuth = false,
@@ -99,12 +131,10 @@ class HttpClient {
         credentials: "include"
       });
 
-      clearTimeout(timeoutId);
-
       if (response.status === 401 && !skipAuth) {
         const refreshed = await this.tryRefreshToken();
         if (refreshed) {
-          return this.request<T>(method, endpoint, {
+          return this.fetchWithAuthRetry(method, endpoint, {
             ...config,
             skipAuth: false
           });
@@ -112,7 +142,10 @@ class HttpClient {
 
         tokenManager.clear();
         if (typeof window !== "undefined") {
-          window.location.href = "/login";
+          const loginPath = this.getLoginRedirectPath(window.location.pathname);
+          if (loginPath && window.location.pathname !== loginPath) {
+            window.location.replace(loginPath);
+          }
         }
       }
 
@@ -134,30 +167,28 @@ class HttpClient {
         throw new ApiError(response.status, errorDetail);
       }
 
-      if (response.status === 204) {
-        return { data: null as T };
-      }
-
-      return (await response.json()) as ApiResponse<T>;
+      clearTimeout(timeoutId);
+      return response;
     } catch (error) {
       clearTimeout(timeoutId);
-
-      if (error instanceof ApiError) {
-        throw error;
-      }
-
-      if (error instanceof DOMException && error.name === "AbortError") {
-        throw new ApiError(408, {
-          code: "REQUEST_TIMEOUT",
-          message: "Request timed out"
-        });
-      }
-
-      throw new ApiError(0, {
-        code: "NETWORK_ERROR",
-        message: "Network error — please check your connection"
-      });
+      throw error;
     }
+  }
+
+  private getLoginRedirectPath(pathname: string): string | null {
+    const publicPaths = ["/login", "/register", "/forgot-password", "/pricing", "/reset-password"];
+    const localeMatch = pathname.match(/^\/(en|vi)(?=\/|$)/);
+    const locale = localeMatch?.[1] ?? "en";
+    const pathWithoutLocale = pathname.replace(/^\/(en|vi)(?=\/|$)/, "") || "/";
+    const isPublicRoute = publicPaths.some(
+      (path) => pathWithoutLocale === path || pathWithoutLocale.startsWith(`${path}/`)
+    );
+
+    if (isPublicRoute) {
+      return null;
+    }
+
+    return `/${locale}/login`;
   }
 
   private async tryRefreshToken(): Promise<boolean> {
@@ -221,6 +252,11 @@ class HttpClient {
 
   upload<T>(endpoint: string, formData: FormData, config?: RequestConfig) {
     return this.request<T>("POST", endpoint, { ...config, body: formData });
+  }
+
+  async download(endpoint: string, config?: RequestConfig): Promise<Blob> {
+    const response = await this.fetchWithAuthRetry("GET", endpoint, config);
+    return response.blob();
   }
 }
 

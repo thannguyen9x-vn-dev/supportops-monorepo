@@ -13,10 +13,12 @@ type AuthGuardProps = {
 };
 
 const routeRoleAccess: Array<{ pathPrefix: string; roles: UserRole[] }> = [
-  { pathPrefix: "/projects", roles: ["ADMIN", "SUPER_ADMIN"] },
+  { pathPrefix: "/requests", roles: ["ADMIN", "SUPER_ADMIN"] },
   { pathPrefix: "/team", roles: ["ADMIN", "SUPER_ADMIN"] },
-  { pathPrefix: "/calendar", roles: ["ADMIN", "SUPER_ADMIN"] },
   { pathPrefix: "/reports", roles: ["ADMIN", "SUPER_ADMIN"] },
+  { pathPrefix: "/settings/workflow", roles: ["ADMIN", "SUPER_ADMIN"] },
+  { pathPrefix: "/settings/sla", roles: ["ADMIN", "SUPER_ADMIN"] },
+  { pathPrefix: "/settings/service-types", roles: ["ADMIN", "SUPER_ADMIN"] },
 ];
 
 function getPathWithoutLocale(pathname: string): string {

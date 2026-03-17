@@ -9,7 +9,9 @@
       "team": "Đội ngũ",
       "projects": "Dự án",
       "calendar": "Lịch",
-      "loginRegister": "Đăng nhập/Đăng ký"
+      "loginRegister": "Đăng nhập/Đăng ký",
+      "requests": "Yêu cầu",
+      "settings": "Cài đặt"
     },
     "common": {
       "emailLabel": "Email của bạn",
@@ -114,12 +116,17 @@
     "reports": "Báo cáo",
     "reportsOverview": "Tổng quan",
     "reportsPerformance": "Hiệu suất",
-    "settings": "Cài đặt"
+    "settings": "Cài đặt",
+    "requests": "Yêu cầu",
+    "workflowConfig": "Cấu hình workflow",
+    "slaPolicy": "Chính sách SLA",
+    "serviceTypes": "Loại dịch vụ"
   },
   "header": {
     "searchPlaceholder": "Tìm kiếm...",
     "toggleNavigationAriaLabel": "Mở hoặc thu gọn menu điều hướng",
     "closeNavigationAriaLabel": "Đóng menu điều hướng",
+    "languageMenuAriaLabel": "Mở menu ngôn ngữ",
     "notificationsAriaLabel": "Thông báo",
     "userMenuAriaLabel": "Mở menu người dùng",
     "profile": "Hồ sơ",
@@ -219,6 +226,84 @@
         "unsavedChanges": "Có thay đổi chưa lưu",
         "discardAll": "Bỏ tất cả",
         "saveAll": "Lưu tất cả"
+      }
+    },
+    "requests": {
+      "list": {
+        "title": "Yêu cầu",
+        "subtitle": "Quản lý và phân công các yêu cầu vận hành dịch vụ",
+        "tabs": {
+          "allRequests": "Tất cả yêu cầu",
+          "submittedTriage": "Đã gửi/Phân loại",
+          "unassigned": "Chưa phân công",
+          "slaRisk": "Rủi ro SLA",
+          "escalated": "Đã leo thang",
+          "closed": "Đã đóng"
+        },
+        "actions": {
+          "newRequest": "Yêu cầu mới",
+          "showFilters": "Hiện bộ lọc",
+          "hideFilters": "Ẩn bộ lọc",
+          "clear": "Xóa",
+          "apply": "Áp dụng"
+        },
+        "filters": {
+          "searchPlaceholder": "Tìm kiếm yêu cầu",
+          "status": "Trạng thái",
+          "serviceType": "Loại dịch vụ",
+          "assignee": "Người phụ trách",
+          "location": "Địa điểm",
+          "slaHealth": "Tình trạng SLA",
+          "updatedToday": "Cập nhật hôm nay",
+          "all": "Tất cả"
+        },
+        "columns": {
+          "requestCode": "Mã yêu cầu",
+          "title": "Tiêu đề",
+          "serviceType": "Loại dịch vụ",
+          "status": "Trạng thái",
+          "priority": "Mức ưu tiên",
+          "assignee": "Người phụ trách",
+          "location": "Địa điểm",
+          "updatedAt": "Cập nhật lúc",
+          "slaHealth": "Tình trạng SLA",
+          "slaDue": "Hạn SLA",
+          "actions": "Hành động"
+        },
+        "status": {
+          "Open": "Mở",
+          "In Progress": "Đang xử lý",
+          "On Hold": "Tạm dừng"
+        },
+        "priority": {
+          "Low": "Thấp",
+          "Medium": "Trung bình",
+          "High": "Cao",
+          "Critical": "Nghiêm trọng"
+        },
+        "slaHealth": {
+          "On Track": "Đúng tiến độ",
+          "At Risk": "Có rủi ro",
+          "Overdue": "Quá hạn"
+        },
+        "serviceType": {
+          "Office Type": "Dịch vụ văn phòng",
+          "Service Type": "Dịch vụ"
+        },
+        "assignee": {
+          "Unassigned": "Chưa phân công"
+        },
+        "location": {
+          "Office 1": "Văn phòng 1"
+        },
+        "pagination": {
+          "showing": "Hiển thị",
+          "rows": "Số dòng mỗi trang",
+          "outOf": "trên",
+          "previous": "Trang trước",
+          "next": "Trang sau"
+        },
+        "emptyState": "Không có yêu cầu phù hợp với bộ lọc hiện tại."
       }
     },
     "settings": {
@@ -412,6 +497,96 @@
           "COMPLETED": "Hoàn tất",
           "IN_PROGRESS": "Đang xử lý",
           "CANCELLED": "Đã hủy"
+        }
+      }
+    },
+    "serviceOps": {
+      "phase1": "Giai đoạn 1",
+      "phase3": "Giai đoạn 3",
+      "phase4": "Giai đoạn 4",
+      "requestList": {
+        "title": "Danh sách yêu cầu",
+        "description": "Hàng đợi trung tâm cho yêu cầu dịch vụ nội bộ với trạng thái, người phụ trách, độ ưu tiên và SLA."
+      },
+      "requestDetail": {
+        "title": "Chi tiết yêu cầu #{id}",
+        "description": "Trang chi tiết theo timeline với hành động theo vai trò, trạng thái hiện tại và luật workflow."
+      },
+      "requestCreate": {
+        "title": "Tạo yêu cầu",
+        "description": "Form tiếp nhận yêu cầu theo loại dịch vụ, trường bắt buộc và trạng thái khởi tạo."
+      },
+      "workflowConfig": {
+        "title": "Định nghĩa workflow",
+        "description": "Cấu hình trạng thái và chuyển trạng thái theo vai trò cho từng loại dịch vụ."
+      },
+      "slaPolicy": {
+        "title": "Chính sách SLA",
+        "description": "Định nghĩa thời hạn xử lý, ngưỡng quá hạn và quy tắc escalation."
+      },
+      "serviceTypes": {
+        "title": "Loại dịch vụ",
+        "description": "Quản lý nhóm dịch vụ, form tiếp nhận và ràng buộc workflow/SLA mặc định."
+      },
+      "requestCreateForm": {
+        "kicker": "Ảnh chụp UI desktop độ trung thực cao",
+        "title": "Tạo yêu cầu mới",
+        "submitSuccess": "Gửi yêu cầu thành công",
+        "draftSaved": "Lưu nháp thành công",
+        "sections": {
+          "additional": "Thông tin bổ sung (Không bắt buộc)"
+        },
+        "fields": {
+          "serviceType": "Loại dịch vụ *",
+          "title": "Tiêu đề *",
+          "description": "Mô tả *",
+          "location": "Vị trí *",
+          "priority": "Mức ưu tiên *",
+          "assetId": "Mã tài sản",
+          "attachments": "Tệp đính kèm",
+          "impactLevel": "Mức độ ảnh hưởng",
+          "urgency": "Độ khẩn cấp",
+          "preferredContact": "Thông tin liên hệ ưu tiên"
+        },
+        "validation": {
+          "required": "Trường này là bắt buộc",
+          "titleRequired": "Cần nhập tiêu đề để gửi."
+        },
+        "hints": {
+          "title": "Gợi ý: Mô tả cụ thể, ví dụ: “Máy lạnh bị rò nước tại Phòng Server B.”"
+        },
+        "actions": {
+          "saveDraft": "Lưu nháp",
+          "submit": "Gửi yêu cầu"
+        },
+        "attachments": {
+          "dropzone": "Kéo thả tệp vào đây hoặc bấm để chọn",
+          "remove": "Xóa"
+        },
+        "priority": {
+          "low": "Thấp",
+          "medium": "Trung bình",
+          "high": "Cao",
+          "critical": "Nghiêm trọng"
+        },
+        "impact": {
+          "department": "Phòng ban",
+          "team": "Nhóm",
+          "organization": "Toàn công ty"
+        },
+        "urgency": {
+          "low": "Thấp",
+          "medium": "Trung bình",
+          "high": "Cao"
+        },
+        "summary": {
+          "title": "Tóm tắt yêu cầu",
+          "serviceType": "Loại dịch vụ",
+          "priority": "Mức ưu tiên",
+          "location": "Vị trí",
+          "expectedSla": "SLA dự kiến xử lý",
+          "hours": "Giờ",
+          "visibility": "Hiển thị với đội Facilities và quản lý trực tiếp của bạn."
         }
       }
     }

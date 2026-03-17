@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { SidebarProvider } from "../../context/SidebarContext";
+import { ContentLayout } from "../ContentLayout/ContentLayout";
 import { Header } from "../Header/Header";
 import { Sidebar } from "../Sidebar/Sidebar";
 import styles from "./dashboard-layout.module.css";
@@ -16,10 +17,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <Sidebar />
         <div className={styles.main}>
           <Header />
-          <main className={styles.content}>{children}</main>
+          <ContentLayout>{children}</ContentLayout>
         </div>
       </div>
     </SidebarProvider>
   );
 }
-

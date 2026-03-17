@@ -1,0 +1,81 @@
+.pageWrap {
+  padding: 16px;
+}
+
+.kicker {
+  margin-bottom: 10px;
+  color: #5f6c7b;
+}
+
+.surface {
+  border-radius: 14px;
+  border: 1px solid #d8dee7;
+  background: #f8fafc;
+}
+
+.pageTitle {
+  margin-bottom: 18px;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.dropzone {
+  width: 100%;
+  border: 1px dashed #bec9d9;
+  border-radius: 10px;
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #f9fbff;
+  cursor: pointer;
+}
+
+.dropzone:hover {
+  border-color: #6b8ecf;
+  background: #f2f7ff;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.fileRow {
+  border: 1px solid #dde4ef;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.summaryCard {
+  position: sticky;
+  top: 84px;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.summaryValue {
+  text-align: right;
+}
+
+.slaBox {
+  margin-top: 4px;
+  border-radius: 8px;
+  border: 1px solid #e0e7f0;
+  background: #f4f7fb;
+  padding: 10px 12px;
+}
+
+@media (max-width: 1199px) {
+  .summaryCard {
+    position: static;
+  }
+}
