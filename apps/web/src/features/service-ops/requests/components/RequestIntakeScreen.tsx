@@ -23,7 +23,7 @@ import {
 import { SelectOptionField, TextAreaField, TextInputField } from "@supportops/ui-form";
 import { useTranslations } from "next-intl";
 import { useMemo, useRef, useState, type ChangeEventHandler } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import styles from "./request-intake-screen.module.css";
 
@@ -80,13 +80,14 @@ export function RequestIntakeScreen() {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-    watch,
   } = useForm<RequestIntakeFormValues>({
     defaultValues: DEFAULT_VALUES,
     mode: "onSubmit",
   });
 
-  const watched = watch();
+  const watched = useWatch({
+    control,
+  });
 
   const priorityOptions = useMemo(
     () => [

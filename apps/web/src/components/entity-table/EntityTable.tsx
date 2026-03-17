@@ -5,7 +5,7 @@ import { flexRender } from "@tanstack/react-table";
 import type { CellContext, ColumnDef, HeaderContext } from "@tanstack/react-table";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import { Box, IconButton, Stack } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 
 import { DataTable, useDataTable } from "@supportops/ui";
 import type { DataTablePaginationLabels } from "@supportops/ui";
@@ -13,7 +13,6 @@ import type { DataTablePaginationLabels } from "@supportops/ui";
 import { EntityListFilters } from "@/features/layout/components/EntityListFilters/EntityListFilters";
 
 import { EntityTableProvider } from "./EntityTableContext";
-import { ColumnVisibilityPopover } from "./ColumnVisibilityPopover";
 import styles from "./entity-table.module.css";
 import type { EntityColumnDef, EntityTableInstance, FilterSlotProps } from "./types";
 
@@ -61,9 +60,6 @@ export function EntityTable<TData extends object, TFilters extends object>({
     sorting,
     setSorting,
     columnVisibility,
-    toggleColumn,
-    showAllColumns,
-    isColumnVisible,
   } = entityTable;
 
   // ── Build TanStack columns — inject editCell / editHeader ─────────────────

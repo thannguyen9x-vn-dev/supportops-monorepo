@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import type { EntityTabsInstance } from "./types";
 
@@ -53,24 +53,13 @@ export function TabPanel<TKey extends string>({
   className,
   style,
 }: TabPanelProps<TKey>) {
-  const { activeKey, mountPolicy, instanceId } = instance;
+  const { activeKey, mountPolicy, instanceId, visitedKeys } = instance;
   const isActive = activeKey === tabKey;
-
-  // Track whether this panel has ever been active (for "lazy" policy)
-  const hasBeenActiveRef = useRef(isActive);
-  const [hasBeenActive, setHasBeenActive] = useState(isActive);
-
-  useEffect(() => {
-    if (isActive && !hasBeenActiveRef.current) {
-      hasBeenActiveRef.current = true;
-      setHasBeenActive(true);
-    }
-  }, [isActive]);
 
   // Decide whether to render children based on mount policy
   const shouldRender =
     mountPolicy === "eager" ||
-    (mountPolicy === "lazy" && hasBeenActive) ||
+    (mountPolicy === "lazy" && visitedKeys.has(tabKey)) ||
     (mountPolicy === "strict" && isActive);
 
   return (

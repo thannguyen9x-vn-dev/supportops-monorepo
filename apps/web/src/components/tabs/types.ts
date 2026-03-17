@@ -41,6 +41,7 @@ export type EntityTabsInstance<TKey extends string = string> = {
   items: TabItem<TKey>[];
   activeKey: TKey;
   setActiveKey: (key: TKey) => void;
+  visitedKeys: ReadonlySet<TKey>;
   mountPolicy: TabPanelMountPolicy;
   /** Stable ID used to generate aria-* attributes. Unique per hook call. */
   instanceId: string;

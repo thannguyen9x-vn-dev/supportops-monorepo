@@ -14,7 +14,7 @@ export class ResetPasswordDto {
   @Matches(/.*[a-z].*/, { message: 'At least one lowercase character' })
   @Matches(/.*[A-Z].*/, { message: 'At least one uppercase character' })
   @Matches(/.*[0-9].*/, { message: 'At least one number' })
-  @Matches(/.*[!@#$%^&*(),.?\":{}|<>].*/, { message: 'At least one special character' })
+  @Matches(/.*[!@#$%^&*(),.?":{}|<>].*/, { message: 'At least one special character' })
   newPassword!: string;
 
   @ApiProperty({ example: 'StrongPassw0rd!' })

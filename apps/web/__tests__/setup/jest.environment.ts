@@ -37,7 +37,7 @@ export default class CustomJSDOMEnvironment extends JSDOMEnvironment {
 
     // Polyfill TextEncoder / TextDecoder (missing in some jsdom versions)
     if (typeof this.global.TextEncoder === "undefined") {
-      const { TextEncoder, TextDecoder } = require("util") as typeof import("util");
+      const { TextEncoder, TextDecoder } = (await import("node:util")) as typeof import("node:util");
       this.global.TextEncoder = TextEncoder as unknown as typeof TextEncoder;
       this.global.TextDecoder = TextDecoder as unknown as typeof TextDecoder;
     }
@@ -45,7 +45,7 @@ export default class CustomJSDOMEnvironment extends JSDOMEnvironment {
     // Polyfill Web Streams API (TransformStream, ReadableStream, WritableStream)
     // Required by @mswjs/interceptors for brotli decompression support
     if (typeof this.global.TransformStream === "undefined") {
-      const webStreams = require("stream/web") as typeof import("stream/web");
+      const webStreams = (await import("node:stream/web")) as typeof import("node:stream/web");
       this.global.TransformStream = webStreams.TransformStream as unknown as typeof TransformStream;
       this.global.ReadableStream = webStreams.ReadableStream as unknown as typeof ReadableStream;
       this.global.WritableStream = webStreams.WritableStream as unknown as typeof WritableStream;
@@ -54,7 +54,7 @@ export default class CustomJSDOMEnvironment extends JSDOMEnvironment {
     // Polyfill BroadcastChannel (Node 15+, but missing in jsdom@20)
     // Required by MSW v2 for WebSocket interceptor coordination
     if (typeof this.global.BroadcastChannel === "undefined") {
-      const { BroadcastChannel } = require("worker_threads") as typeof import("worker_threads");
+      const { BroadcastChannel } = (await import("node:worker_threads")) as typeof import("node:worker_threads");
       this.global.BroadcastChannel = BroadcastChannel as unknown as typeof globalThis.BroadcastChannel;
     }
   }
