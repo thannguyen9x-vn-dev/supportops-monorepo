@@ -6,6 +6,7 @@ import {
   getSortedRowModel,
   useReactTable,
   type ColumnFiltersState,
+  type ColumnPinningState,
   type PaginationState,
   type RowSelectionState,
   type SortingState,
@@ -26,18 +27,33 @@ export function useDataTable<T>(options: UseDataTableOptions<T>) {
     pageSize = 20,
     enableSelection = false,
     enableInlineEdit = false,
-    onStateChange
+    onStateChange,
+    pinnedColumns,
+    defaultColumn,
+    sorting: externalSorting,
+    onSortingChange: externalOnSortingChange,
+    columnVisibility: externalColumnVisibility,
   } = options;
 
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [internalSorting, setInternalSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [internalColumnVisibility, setInternalColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex,
     pageSize
   });
+  const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({
+    left: pinnedColumns?.left ?? [],
+    right: pinnedColumns?.right ?? []
+  });
+
+  // Use external state if provided, otherwise use internal state
+  const sorting = externalSorting !== undefined ? externalSorting : internalSorting;
+  const setSorting = externalOnSortingChange !== undefined ? externalOnSortingChange : setInternalSorting;
+  const columnVisibility = externalColumnVisibility !== undefined ? externalColumnVisibility : internalColumnVisibility;
+  const setColumnVisibility = externalColumnVisibility !== undefined ? () => {} : setInternalColumnVisibility;
 
   const inlineEdit = useTableInlineEdit<T>({ enabled: enableInlineEdit });
 
@@ -68,13 +84,15 @@ export function useDataTable<T>(options: UseDataTableOptions<T>) {
   const table = useReactTable({
     data,
     columns,
+    defaultColumn: defaultColumn ?? { size: 180, minSize: 120, maxSize: 400 },
     state: {
       sorting,
       columnFilters,
       globalFilter,
       columnVisibility,
       rowSelection,
-      pagination
+      pagination,
+      columnPinning
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -82,6 +100,7 @@ export function useDataTable<T>(options: UseDataTableOptions<T>) {
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onPaginationChange: setPagination,
+    onColumnPinningChange: setColumnPinning,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: serverSide ? undefined : getSortedRowModel(),
     getFilteredRowModel: serverSide ? undefined : getFilteredRowModel(),

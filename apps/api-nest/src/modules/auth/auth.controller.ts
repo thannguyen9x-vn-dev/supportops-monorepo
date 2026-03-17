@@ -15,6 +15,8 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
+  private static readonly REFRESH_COOKIE_NAME = 'supportops_refresh_token';
+
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
@@ -94,16 +96,28 @@ export class AuthController {
     }
 
     const maxAgeSeconds = this.configService.get<number>('jwt.refreshTokenTtlSeconds', 604800);
-    response.cookie('refresh_token', refreshToken, {
+    response.cookie(AuthController.REFRESH_COOKIE_NAME, refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/api/v1/auth',
+      path: '/',
       maxAge: maxAgeSeconds * 1000,
     });
   }
 
   private clearRefreshCookie(response: Response): void {
+    response.clearCookie(AuthController.REFRESH_COOKIE_NAME, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+    response.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
     response.clearCookie('refresh_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -121,8 +135,19 @@ export class AuthController {
     const tokenPart = rawCookie
       .split(';')
       .map((part) => part.trim())
-      .find((part) => part.startsWith('refresh_token='));
+      .find(
+        (part) =>
+          part.startsWith(`${AuthController.REFRESH_COOKIE_NAME}=`) || part.startsWith('refresh_token='),
+      );
 
-    return tokenPart ? decodeURIComponent(tokenPart.slice('refresh_token='.length)) : undefined;
+    if (!tokenPart) {
+      return undefined;
+    }
+
+    const nameLength = tokenPart.startsWith(`${AuthController.REFRESH_COOKIE_NAME}=`)
+      ? `${AuthController.REFRESH_COOKIE_NAME}=`.length
+      : 'refresh_token='.length;
+
+    return decodeURIComponent(tokenPart.slice(nameLength));
   }
 }

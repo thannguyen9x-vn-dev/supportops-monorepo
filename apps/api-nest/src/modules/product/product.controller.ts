@@ -39,7 +39,7 @@ export class ProductController {
     return this.productService.list(tenantId, query);
   }
 
-  @Get(':id([0-9a-fA-F-]{36})')
+  @Get(':id')
   @ApiOperation({ summary: 'Get product by ID' })
   getById(@CurrentTenant() tenantId: string, @Param('id', ParseUUIDPipe) id: string): Promise<ProductResponseDto> {
     return this.productService.getById(tenantId, id);
@@ -53,7 +53,7 @@ export class ProductController {
     return this.productService.create(tenantId, dto);
   }
 
-  @Put(':id([0-9a-fA-F-]{36})')
+  @Put(':id')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @ApiOperation({ summary: 'Update product' })
   update(
@@ -64,7 +64,7 @@ export class ProductController {
     return this.productService.update(tenantId, id, dto);
   }
 
-  @Delete(':id([0-9a-fA-F-]{36})')
+  @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @ApiOperation({ summary: 'Delete product' })

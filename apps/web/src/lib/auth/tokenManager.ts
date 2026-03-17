@@ -20,18 +20,8 @@ class TokenManager {
   private accessToken: string | null = null;
 
   getAccessToken(): string | null {
-    if (typeof window === "undefined") {
-      return null;
-    }
-
     if (this.accessToken) {
       return this.accessToken;
-    }
-
-    const stored = sessionStorage.getItem(env.ACCESS_TOKEN_KEY);
-    if (stored) {
-      this.accessToken = stored;
-      return stored;
     }
 
     return null;
@@ -39,9 +29,6 @@ class TokenManager {
 
   setAccessToken(token: string): void {
     this.accessToken = token;
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem(env.ACCESS_TOKEN_KEY, token);
-    }
   }
 
   getRefreshToken(): string | null {
@@ -68,9 +55,9 @@ class TokenManager {
   clear(): void {
     this.accessToken = null;
     if (typeof window !== "undefined") {
-      sessionStorage.removeItem(env.ACCESS_TOKEN_KEY);
       localStorage.removeItem(env.REFRESH_TOKEN_KEY);
       document.cookie = `${env.REFRESH_TOKEN_KEY}=; Path=/; Max-Age=0; SameSite=Lax`;
+      document.cookie = `refresh_token=; Path=/; Max-Age=0; SameSite=Lax`;
     }
   }
 

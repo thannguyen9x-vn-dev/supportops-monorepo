@@ -17,7 +17,7 @@ export default function LocaleNotFoundPage() {
       <header className={styles.header}>
         <div className={styles.brand}>
           <span className={styles.brandMark}>D</span>
-          <span>SupportOps</span>
+          <span>ServiceOps</span>
         </div>
 
         <nav className={styles.nav}>
@@ -25,8 +25,8 @@ export default function LocaleNotFoundPage() {
             Dashboard
           </Link>
           <Link href={`/${locale}/team`}>Team</Link>
-          <Link href={`/${locale}/projects`}>Projects</Link>
-          <Link href={`/${locale}/calendar`}>Calendar</Link>
+          <Link href={`/${locale}/requests/list`}>Requests</Link>
+          <Link href={`/${locale}/settings`}>Settings</Link>
         </nav>
 
         <Link className={styles.ctaLink} href={`/${locale}/login`}>

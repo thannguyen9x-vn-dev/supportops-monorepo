@@ -19,15 +19,15 @@ export default async function AuthLayout({
       <header className={styles.header}>
         <div className={styles.brand}>
           <span className={styles.brandMark}>D</span>
-          <span>SupportOps</span>
+          <span>ServiceOps</span>
         </div>
         <nav className={styles.nav}>
           <Link className="active" href={`/${locale}`}>
             {t("dashboard")}
           </Link>
           <Link href={`/${locale}/team`}>{t("team")}</Link>
-          <Link href={`/${locale}/projects`}>{t("projects")}</Link>
-          <Link href={`/${locale}/calendar`}>{t("calendar")}</Link>
+          <Link href={`/${locale}/requests/list`}>{t("requests")}</Link>
+          <Link href={`/${locale}/settings`}>{t("settings")}</Link>
         </nav>
         <Link className={styles.ctaLink} href={`/${locale}/login`}>
           {t("loginRegister")}

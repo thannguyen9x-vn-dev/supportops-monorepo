@@ -21,6 +21,38 @@ export interface UseDataTableOptions<T> {
   enableColumnVisibility?: boolean;
   enableInlineEdit?: boolean;
   onStateChange?: (state: DataTableState) => void;
+
+  /**
+   * Columns to pin. TanStack handles offset calculation automatically.
+   * Pinned columns will be sticky left/right in the DataTable.
+   */
+  pinnedColumns?: {
+    left?: string[];
+    right?: string[];
+  };
+
+  /**
+   * Fallback size for columns that don't declare an explicit size.
+   * Applied as TanStack's `defaultColumn` option.
+   */
+  defaultColumn?: {
+    size?: number;
+    minSize?: number;
+    maxSize?: number;
+  };
+
+  /**
+   * External sorting state (controlled mode).
+   * If provided, this will be used instead of internal state.
+   */
+  sorting?: SortingState;
+  onSortingChange?: (sorting: SortingState | ((prev: SortingState) => SortingState)) => void;
+
+  /**
+   * External column visibility state (controlled mode).
+   * If provided, this will be used instead of internal state.
+   */
+  columnVisibility?: VisibilityState;
 }
 
 export interface DataTableState {

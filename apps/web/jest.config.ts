@@ -7,7 +7,11 @@ const createJestConfig = nextJest({
 
 const config: Config = {
   displayName: "web",
-  testEnvironment: "jsdom",
+  // Custom test environment: extends jsdom with Fetch API polyfills required by MSW v2.
+  // jest-environment-jsdom@29 uses jsdom@20 which lacks Response/Request/Headers/fetch.
+  testEnvironment: "<rootDir>/__tests__/setup/jest.environment.ts",
+  // Custom resolver to handle pnpm + MSW v2 subpath exports (msw/node, @mswjs/interceptors/*)
+  resolver: "<rootDir>/jest.resolver.cjs",
   setupFilesAfterEnv: ["<rootDir>/__tests__/setup/jest.setup.ts"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
@@ -16,7 +20,10 @@ const config: Config = {
     "^@supportops/ui-theme$": "<rootDir>/../../shared/ui/theme/src",
     "^@supportops/ui-form$": "<rootDir>/../../shared/ui/form/src",
     "^@supportops/ui-avatar$": "<rootDir>/../../shared/ui/avatar/dist",
-    "^@supportops/ui-file-upload$": "<rootDir>/../../shared/ui/file-upload/dist"
+    "^@supportops/ui-file-upload$": "<rootDir>/../../shared/ui/file-upload/dist",
+    // until-async is ESM-only ("type": "module") which Jest's CJS mode cannot process.
+    // Map it to a CJS stub with the same API to avoid "Unexpected token 'export'" errors.
+    "^until-async$": "<rootDir>/__tests__/mocks/until-async.js",
   },
   testMatch: ["<rootDir>/src/**/*.test.{ts,tsx}", "<rootDir>/__tests__/**/*.test.{ts,tsx}"],
   testPathIgnorePatterns: ["/node_modules/", "/e2e/", "/.next/"],

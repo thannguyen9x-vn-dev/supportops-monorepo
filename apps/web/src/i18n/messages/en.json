@@ -9,7 +9,9 @@
       "team": "Team",
       "projects": "Projects",
       "calendar": "Calendar",
-      "loginRegister": "Login/Register"
+      "loginRegister": "Login/Register",
+      "requests": "Requests",
+      "settings": "Settings"
     },
     "common": {
       "emailLabel": "Your email",
@@ -114,12 +116,17 @@
     "reports": "Reports",
     "reportsOverview": "Overview",
     "reportsPerformance": "Performance",
-    "settings": "Settings"
+    "settings": "Settings",
+    "requests": "Requests",
+    "workflowConfig": "Workflow Config",
+    "slaPolicy": "SLA Policy",
+    "serviceTypes": "Service Types"
   },
   "header": {
     "searchPlaceholder": "Search...",
     "toggleNavigationAriaLabel": "Toggle navigation",
     "closeNavigationAriaLabel": "Close navigation",
+    "languageMenuAriaLabel": "Open language menu",
     "notificationsAriaLabel": "Notifications",
     "userMenuAriaLabel": "Open user menu",
     "profile": "Profile",
@@ -219,6 +226,84 @@
         "unsavedChanges": "Unsaved changes",
         "discardAll": "Discard all",
         "saveAll": "Save all"
+      }
+    },
+    "requests": {
+      "list": {
+        "title": "Requests",
+        "subtitle": "Manage and assign operational service requests",
+        "tabs": {
+          "allRequests": "All Requests",
+          "submittedTriage": "Submitted/Triage",
+          "unassigned": "Unassigned",
+          "slaRisk": "SLA Risk",
+          "escalated": "Escalated",
+          "closed": "Closed"
+        },
+        "actions": {
+          "newRequest": "New Request",
+          "showFilters": "Show Filters",
+          "hideFilters": "Hide Filters",
+          "clear": "Clear",
+          "apply": "Apply"
+        },
+        "filters": {
+          "searchPlaceholder": "Search requests",
+          "status": "Status",
+          "serviceType": "Service Type",
+          "assignee": "Assignee",
+          "location": "Location",
+          "slaHealth": "SLA Health",
+          "updatedToday": "Updated today",
+          "all": "All"
+        },
+        "columns": {
+          "requestCode": "Request Code",
+          "title": "Title",
+          "serviceType": "Service Type",
+          "status": "Status",
+          "priority": "Priority",
+          "assignee": "Assignee",
+          "location": "Location",
+          "updatedAt": "Updated At",
+          "slaHealth": "SLA Health",
+          "slaDue": "SLA Due",
+          "actions": "Actions"
+        },
+        "status": {
+          "Open": "Open",
+          "In Progress": "In Progress",
+          "On Hold": "On Hold"
+        },
+        "priority": {
+          "Low": "Low",
+          "Medium": "Medium",
+          "High": "High",
+          "Critical": "Critical"
+        },
+        "slaHealth": {
+          "On Track": "On Track",
+          "At Risk": "At Risk",
+          "Overdue": "Overdue"
+        },
+        "serviceType": {
+          "Office Type": "Office Type",
+          "Service Type": "Service Type"
+        },
+        "assignee": {
+          "Unassigned": "Unassigned"
+        },
+        "location": {
+          "Office 1": "Office 1"
+        },
+        "pagination": {
+          "showing": "Showing",
+          "rows": "Rows per page",
+          "outOf": "out of",
+          "previous": "Previous page",
+          "next": "Next page"
+        },
+        "emptyState": "No requests match current filters."
       }
     },
     "settings": {
@@ -412,6 +497,96 @@
           "COMPLETED": "Completed",
           "IN_PROGRESS": "In progress",
           "CANCELLED": "Cancelled"
+        }
+      }
+    },
+    "serviceOps": {
+      "phase1": "Phase 1",
+      "phase3": "Phase 3",
+      "phase4": "Phase 4",
+      "requestList": {
+        "title": "Request List",
+        "description": "Central queue for internal service requests with status, assignee, priority, and SLA indicators."
+      },
+      "requestDetail": {
+        "title": "Request Detail #{id}",
+        "description": "Timeline-centric request detail with actions gated by role, current state, and workflow rules."
+      },
+      "requestCreate": {
+        "title": "Create Request",
+        "description": "Request intake form driven by service type, required fields, and initial workflow state."
+      },
+      "workflowConfig": {
+        "title": "Workflow Definitions",
+        "description": "Configure statuses and role-based transitions for each service type."
+      },
+      "slaPolicy": {
+        "title": "SLA Policies",
+        "description": "Define due-time rules, overdue thresholds, and escalation triggers."
+      },
+      "serviceTypes": {
+        "title": "Service Types",
+        "description": "Manage service categories, intake forms, and default workflow/SLA bindings."
+      },
+      "requestCreateForm": {
+        "kicker": "High-fidelity desktop web UI screenshot",
+        "title": "Create New Request",
+        "submitSuccess": "Request submitted successfully",
+        "draftSaved": "Draft saved successfully",
+        "sections": {
+          "additional": "Additional Details (Optional)"
+        },
+        "fields": {
+          "serviceType": "Service Type *",
+          "title": "Title *",
+          "description": "Description *",
+          "location": "Location *",
+          "priority": "Priority *",
+          "assetId": "Asset ID",
+          "attachments": "Attachments",
+          "impactLevel": "Impact Level",
+          "urgency": "Urgency",
+          "preferredContact": "Preferred Contact Info"
+        },
+        "validation": {
+          "required": "This field is required",
+          "titleRequired": "Title is required to submit."
+        },
+        "hints": {
+          "title": "Tip: Be specific, e.g., “AC unit leaking in Server Room B.”"
+        },
+        "actions": {
+          "saveDraft": "Save Draft",
+          "submit": "Submit Request"
+        },
+        "attachments": {
+          "dropzone": "Drag files here or browse",
+          "remove": "Remove"
+        },
+        "priority": {
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High",
+          "critical": "Critical"
+        },
+        "impact": {
+          "department": "Department",
+          "team": "Team",
+          "organization": "Organization"
+        },
+        "urgency": {
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        },
+        "summary": {
+          "title": "Request Summary",
+          "serviceType": "Service Type",
+          "priority": "Priority",
+          "location": "Location",
+          "expectedSla": "Expected SLA Resolution",
+          "hours": "Hours",
+          "visibility": "Visibility: Viewable by Facilities Team and your direct manager."
         }
       }
     }

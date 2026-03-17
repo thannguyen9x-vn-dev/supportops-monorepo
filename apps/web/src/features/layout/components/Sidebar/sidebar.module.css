@@ -1,15 +1,38 @@
 .sidebar {
   width: 280px;
-  height: 100vh;
+  height: calc(100% - 8px);
+  margin-left: 4px;
+  margin-top: 4px;
+  margin-bottom: 4px;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--mui-palette-divider);
+  border: 1px solid var(--mui-palette-divider);
+  border-radius: 8px;
+  overflow: hidden;
   background: var(--mui-palette-background-paper);
   transition: width 0.2s ease, transform 0.2s ease;
 }
 
 .collapsed {
   width: 84px;
+}
+
+.collapsed .brand {
+  justify-content: center;
+  padding: 0;
+}
+
+.collapsed .nav {
+  padding: 16px 8px;
+}
+
+.collapsed .item {
+  width: 40px;
+  min-height: 40px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0;
+  justify-content: center;
 }
 
 .brand {
@@ -187,6 +210,11 @@
     z-index: 40;
     top: 0;
     left: 0;
+    height: 100dvh;
+    margin-left: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    border-radius: 0;
     transform: translateX(-100%);
     width: 280px;
     box-shadow: var(--mui-shadows-5);

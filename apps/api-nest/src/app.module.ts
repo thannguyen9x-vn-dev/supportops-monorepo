@@ -13,7 +13,16 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
 import { TenantContextInterceptor } from './common/interceptors/tenant-context.interceptor';
 import { TraceIdInterceptor } from './common/interceptors/trace-id.interceptor';
-import { AuthModule } from './modules/auth/auth.module';
+import { AuthCoreModule } from './modules/core/auth/auth-core.module';
+import { AuditCoreModule } from './modules/core/audit/audit-core.module';
+import { CommentCoreModule } from './modules/core/comment/comment-core.module';
+import { NotificationCoreModule } from './modules/core/notification/notification-core.module';
+import { PermissionCoreModule } from './modules/core/permission/permission-core.module';
+import { RoleCoreModule } from './modules/core/role/role-core.module';
+import { TenantCoreModule } from './modules/core/tenant/tenant-core.module';
+import { UserCoreModule } from './modules/core/user/user-core.module';
+import { WorkItemCoreModule } from './modules/core/work-item/work-item-core.module';
+import { WorkflowCoreModule } from './modules/core/workflow/workflow-core.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { FileModule } from './modules/file/file.module';
@@ -21,9 +30,14 @@ import { InvoiceModule } from './modules/invoice/invoice.module';
 import { KanbanModule } from './modules/kanban/kanban.module';
 import { MessageModule } from './modules/message/message.module';
 import { ProductModule } from './modules/product/product.module';
+import { AssetModule } from './modules/service-ops/asset/asset.module';
+import { AssignmentModule } from './modules/service-ops/assignment/assignment.module';
+import { EscalationModule } from './modules/service-ops/escalation/escalation.module';
+import { RequestModule } from './modules/service-ops/request/request.module';
+import { ResolutionModule } from './modules/service-ops/resolution/resolution.module';
+import { SlaModule } from './modules/service-ops/sla/sla.module';
+import { WorkLogModule } from './modules/service-ops/work-log/work-log.module';
 import { SubscriptionModule } from './modules/subscription/subscription.module';
-import { TenantModule } from './modules/tenant/tenant.module';
-import { UserModule } from './modules/user/user.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -34,9 +48,26 @@ import { PrismaModule } from './prisma/prisma.module';
       load: [appConfig, databaseConfig, jwtConfig],
     }),
     PrismaModule,
-    TenantModule,
-    AuthModule,
-    UserModule,
+    // TeamOps core layer
+    TenantCoreModule,
+    AuthCoreModule,
+    UserCoreModule,
+    RoleCoreModule,
+    PermissionCoreModule,
+    WorkItemCoreModule,
+    WorkflowCoreModule,
+    CommentCoreModule,
+    NotificationCoreModule,
+    AuditCoreModule,
+    // ServiceOps business layer
+    RequestModule,
+    AssignmentModule,
+    SlaModule,
+    EscalationModule,
+    AssetModule,
+    WorkLogModule,
+    ResolutionModule,
+    // Legacy modules (to be removed phase-by-phase)
     ProductModule,
     KanbanModule,
     MessageModule,

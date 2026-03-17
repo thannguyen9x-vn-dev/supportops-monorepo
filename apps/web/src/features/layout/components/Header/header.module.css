@@ -1,8 +1,11 @@
 .header {
-  min-height: 68px;
-  border-bottom: 1px solid #e5e7eb;
+  min-height: 56px;
+  margin-top: 4px;
+  margin-right: 4px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   background: #ffffff;
-  padding: 0 18px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -20,6 +23,24 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.languageButton {
+  height: 32px;
+  min-width: 58px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #111827;
+}
+
+.languageCode {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .search {
@@ -75,4 +96,3 @@
     display: none;
   }
 }
-

@@ -107,17 +107,31 @@ function useDataTable(options) {
     pageSize = 20,
     enableSelection = false,
     enableInlineEdit = false,
-    onStateChange
+    onStateChange,
+    pinnedColumns,
+    defaultColumn,
+    sorting: externalSorting,
+    onSortingChange: externalOnSortingChange,
+    columnVisibility: externalColumnVisibility
   } = options;
-  const [sorting, setSorting] = useState([]);
+  const [internalSorting, setInternalSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
-  const [columnVisibility, setColumnVisibility] = useState({});
+  const [internalColumnVisibility, setInternalColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState({
     pageIndex,
     pageSize
   });
+  const [columnPinning, setColumnPinning] = useState({
+    left: pinnedColumns?.left ?? [],
+    right: pinnedColumns?.right ?? []
+  });
+  const sorting = externalSorting !== void 0 ? externalSorting : internalSorting;
+  const setSorting = externalOnSortingChange !== void 0 ? externalOnSortingChange : setInternalSorting;
+  const columnVisibility = externalColumnVisibility !== void 0 ? externalColumnVisibility : internalColumnVisibility;
+  const setColumnVisibility = externalColumnVisibility !== void 0 ? () => {
+  } : setInternalColumnVisibility;
   const inlineEdit = useTableInlineEdit({ enabled: enableInlineEdit });
   useEffect(() => {
     setPagination(
@@ -142,13 +156,15 @@ function useDataTable(options) {
   const table = useReactTable({
     data,
     columns,
+    defaultColumn: defaultColumn ?? { size: 180, minSize: 120, maxSize: 400 },
     state: {
       sorting,
       columnFilters,
       globalFilter,
       columnVisibility,
       rowSelection,
-      pagination
+      pagination,
+      columnPinning
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -156,6 +172,7 @@ function useDataTable(options) {
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onPaginationChange: setPagination,
+    onColumnPinningChange: setColumnPinning,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: serverSide ? void 0 : getSortedRowModel(),
     getFilteredRowModel: serverSide ? void 0 : getFilteredRowModel(),
@@ -822,51 +839,211 @@ function useToast(options = {}) {
 function cn(...classes) {
   return classes.filter(Boolean).join(" ");
 }
+function getPageItems(pageIndex, pageCount) {
+  const currentPage = pageIndex + 1;
+  if (pageCount <= 8) {
+    return Array.from({ length: pageCount }, (_, index) => index + 1);
+  }
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, "ellipsis", pageCount];
+  }
+  if (currentPage >= pageCount - 3) {
+    return [1, "ellipsis", pageCount - 4, pageCount - 3, pageCount - 2, pageCount - 1, pageCount];
+  }
+  return [1, "ellipsis", currentPage - 1, currentPage, currentPage + 1, "ellipsis", pageCount];
+}
 function DataTablePagination({
   table,
   totalRows,
-  pageSizeOptions = [10, 20, 30, 50, 100]
+  pageSizeOptions = [10, 20, 30, 50, 100],
+  labels
 }) {
   const pageIndex = table.getState().pagination.pageIndex;
   const pageSize = table.getState().pagination.pageSize;
   const total = totalRows ?? table.getRowCount();
   const pageCount = table.getPageCount();
+  const pageItems = getPageItems(pageIndex, pageCount);
   const from = total === 0 ? 0 : pageIndex * pageSize + 1;
   const to = Math.min((pageIndex + 1) * pageSize, total);
-  return /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between gap-4 px-2", children: [
-    /* @__PURE__ */ jsxs("div", { className: "text-sm text-gray-500", children: [
-      "Showing ",
-      from,
-      "-",
-      to,
-      " of ",
-      total
-    ] }),
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
-      /* @__PURE__ */ jsx("span", { className: "text-sm text-gray-500", children: "Rows" }),
-      /* @__PURE__ */ jsx(
-        "select",
-        {
-          className: "rounded border px-2 py-1 text-sm",
-          onChange: (event) => table.setPageSize(Number(event.target.value)),
-          value: pageSize,
-          children: pageSizeOptions.map((size) => /* @__PURE__ */ jsx("option", { value: size, children: size }, size))
-        }
-      )
-    ] }),
-    /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
-      /* @__PURE__ */ jsx("button", { className: "rounded border px-2 py-1 text-sm disabled:opacity-30", disabled: !table.getCanPreviousPage(), onClick: () => table.firstPage(), type: "button", children: "\xAB\xAB" }),
-      /* @__PURE__ */ jsx("button", { className: "rounded border px-2 py-1 text-sm disabled:opacity-30", disabled: !table.getCanPreviousPage(), onClick: () => table.previousPage(), type: "button", children: "\xAB" }),
-      /* @__PURE__ */ jsxs("span", { className: "px-2 text-sm", children: [
-        "Page ",
-        pageIndex + 1,
-        " of ",
-        pageCount
-      ] }),
-      /* @__PURE__ */ jsx("button", { className: "rounded border px-2 py-1 text-sm disabled:opacity-30", disabled: !table.getCanNextPage(), onClick: () => table.nextPage(), type: "button", children: "\xBB" }),
-      /* @__PURE__ */ jsx("button", { className: "rounded border px-2 py-1 text-sm disabled:opacity-30", disabled: !table.getCanNextPage(), onClick: () => table.lastPage(), type: "button", children: "\xBB\xBB" })
-    ] })
-  ] });
+  const showingCount = total === 0 ? 0 : to - from + 1;
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      style: {
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "16px",
+        padding: "12px 0 0 0",
+        boxSizing: "border-box"
+      },
+      children: [
+        /* @__PURE__ */ jsx(
+          "div",
+          {
+            style: {
+              color: "var(--mui-palette-text-secondary)",
+              fontSize: "14px",
+              lineHeight: 1.4,
+              minWidth: "200px"
+            },
+            children: labels?.showing ? labels.showing(from, to, total) : `Showing ${showingCount} ${labels?.outOf ?? "out of"} ${total}`
+          }
+        ),
+        /* @__PURE__ */ jsxs("div", { style: { display: "flex", alignItems: "center", gap: "14px", justifyContent: "center", flex: 1 }, children: [
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              "aria-label": labels?.previous ?? "Previous page",
+              disabled: !table.getCanPreviousPage(),
+              onClick: () => table.previousPage(),
+              style: {
+                width: "32px",
+                height: "32px",
+                borderRadius: "6px",
+                border: "none",
+                background: "transparent",
+                color: "var(--mui-palette-text-secondary)",
+                opacity: table.getCanPreviousPage() ? 1 : 0.4,
+                cursor: table.getCanPreviousPage() ? "pointer" : "not-allowed",
+                fontSize: "24px",
+                lineHeight: 1
+              },
+              type: "button",
+              children: "\u2039"
+            }
+          ),
+          pageItems.map(
+            (item, index) => item === "ellipsis" ? /* @__PURE__ */ jsx(
+              "span",
+              {
+                style: { width: "24px", textAlign: "center", color: "var(--mui-palette-text-secondary)" },
+                children: "..."
+              },
+              `ellipsis-${index}`
+            ) : /* @__PURE__ */ jsx(
+              "button",
+              {
+                "aria-label": `Page ${item}`,
+                "aria-current": item === pageIndex + 1 ? "page" : void 0,
+                onClick: () => table.setPageIndex(item - 1),
+                style: {
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "6px",
+                  border: item === pageIndex + 1 ? "1px solid rgba(var(--mui-palette-primary-mainChannel) / 0.28)" : "1px solid var(--mui-palette-divider)",
+                  background: item === pageIndex + 1 ? "rgba(var(--mui-palette-primary-mainChannel) / 0.1)" : "transparent",
+                  color: item === pageIndex + 1 ? "var(--mui-palette-primary-main)" : "var(--mui-palette-text-secondary)",
+                  fontWeight: item === pageIndex + 1 ? 700 : 500,
+                  fontSize: "14px",
+                  cursor: "pointer"
+                },
+                type: "button",
+                children: item
+              },
+              `page-${item}`
+            )
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              "aria-label": labels?.next ?? "Next page",
+              disabled: !table.getCanNextPage(),
+              onClick: () => table.nextPage(),
+              style: {
+                width: "32px",
+                height: "32px",
+                borderRadius: "6px",
+                border: "none",
+                background: "transparent",
+                color: "var(--mui-palette-text-secondary)",
+                opacity: table.getCanNextPage() ? 1 : 0.4,
+                cursor: table.getCanNextPage() ? "pointer" : "not-allowed",
+                fontSize: "24px",
+                lineHeight: 1
+              },
+              type: "button",
+              children: "\u203A"
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxs(
+          "label",
+          {
+            style: {
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "10px",
+              color: "var(--mui-palette-text-secondary)",
+              fontSize: "14px",
+              marginLeft: "auto"
+            },
+            children: [
+              /* @__PURE__ */ jsx("span", { children: labels?.rows ?? "Rows per page" }),
+              /* @__PURE__ */ jsxs(
+                "span",
+                {
+                  style: {
+                    position: "relative",
+                    display: "inline-flex",
+                    alignItems: "center"
+                  },
+                  children: [
+                    /* @__PURE__ */ jsx(
+                      "select",
+                      {
+                        "aria-label": labels?.rows ?? "Rows per page",
+                        onChange: (event) => table.setPageSize(Number(event.target.value)),
+                        style: {
+                          height: "40px",
+                          minWidth: "76px",
+                          borderRadius: "8px",
+                          border: "1px solid var(--mui-palette-divider)",
+                          background: "var(--mui-palette-background-paper)",
+                          color: "var(--mui-palette-text-primary)",
+                          padding: "0 36px 0 12px",
+                          appearance: "none",
+                          WebkitAppearance: "none",
+                          MozAppearance: "none"
+                        },
+                        value: pageSize,
+                        children: pageSizeOptions.map((size) => /* @__PURE__ */ jsx("option", { value: size, children: size }, size))
+                      }
+                    ),
+                    /* @__PURE__ */ jsx(
+                      "span",
+                      {
+                        "aria-hidden": true,
+                        style: {
+                          position: "absolute",
+                          right: "12px",
+                          pointerEvents: "none",
+                          color: "var(--mui-palette-text-secondary)",
+                          display: "inline-flex",
+                          alignItems: "center"
+                        },
+                        children: /* @__PURE__ */ jsx("svg", { fill: "none", height: "20", viewBox: "0 0 20 20", width: "20", children: /* @__PURE__ */ jsx(
+                          "path",
+                          {
+                            d: "M6 8l4 4 4-4",
+                            stroke: "currentColor",
+                            strokeLinecap: "round",
+                            strokeLinejoin: "round",
+                            strokeWidth: "1.8"
+                          }
+                        ) })
+                      }
+                    )
+                  ]
+                }
+              )
+            ]
+          }
+        )
+      ]
+    }
+  );
 }
 function DataTableToolbar({
   selectedCount = 0,
@@ -895,6 +1072,24 @@ function DataTableToolbar({
     ] })
   ] });
 }
+var ROW_HEIGHT = {
+  comfortable: 56,
+  compact: 44
+};
+var HEADER_HEIGHT = 48;
+function getStickyStyle(pinned, offsetLeft, offsetRight, background, zIndex) {
+  if (!pinned) return {};
+  return {
+    position: "sticky",
+    left: pinned === "left" ? offsetLeft : void 0,
+    right: pinned === "right" ? offsetRight : void 0,
+    zIndex,
+    background,
+    // Shadow separates the sticky cell from scrolling content.
+    // box-shadow avoids the double-border issue that border causes.
+    boxShadow: pinned === "left" ? "2px 0 4px -2px rgba(0,0,0,0.10)" : "-2px 0 4px -2px rgba(0,0,0,0.10)"
+  };
+}
 function DataTable({
   table,
   totalRows,
@@ -909,53 +1104,196 @@ function DataTable({
   highlightDirtyRows,
   dirtyRowIds,
   emptyState,
-  rowClassName
+  rowClassName,
+  paginationLabels,
+  rowDensity = "comfortable",
+  bodyHeight,
+  bodyMaxHeight
 }) {
   const rows = table.getRowModel().rows;
-  return /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
-    /* @__PURE__ */ jsx(
-      DataTableToolbar,
-      {
-        dirtyRowCount,
-        onBulkDelete,
-        onDiscardAll,
-        onExport,
-        onSaveAll,
-        selectedCount,
-        table
-      }
-    ),
-    /* @__PURE__ */ jsx("div", { className: cn("overflow-hidden rounded-md border", isLoading ? "pointer-events-none opacity-60" : ""), children: /* @__PURE__ */ jsxs("table", { className: "w-full text-sm", children: [
-      /* @__PURE__ */ jsx("thead", { className: "border-b bg-gray-50", children: table.getHeaderGroups().map((headerGroup) => /* @__PURE__ */ jsx("tr", { children: headerGroup.headers.map((header) => /* @__PURE__ */ jsx(
-        "th",
-        {
-          className: "px-4 py-3 text-left font-medium text-gray-500",
-          style: { width: header.getSize() },
-          children: header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())
-        },
-        header.id
-      )) }, headerGroup.id)) }),
-      /* @__PURE__ */ jsx("tbody", { children: rows.length === 0 ? /* @__PURE__ */ jsx("tr", { children: /* @__PURE__ */ jsx("td", { className: "py-16 text-center text-gray-400", colSpan: table.getAllColumns().length, children: emptyState ?? "No data found" }) }) : rows.map((row) => {
-        const isDirty = highlightDirtyRows && dirtyRowIds?.has(row.id);
-        return /* @__PURE__ */ jsx(
-          "tr",
+  const visibleColumns = table.getVisibleLeafColumns();
+  const rowHeight = ROW_HEIGHT[rowDensity];
+  const tableMinWidth = visibleColumns.reduce((sum, col) => sum + col.getSize(), 0);
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        minHeight: 0,
+        height: "100%"
+      },
+      children: [
+        /* @__PURE__ */ jsx(
+          DataTableToolbar,
           {
-            className: cn(
-              "border-b transition-colors hover:bg-gray-50/60",
-              row.getIsSelected() ? "bg-blue-50/50" : "",
-              isDirty ? "border-l-4 border-l-yellow-400 bg-yellow-50/50" : "",
-              onRowClick ? "cursor-pointer" : "",
-              rowClassName?.(row.original)
-            ),
-            onClick: () => onRowClick?.(row.original),
-            children: row.getVisibleCells().map((cell) => /* @__PURE__ */ jsx("td", { className: "px-4 py-3", children: flexRender(cell.column.columnDef.cell, cell.getContext()) }, cell.id))
-          },
-          row.id
-        );
-      }) })
-    ] }) }),
-    /* @__PURE__ */ jsx(DataTablePagination, { table, totalRows })
-  ] });
+            dirtyRowCount,
+            onBulkDelete,
+            onDiscardAll,
+            onExport,
+            onSaveAll,
+            selectedCount,
+            table
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "div",
+          {
+            style: {
+              borderRadius: 8,
+              border: "1px solid var(--mui-palette-divider)",
+              overflow: "hidden",
+              opacity: isLoading ? 0.6 : 1,
+              pointerEvents: isLoading ? "none" : "auto",
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 0,
+              flex: 1
+            },
+            children: /* @__PURE__ */ jsx(
+              "div",
+              {
+                style: {
+                  overflowX: "auto",
+                  overflowY: "auto",
+                  height: bodyHeight,
+                  maxHeight: bodyMaxHeight,
+                  flex: bodyHeight ? void 0 : 1,
+                  minHeight: 0
+                },
+                children: /* @__PURE__ */ jsxs(
+                  "table",
+                  {
+                    style: {
+                      tableLayout: "fixed",
+                      width: "100%",
+                      minWidth: tableMinWidth,
+                      borderCollapse: "collapse",
+                      fontSize: 14,
+                      fontWeight: 400
+                    },
+                    children: [
+                      /* @__PURE__ */ jsx("colgroup", { children: visibleColumns.map((col) => /* @__PURE__ */ jsx("col", { style: { width: col.getSize() } }, col.id)) }),
+                      /* @__PURE__ */ jsx(
+                        "thead",
+                        {
+                          style: {
+                            borderBottom: "1px solid var(--mui-palette-divider)",
+                            background: "var(--mui-palette-grey-50)"
+                          },
+                          children: table.getHeaderGroups().map((headerGroup) => /* @__PURE__ */ jsx("tr", { children: headerGroup.headers.map((header, headerIndex) => {
+                            const pinned = header.column.getIsPinned();
+                            const isLastColumn = headerIndex === headerGroup.headers.length - 1;
+                            return /* @__PURE__ */ jsx(
+                              "th",
+                              {
+                                className: "text-left font-medium text-gray-500",
+                                style: {
+                                  height: HEADER_HEIGHT,
+                                  padding: "0 16px",
+                                  verticalAlign: "middle",
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  fontSize: 13,
+                                  fontWeight: 600,
+                                  textAlign: isLastColumn ? "right" : "left",
+                                  borderRight: isLastColumn ? "none" : "1px solid var(--mui-palette-divider)",
+                                  borderBottom: "1px solid var(--mui-palette-divider)",
+                                  ...getStickyStyle(
+                                    pinned,
+                                    header.column.getStart("left"),
+                                    header.column.getAfter("right"),
+                                    "var(--mui-palette-grey-50)",
+                                    // Pinned header sits above pinned body cells
+                                    3
+                                  )
+                                },
+                                children: header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())
+                              },
+                              header.id
+                            );
+                          }) }, headerGroup.id))
+                        }
+                      ),
+                      /* @__PURE__ */ jsx("tbody", { children: rows.length === 0 ? /* @__PURE__ */ jsx("tr", { children: /* @__PURE__ */ jsx(
+                        "td",
+                        {
+                          colSpan: visibleColumns.length,
+                          style: { padding: "64px 0", textAlign: "center", color: "var(--mui-palette-text-secondary)" },
+                          children: emptyState ?? "No data found"
+                        }
+                      ) }) : rows.map((row) => {
+                        const isDirty = highlightDirtyRows && dirtyRowIds?.has(row.id);
+                        const isSelected = row.getIsSelected();
+                        const rowBg = isSelected ? "var(--mui-palette-action-selected)" : isDirty ? "rgba(234, 179, 8, 0.05)" : "var(--mui-palette-background-paper)";
+                        return /* @__PURE__ */ jsx(
+                          "tr",
+                          {
+                            className: cn(
+                              "transition-colors hover:bg-gray-50/60",
+                              isSelected ? "bg-blue-50/50" : "",
+                              isDirty ? "border-l-4 border-l-yellow-400 bg-yellow-50/50" : "",
+                              onRowClick ? "cursor-pointer" : "",
+                              rowClassName?.(row.original)
+                            ),
+                            onClick: () => onRowClick?.(row.original),
+                            children: row.getVisibleCells().map((cell, cellIndex) => {
+                              const pinned = cell.column.getIsPinned();
+                              const isLastColumn = cellIndex === row.getVisibleCells().length - 1;
+                              return /* @__PURE__ */ jsx(
+                                "td",
+                                {
+                                  style: {
+                                    height: rowHeight,
+                                    padding: isLastColumn ? "0 8px 0 16px" : "0 16px",
+                                    verticalAlign: "middle",
+                                    fontSize: 14,
+                                    fontWeight: 400,
+                                    textAlign: isLastColumn ? "right" : "left",
+                                    borderRight: isLastColumn ? "none" : "1px solid var(--mui-palette-divider)",
+                                    borderBottom: "1px solid var(--mui-palette-divider)",
+                                    ...getStickyStyle(
+                                      pinned,
+                                      cell.column.getStart("left"),
+                                      cell.column.getAfter("right"),
+                                      rowBg,
+                                      1
+                                    )
+                                  },
+                                  children: /* @__PURE__ */ jsx(
+                                    "div",
+                                    {
+                                      style: {
+                                        overflow: isLastColumn ? "visible" : "hidden",
+                                        textOverflow: isLastColumn ? "clip" : "ellipsis",
+                                        whiteSpace: "nowrap",
+                                        maxWidth: "100%",
+                                        display: isLastColumn ? "flex" : "block",
+                                        justifyContent: isLastColumn ? "flex-end" : "flex-start"
+                                      },
+                                      children: flexRender(cell.column.columnDef.cell, cell.getContext())
+                                    }
+                                  )
+                                },
+                                cell.id
+                              );
+                            })
+                          },
+                          row.id
+                        );
+                      }) })
+                    ]
+                  }
+                )
+              }
+            )
+          }
+        ),
+        /* @__PURE__ */ jsx("div", { style: { marginTop: "auto" }, children: /* @__PURE__ */ jsx(DataTablePagination, { labels: paginationLabels, table, totalRows }) })
+      ]
+    }
+  );
 }
 function DataTableColumnHeader({ column, title }) {
   if (!column.getCanSort()) {

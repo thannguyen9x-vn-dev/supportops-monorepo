@@ -1,4 +1,7 @@
-export const ENDPOINTS = {
+import { CORE_ENDPOINTS } from "./core/endpoints";
+import { SERVICE_OPS_ENDPOINTS } from "./service-ops/endpoints";
+
+export const LEGACY_ENDPOINTS = {
   AUTH: {
     LOGIN: "/auth/login",
     REGISTER: "/auth/register",
@@ -88,4 +91,10 @@ export const ENDPOINTS = {
   FILES: {
     UPLOAD: "/files/upload"
   }
+} as const;
+
+export const ENDPOINTS = {
+  ...CORE_ENDPOINTS,
+  ...SERVICE_OPS_ENDPOINTS,
+  ...LEGACY_ENDPOINTS,
 } as const;
