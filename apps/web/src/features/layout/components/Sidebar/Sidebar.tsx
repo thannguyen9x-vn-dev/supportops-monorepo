@@ -1,6 +1,10 @@
 "use client";
 
+import FirstPageIcon from "@mui/icons-material/FirstPage";
+import LastPageIcon from "@mui/icons-material/LastPage";
 import { Avatar } from "@mui/material";
+import { IconButton } from "@mui/material";
+import Image from "next/image";
 import { useParams, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
@@ -61,7 +65,7 @@ function filterNavigationByRole(groups: NavGroup[], role?: UserRole): NavGroup[]
 export function Sidebar() {
   const { locale } = useParams<{ locale: string }>();
   const pathname = usePathname();
-  const { isCollapsed, isMobileOpen, closeMobileSidebar } = useSidebar();
+  const { isCollapsed, isMobileOpen, closeMobileSidebar, toggleSidebar } = useSidebar();
   const { user } = useAuth();
   const t = useTranslations();
   const roleLabel = user?.role.replace("_", " ") ?? "";
@@ -89,8 +93,37 @@ export function Sidebar() {
         ].join(" ")}
       >
         <div className={styles.brand}>
-          <span className={styles.brandMark}>D</span>
-          {!isCollapsed ? <span className={styles.brandName}>ServiceOps</span> : null}
+          {isCollapsed ? (
+            <IconButton
+              className={styles.toggleButton}
+              onClick={toggleSidebar}
+              size="small"
+              aria-label={t("header.toggleNavigationAriaLabel")}
+            >
+              <LastPageIcon />
+            </IconButton>
+          ) : (
+            <>
+              <div className={styles.brandIdentity}>
+                <Image
+                  className={styles.brandLogo}
+                  src="/icons/brand-mark.png"
+                  alt="ServiceOps logo"
+                  width={28}
+                  height={28}
+                />
+                <span className={styles.brandName}>ServiceOps</span>
+              </div>
+              <IconButton
+                className={styles.toggleButton}
+                onClick={toggleSidebar}
+                size="small"
+                aria-label={t("header.closeNavigationAriaLabel")}
+              >
+                <FirstPageIcon />
+              </IconButton>
+            </>
+          )}
         </div>
 
         <nav className={styles.nav}>
