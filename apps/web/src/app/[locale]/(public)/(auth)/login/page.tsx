@@ -71,7 +71,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.replace(`/${locale}/dashboard`);
+    router.replace(`/${locale}/requests/list`);
   }, [isAuthenticated, isLoading, locale, router, searchParams]);
 
   if (isLoading || isAuthenticated) {
@@ -105,7 +105,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.replace(`/${locale}/dashboard`);
+      router.replace(`/${locale}/requests/list`);
     } catch (error: unknown) {
       if (error instanceof ApiError && error.code === "EMAIL_NOT_VERIFIED") {
         setPendingVerificationEmail(data.email);
