@@ -1,9 +1,5 @@
 "use client";
 
-import AttachFileOutlinedIcon from "@mui/icons-material/AttachFileOutlined";
-import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
-import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import {
   Alert,
   Box,
@@ -20,12 +16,20 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import type { CreateServiceRequestInput, ServiceRequest } from "@supportops/types";
+import { DEFAULT_FILE_UPLOAD_CONFIG } from "@supportops/types";
 import { SelectOptionField, TextAreaField, TextInputField } from "@supportops/ui-form";
+import { FileUploadField, type UploadedFileInfo } from "@supportops/ui-file-upload";
 import { useTranslations } from "next-intl";
-import { useMemo, useRef, useState, type ChangeEventHandler } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useCallback, useMemo, useState } from "react";
+import { Controller, useForm, useWatch, type Control } from "react-hook-form";
 
 import styles from "./request-intake-screen.module.css";
+import { requestService } from "../services/request.service";
+import { fileService } from "@/features/files/services/file.service";
+import { useToast } from "@/features/common/toast/useToast";
+
+import { ApiError } from "@/lib/api";
 
 type RequestPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
@@ -36,57 +40,101 @@ type RequestIntakeFormValues = {
   location: string;
   priority: RequestPriority;
   assetId: string;
-  impactLevel: string;
-  urgency: string;
+  impactLevel: "" | "DEPARTMENT" | "TEAM" | "ORGANIZATION";
+  urgency: "" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   preferredContact: string;
 };
 
-type LocalAttachment = {
-  id: string;
-  fileName: string;
-  sizeLabel: string;
+
+export const REQUEST_INTAKE_FORM_ID = "create-request-form";
+
+type RequestIntakeScreenProps = {
+  modal?: boolean;
+  onSuccess?: (createdRequest: ServiceRequest) => void;
 };
 
 const DEFAULT_VALUES: RequestIntakeFormValues = {
-  serviceType: "HVAC",
+  serviceType: "",
   title: "",
-  description:
-    "The main AC unit in the server room is making loud noises and the temperature is rising rapidly.",
-  location: "HQ-FLOOR-2-SERVER-ROOM-B",
+  description: "",
+  location: "",
   priority: "HIGH",
-  assetId: "SRV-AC-02",
-  impactLevel: "DEPARTMENT",
-  urgency: "HIGH",
-  preferredContact: "Slack @john.doe",
+  assetId: "",
+  impactLevel: "",
+  urgency: "",
+  preferredContact: "",
 };
 
-function formatFileSize(size: number): string {
-  if (size >= 1024 * 1024) {
-    return `${(size / (1024 * 1024)).toFixed(1)}MB`;
-  }
 
-  return `${Math.max(1, Math.round(size / 1024))}KB`;
+function RequestSummaryCard({ control }: { control: Control<RequestIntakeFormValues> }) {
+  const t = useTranslations("pages.serviceOps.requestCreateForm");
+  const [serviceType, priority, location] = useWatch({
+    control,
+    name: ["serviceType", "priority", "location"],
+  });
+
+  return (
+    <Card className={styles.summaryCard} variant="outlined">
+      <CardContent>
+        <Typography gutterBottom variant="h6">
+          {t("summary.title")}
+        </Typography>
+
+        <Stack spacing={1.25}>
+          <Box className={styles.summaryRow}>
+            <Typography color="text.secondary" variant="body2">
+              {t("summary.serviceType")}
+            </Typography>
+            <Typography variant="body2">{serviceType}</Typography>
+          </Box>
+
+          <Box className={styles.summaryRow}>
+            <Typography color="text.secondary" variant="body2">
+              {t("summary.priority")}
+            </Typography>
+            <Typography variant="body2">{priority}</Typography>
+          </Box>
+
+          <Box className={styles.summaryRow}>
+            <Typography color="text.secondary" variant="body2">
+              {t("summary.location")}
+            </Typography>
+            <Typography className={styles.summaryValue} variant="body2">
+              {location}
+            </Typography>
+          </Box>
+
+          <Box className={styles.slaBox}>
+            <Typography fontWeight={700} variant="body2">
+              {t("summary.expectedSla")}
+            </Typography>
+            <Typography variant="body1">4 {t("summary.hours")}</Typography>
+          </Box>
+
+          <Typography color="text.secondary" variant="body2">
+            {t("summary.visibility")}
+          </Typography>
+        </Stack>
+      </CardContent>
+    </Card>
+  );
 }
 
-export function RequestIntakeScreen() {
+export function RequestIntakeScreen({ modal = false, onSuccess }: RequestIntakeScreenProps = {}) {
   const t = useTranslations("pages.serviceOps.requestCreateForm");
-  const [attachments, setAttachments] = useState<LocalAttachment[]>([
-    { id: "sample-1", fileName: "temperature_alert.png", sizeLabel: "1.2MB" },
-  ]);
+  const toast = useToast();
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFileInfo[]>([]);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-    watch,
   } = useForm<RequestIntakeFormValues>({
     defaultValues: DEFAULT_VALUES,
-    mode: "onSubmit",
+    mode: "onTouched",
   });
-
-  const watched = watch();
 
   const priorityOptions = useMemo(
     () => [
@@ -98,33 +146,242 @@ export function RequestIntakeScreen() {
     [t],
   );
 
+  const handleFileUpload = useCallback(
+    async (
+      file: { file: File },
+      onProgress: (event: { progress: number }) => void,
+    ): Promise<UploadedFileInfo> => {
+      // Simulate progress
+      const files = [file.file];
+
+      for (let i = 0; i <= 100; i += 20) {
+        onProgress({ progress: i });
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+
+      const uploadedFiles = await fileService.uploadFiles(files);
+      const uploadedFile = uploadedFiles[0];
+      if (!uploadedFile) {
+        throw new Error("Upload failed: no file returned");
+      }
+      return uploadedFile;
+    },
+    [],
+  );
+
   const onSubmit = async (values: RequestIntakeFormValues) => {
-    setSubmitMessage(`${t("submitSuccess")} (${values.priority})`);
+    setSubmitMessage(null);
+    setSubmitError(null);
+
+    const payload: CreateServiceRequestInput = {
+      mode: "submit",
+      serviceTypeCode: values.serviceType,
+      title: values.title.trim(),
+      description: values.description.trim(),
+      location: values.location,
+      priority: values.priority === "CRITICAL" ? "URGENT" : values.priority,
+      assetId: values.assetId.trim() || undefined,
+      impactLevel:
+        values.impactLevel === "DEPARTMENT"
+          ? "LOW"
+          : values.impactLevel === "TEAM"
+            ? "MEDIUM"
+            : values.impactLevel === "ORGANIZATION"
+              ? "HIGH"
+              : undefined,
+      urgency:
+        values.urgency === "CRITICAL"
+          ? "CRITICAL"
+          : values.urgency === ""
+            ? undefined
+            : values.urgency,
+      sourceChannel: "WEB",
+      preferredContact: values.preferredContact.trim() || undefined,
+      attachmentFileIds: uploadedFiles.map((f) => f.id),
+    };
+
+    try {
+      const { data } = await requestService.create(payload);
+      toast.success(t("submitSuccess"));
+
+      if (modal) {
+        onSuccess?.(data);
+      }
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSubmitError(error.error.message);
+        return;
+      }
+
+      setSubmitError("Unable to submit request. Please try again.");
+    }
   };
 
   const onSaveDraft = () => {
     setSubmitMessage(t("draftSaved"));
   };
 
-  const onPickFiles = () => {
-    fileInputRef.current?.click();
-  };
+  const formContent = (
+    <Stack component="form" id={modal ? REQUEST_INTAKE_FORM_ID : undefined} noValidate onSubmit={handleSubmit(onSubmit)} spacing={2.5}>
+      <SelectOptionField
+        control={control}
+        disableClearable
+        label={t("fields.serviceType")}
+        name="serviceType"
+        options={[
+          { label: "HVAC / Climate Control", value: "HVAC" },
+          { label: "Lighting", value: "LIGHTING" },
+          { label: "Water Leakage", value: "WATER" },
+          { label: "Access Card", value: "ACCESS" },
+        ]}
+        placeholder={t("placeholders.select")}
+        rules={{ required: t("validation.required") }}
+      />
 
-  const onFilesSelected: ChangeEventHandler<HTMLInputElement> = (event) => {
-    const files = Array.from(event.target.files ?? []);
-    if (!files.length) {
-      return;
-    }
+      <TextInputField
+        control={control}
+        helperText={errors.title ? t("validation.titleRequired") : t("hints.title")}
+        label={t("fields.title")}
+        name="title"
+        placeholder={t("placeholders.title")}
+        rules={{ required: t("validation.titleRequired") }}
+      />
 
-    const next = files.map((file) => ({
-      id: `${file.name}-${file.lastModified}`,
-      fileName: file.name,
-      sizeLabel: formatFileSize(file.size),
-    }));
+      <TextAreaField
+        control={control}
+        helperText={t("hints.description")}
+        label={t("fields.description")}
+        minRows={4}
+        name="description"
+        placeholder={t("placeholders.description")}
+        rules={{ required: t("validation.required") }}
+      />
 
-    setAttachments((current) => [...current, ...next].slice(0, 5));
-    event.currentTarget.value = "";
-  };
+      <SelectOptionField
+        control={control}
+        disableClearable
+        label={t("fields.location")}
+        name="location"
+        options={[
+          { label: "Headquarters - Floor 2 - Server Room B", value: "HQ-FLOOR-2-SERVER-ROOM-B" },
+          { label: "Headquarters - Floor 5 - Meeting Room C", value: "HQ-FLOOR-5-MEETING-ROOM-C" },
+          { label: "Branch Office - Ops Room", value: "BRANCH-OPS-ROOM" },
+        ]}
+        placeholder={t("placeholders.select")}
+        rules={{ required: t("validation.required") }}
+      />
+
+      <FormControl>
+        <FormLabel sx={{ color: "text.secondary" }}>{t("fields.priority")}</FormLabel>
+        <Controller
+          control={control}
+          name="priority"
+          render={({ field }) => (
+            <RadioGroup row {...field}>
+              {priorityOptions.map((option) => (
+                <FormControlLabel
+                  control={<Radio size="small" />}
+                  key={option.value}
+                  label={option.label}
+                  slotProps={{
+                    typography: {
+                      sx: { color: "text.primary" },
+                    },
+                  }}
+                  value={option.value}
+                />
+              ))}
+            </RadioGroup>
+          )}
+        />
+      </FormControl>
+
+      <Divider />
+
+      <Typography variant="h6">{t("sections.additional")}</Typography>
+
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <SelectOptionField
+            control={control}
+            disableClearable
+            label={t("fields.impactLevel")}
+            name="impactLevel"
+            options={[
+              { label: t("impact.department"), value: "DEPARTMENT" },
+              { label: t("impact.team"), value: "TEAM" },
+              { label: t("impact.organization"), value: "ORGANIZATION" },
+            ]}
+            placeholder={t("placeholders.select")}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 4 }}>
+          <SelectOptionField
+            control={control}
+            disableClearable
+            label={t("fields.urgency")}
+            name="urgency"
+            options={[
+              { label: t("urgency.low"), value: "LOW" },
+              { label: t("urgency.medium"), value: "MEDIUM" },
+              { label: t("urgency.high"), value: "HIGH" },
+            ]}
+            placeholder={t("placeholders.select")}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 4 }}>
+          <TextInputField
+            control={control}
+            label={t("fields.preferredContact")}
+            name="preferredContact"
+            placeholder={t("placeholders.preferredContact")}
+          />
+        </Grid>
+      </Grid>
+
+      <TextInputField
+        control={control}
+        label={t("fields.assetId")}
+        name="assetId"
+        placeholder={t("placeholders.assetId")}
+      />
+
+      <FileUploadField
+        accept={DEFAULT_FILE_UPLOAD_CONFIG.accept}
+        acceptedMimeTypes={DEFAULT_FILE_UPLOAD_CONFIG.allowedMimeTypes}
+        disabled={isSubmitting}
+        helperText={t("hints.attachments")}
+        label={t("fields.attachments")}
+        maxFiles={DEFAULT_FILE_UPLOAD_CONFIG.maxFiles}
+        maxFileSizeBytes={DEFAULT_FILE_UPLOAD_CONFIG.maxFileSizeBytes}
+        onChange={setUploadedFiles}
+        uploadFn={handleFileUpload}
+        value={uploadedFiles}
+      />
+
+      {!modal ? (
+        <>
+          <Divider />
+          <Stack direction="row" spacing={1.5}>
+            <Button disabled={isSubmitting} onClick={onSaveDraft} variant="outlined">
+              {t("actions.saveDraft")}
+            </Button>
+            <Button disabled={isSubmitting} type="submit" variant="contained">
+              {t("actions.submit")}
+            </Button>
+          </Stack>
+          {submitMessage ? <Alert severity="success">{submitMessage}</Alert> : null}
+        </>
+      ) : null}
+      {submitError ? <Alert severity="error">{submitError}</Alert> : null}
+    </Stack>
+  );
+
+  if (modal) {
+    return formContent;
+  }
 
   return (
     <Box className={styles.pageWrap}>
@@ -141,220 +398,12 @@ export function RequestIntakeScreen() {
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, lg: 8 }}>
               <Card variant="outlined">
-                <CardContent>
-                  <Stack component="form" noValidate onSubmit={handleSubmit(onSubmit)} spacing={2.5}>
-                    <SelectOptionField
-                      control={control}
-                      disableClearable
-                      label={t("fields.serviceType")}
-                      name="serviceType"
-                      options={[
-                        { label: "HVAC / Climate Control", value: "HVAC" },
-                        { label: "Lighting", value: "LIGHTING" },
-                        { label: "Water Leakage", value: "WATER" },
-                        { label: "Access Card", value: "ACCESS" },
-                      ]}
-                      rules={{ required: t("validation.required") }}
-                    />
-
-                    <TextInputField
-                      control={control}
-                      helperText={errors.title ? t("validation.titleRequired") : t("hints.title")}
-                      label={t("fields.title")}
-                      name="title"
-                      rules={{ required: t("validation.titleRequired") }}
-                      startIcon={errors.title ? <ErrorOutlineIcon color="error" fontSize="small" /> : undefined}
-                    />
-
-                    <TextAreaField
-                      control={control}
-                      label={t("fields.description")}
-                      minRows={4}
-                      name="description"
-                      rules={{ required: t("validation.required") }}
-                    />
-
-                    <SelectOptionField
-                      control={control}
-                      disableClearable
-                      label={t("fields.location")}
-                      name="location"
-                      options={[
-                        { label: "Headquarters - Floor 2 - Server Room B", value: "HQ-FLOOR-2-SERVER-ROOM-B" },
-                        { label: "Headquarters - Floor 5 - Meeting Room C", value: "HQ-FLOOR-5-MEETING-ROOM-C" },
-                        { label: "Branch Office - Ops Room", value: "BRANCH-OPS-ROOM" },
-                      ]}
-                      rules={{ required: t("validation.required") }}
-                    />
-
-                    <FormControl>
-                      <FormLabel>{t("fields.priority")}</FormLabel>
-                      <Controller
-                        control={control}
-                        name="priority"
-                        render={({ field }) => (
-                          <RadioGroup row {...field}>
-                            {priorityOptions.map((option) => (
-                              <FormControlLabel
-                                control={<Radio size="small" />}
-                                key={option.value}
-                                label={option.label}
-                                value={option.value}
-                              />
-                            ))}
-                          </RadioGroup>
-                        )}
-                      />
-                    </FormControl>
-
-                    <Divider />
-
-                    <Typography variant="h6">{t("sections.additional")}</Typography>
-
-                    <TextInputField control={control} label={t("fields.assetId")} name="assetId" />
-
-                    <Box>
-                      <Typography sx={{ mb: 1, fontWeight: 600 }} variant="body2">
-                        {t("fields.attachments")}
-                      </Typography>
-
-                      <button className={styles.dropzone} onClick={onPickFiles} type="button">
-                        <CloudUploadOutlinedIcon color="action" />
-                        <Typography color="text.secondary" variant="body2">
-                          {t("attachments.dropzone")}
-                        </Typography>
-                      </button>
-
-                      <input
-                        className={styles.hiddenInput}
-                        multiple
-                        onChange={onFilesSelected}
-                        ref={fileInputRef}
-                        type="file"
-                      />
-
-                      <Stack spacing={1} sx={{ mt: 1.2 }}>
-                        {attachments.map((file) => (
-                          <Box className={styles.fileRow} key={file.id}>
-                            <Stack alignItems="center" direction="row" spacing={1}>
-                              <AttachFileOutlinedIcon color="action" fontSize="small" />
-                              <Typography variant="body2">
-                                {file.fileName} ({file.sizeLabel})
-                              </Typography>
-                            </Stack>
-                            <Button
-                              color="inherit"
-                              onClick={() => setAttachments((current) => current.filter((item) => item.id !== file.id))}
-                              size="small"
-                              startIcon={<DeleteOutlineOutlinedIcon fontSize="small" />}
-                              variant="text"
-                            >
-                              {t("attachments.remove")}
-                            </Button>
-                          </Box>
-                        ))}
-                      </Stack>
-                    </Box>
-
-                    <Grid container spacing={2}>
-                      <Grid size={{ xs: 12, md: 4 }}>
-                        <SelectOptionField
-                          control={control}
-                          disableClearable
-                          label={t("fields.impactLevel")}
-                          name="impactLevel"
-                          options={[
-                            { label: t("impact.department"), value: "DEPARTMENT" },
-                            { label: t("impact.team"), value: "TEAM" },
-                            { label: t("impact.organization"), value: "ORGANIZATION" },
-                          ]}
-                        />
-                      </Grid>
-
-                      <Grid size={{ xs: 12, md: 4 }}>
-                        <SelectOptionField
-                          control={control}
-                          disableClearable
-                          label={t("fields.urgency")}
-                          name="urgency"
-                          options={[
-                            { label: t("urgency.low"), value: "LOW" },
-                            { label: t("urgency.medium"), value: "MEDIUM" },
-                            { label: t("urgency.high"), value: "HIGH" },
-                          ]}
-                        />
-                      </Grid>
-
-                      <Grid size={{ xs: 12, md: 4 }}>
-                        <TextInputField
-                          control={control}
-                          label={t("fields.preferredContact")}
-                          name="preferredContact"
-                        />
-                      </Grid>
-                    </Grid>
-
-                    <Divider />
-
-                    <Stack direction="row" spacing={1.5}>
-                      <Button disabled={isSubmitting} onClick={onSaveDraft} variant="outlined">
-                        {t("actions.saveDraft")}
-                      </Button>
-                      <Button disabled={isSubmitting} type="submit" variant="contained">
-                        {t("actions.submit")}
-                      </Button>
-                    </Stack>
-
-                    {submitMessage ? <Alert severity="success">{submitMessage}</Alert> : null}
-                  </Stack>
-                </CardContent>
+                <CardContent>{formContent}</CardContent>
               </Card>
             </Grid>
 
             <Grid size={{ xs: 12, lg: 4 }}>
-              <Card className={styles.summaryCard} variant="outlined">
-                <CardContent>
-                  <Typography gutterBottom variant="h6">
-                    {t("summary.title")}
-                  </Typography>
-
-                  <Stack spacing={1.25}>
-                    <Box className={styles.summaryRow}>
-                      <Typography color="text.secondary" variant="body2">
-                        {t("summary.serviceType")}
-                      </Typography>
-                      <Typography variant="body2">{watched.serviceType}</Typography>
-                    </Box>
-
-                    <Box className={styles.summaryRow}>
-                      <Typography color="text.secondary" variant="body2">
-                        {t("summary.priority")}
-                      </Typography>
-                      <Typography variant="body2">{watched.priority}</Typography>
-                    </Box>
-
-                    <Box className={styles.summaryRow}>
-                      <Typography color="text.secondary" variant="body2">
-                        {t("summary.location")}
-                      </Typography>
-                      <Typography className={styles.summaryValue} variant="body2">
-                        {watched.location}
-                      </Typography>
-                    </Box>
-
-                    <Box className={styles.slaBox}>
-                      <Typography fontWeight={700} variant="body2">
-                        {t("summary.expectedSla")}
-                      </Typography>
-                      <Typography variant="body1">4 {t("summary.hours")}</Typography>
-                    </Box>
-
-                    <Typography color="text.secondary" variant="body2">
-                      {t("summary.visibility")}
-                    </Typography>
-                  </Stack>
-                </CardContent>
-              </Card>
+              <RequestSummaryCard control={control} />
             </Grid>
           </Grid>
         </CardContent>

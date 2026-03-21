@@ -2,7 +2,7 @@
 
 ## Target Architecture
 
-### Backend (`apps/api-nest/src/modules`)
+### Backend (`apps/api/src/modules`)
 - `core/*`: auth, tenant, user, role, permission, work-item, workflow, comment, notification, audit
 - `service-ops/*`: request, assignment, sla, escalation, asset, work-log, resolution
 - legacy modules stay active during migration and will be removed phase-by-phase
@@ -20,7 +20,7 @@
   - `features/core/*`
   - `features/service-ops/*`
 
-### Contracts (`shared/contracts/src`)
+### Contracts (`packages/types/src`)
 - `core/endpoints.ts`, `core/types.ts`
 - `service-ops/endpoints.ts`, `service-ops/types.ts`
 - `endpoints.ts` now merges new + legacy for backward compatibility

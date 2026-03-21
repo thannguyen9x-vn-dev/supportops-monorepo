@@ -4,7 +4,7 @@
   box-sizing: border-box;
   column-gap: 6px;
   overflow: hidden;
-  background: #f8fafc;
+  background: var(--mui-palette-background-default);
 }
 
 .main {

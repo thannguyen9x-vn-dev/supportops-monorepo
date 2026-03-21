@@ -1,5 +1,5 @@
 {
-  "name": "web",
+  "name": "@supportops/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -19,10 +19,11 @@
     "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",
     "@mui/material-nextjs": "^7.3.7",
-    "@supportops/contracts": "workspace:*",
+    "@supportops/types": "workspace:*",
     "@supportops/ui": "workspace:*",
     "@supportops/ui-avatar": "workspace:*",
     "@supportops/ui-file-upload": "workspace:*",
+    "@supportops/ui-dialog": "workspace:*",
     "@supportops/ui-form": "workspace:*",
     "@tanstack/react-table": "^8.21.3",
     "currency.js": "^2.0.4",
@@ -36,6 +37,7 @@
     "react-hook-form": "^7"
   },
   "devDependencies": {
+    "@supportops/eslint-config": "workspace:*",
     "@graphql-codegen/cli": "^6.1.2",
     "@graphql-codegen/typed-document-node": "^6.1.6",
     "@graphql-codegen/typescript": "^5.0.8",

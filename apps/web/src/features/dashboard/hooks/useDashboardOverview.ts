@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import type { DashboardKpi, DashboardTransaction, LatestCustomer } from "@supportops/contracts";
+import type { DashboardKpi, DashboardTransaction, LatestCustomer } from "@supportops/types";
 
 import { dashboardService } from "@/features/dashboard/services/dashboard.service";
 

@@ -5,7 +5,7 @@ import { flexRender } from "@tanstack/react-table";
 import type { CellContext, ColumnDef, HeaderContext } from "@tanstack/react-table";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import { Box, IconButton, Stack } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 
 import { DataTable, useDataTable } from "@supportops/ui";
 import type { DataTablePaginationLabels } from "@supportops/ui";
@@ -13,7 +13,6 @@ import type { DataTablePaginationLabels } from "@supportops/ui";
 import { EntityListFilters } from "@/features/layout/components/EntityListFilters/EntityListFilters";
 
 import { EntityTableProvider } from "./EntityTableContext";
-import { ColumnVisibilityPopover } from "./ColumnVisibilityPopover";
 import styles from "./entity-table.module.css";
 import type { EntityColumnDef, EntityTableInstance, FilterSlotProps } from "./types";
 
@@ -29,6 +28,7 @@ type EntityTableProps<TData extends object, TFilters extends object> = {
   renderFilterControls?: (props: FilterSlotProps<TFilters>) => ReactNode;
   renderFilterOptions?: (props: FilterSlotProps<TFilters>) => ReactNode;
   showFilterOptions?: boolean;
+  hideFilters?: boolean;
 
   // ── Other slots ───────────────────────────────────────────────────────────
   tabs?: ReactNode;
@@ -47,6 +47,7 @@ export function EntityTable<TData extends object, TFilters extends object>({
   renderFilterControls,
   renderFilterOptions,
   showFilterOptions = false,
+  hideFilters = false,
   tabs,
   emptyState,
   paginationLabels,
@@ -61,9 +62,10 @@ export function EntityTable<TData extends object, TFilters extends object>({
     sorting,
     setSorting,
     columnVisibility,
-    toggleColumn,
-    showAllColumns,
-    isColumnVisible,
+    columnOrder,
+    setColumnOrder,
+    columnSizing,
+    setColumnSizing,
   } = entityTable;
 
   // ── Build TanStack columns — inject editCell / editHeader ─────────────────
@@ -75,6 +77,9 @@ export function EntityTable<TData extends object, TFilters extends object>({
       _tableConfig.columns.map((col: EntityColumnDef<TData>) => ({
         ...col,
         enableSorting: col.sortable ?? false,
+        // resizable maps to TanStack's enableResizing; default true (resizable).
+        // Explicit col.resizable takes priority over any raw enableResizing on the def.
+        enableResizing: col.resizable ?? true,
 
         cell: col.editCell
           ? (cellCtx: CellContext<TData, unknown>) => {
@@ -109,7 +114,8 @@ export function EntityTable<TData extends object, TFilters extends object>({
                 isDirty: field ? entityTable.isRowDirty(rowId) : false,
               });
             }
-          : col.cell,
+          : ((cellCtx: CellContext<TData, unknown>) =>
+              col.cell ? flexRender(col.cell, cellCtx) : cellCtx.getValue()),
 
         header:
           col.editHeader && col.enableColumnEdit
@@ -229,6 +235,12 @@ export function EntityTable<TData extends object, TFilters extends object>({
     sorting,
     onSortingChange: setSorting,
     columnVisibility,
+    // Pass column order and sizing from entityTable instance
+    columnOrder,
+    onColumnOrderChange: setColumnOrder,
+    columnSizing,
+    onColumnSizingChange: setColumnSizing,
+    enableColumnResizing: !!_tableConfig.columnSizingStorageKey,
   });
 
   // ── Filter slot props ─────────────────────────────────────────────────────
@@ -247,14 +259,16 @@ export function EntityTable<TData extends object, TFilters extends object>({
       <div className={styles.root}>
         {tabs}
 
-        <EntityListFilters
-          controls={renderFilterControls ? renderFilterControls(filterSlotProps) : null}
-          filterOptions={
-            renderFilterOptions ? renderFilterOptions(filterSlotProps) : undefined
-          }
-          search={renderSearch ? renderSearch(filterSlotProps) : null}
-          showFilterOptions={showFilterOptions}
-        />
+        {!hideFilters ? (
+          <EntityListFilters
+            controls={renderFilterControls ? renderFilterControls(filterSlotProps) : null}
+            filterOptions={
+              renderFilterOptions ? renderFilterOptions(filterSlotProps) : undefined
+            }
+            search={renderSearch ? renderSearch(filterSlotProps) : null}
+            showFilterOptions={showFilterOptions}
+          />
+        ) : null}
 
         <DataTable
           rowDensity={_tableConfig.rowDensity}
@@ -268,6 +282,8 @@ export function EntityTable<TData extends object, TFilters extends object>({
               : undefined
           }
           emptyState={emptyState}
+          enableColumnReorder={!!_tableConfig.columnOrderStorageKey}
+          enableColumnResizing={!!_tableConfig.columnSizingStorageKey}
           highlightDirtyRows
           onRowClick={onRowClick}
           paginationLabels={paginationLabels}

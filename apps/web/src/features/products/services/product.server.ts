@@ -1,5 +1,5 @@
-import type { ApiResponse, Product } from "@supportops/contracts";
-import { ENDPOINTS } from "@supportops/contracts";
+import type { ApiResponse, Product } from "@supportops/types";
+import { ENDPOINTS } from "@supportops/types";
 
 import { serverApiClient } from "@/lib/api/serverApiClient";
 

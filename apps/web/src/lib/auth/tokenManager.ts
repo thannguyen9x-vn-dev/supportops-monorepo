@@ -40,9 +40,10 @@ class TokenManager {
     return localStorage.getItem(env.REFRESH_TOKEN_KEY) ?? getCookieValue(env.REFRESH_TOKEN_KEY);
   }
 
-  setRefreshToken(_token: string): void {
+  setRefreshToken(token: string): void {
     // Intentionally no-op.
     // Refresh token must be stored as HttpOnly cookie by backend/BFF, not accessible from JS.
+    void token;
   }
 
   setTokens(accessToken: string, refreshToken?: string): void {

@@ -1,28 +1,28 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../packages/tsconfig/nextjs.json",
   "compilerOptions": {
     "composite": true,
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@supportops/contracts": ["../../shared/contracts/src"],
-      "@supportops/ui": ["../../shared/ui/src"],
-      "@supportops/ui-theme": ["../../shared/ui/theme/src"],
-      "@supportops/ui-form": ["../../shared/ui/form/src"],
-      "@supportops/ui-avatar": ["../../shared/ui/avatar/dist"],
-      "@supportops/ui-file-upload": ["../../shared/ui/file-upload/dist"]
+      "@supportops/types": ["../../packages/types/src"],
+      "@supportops/ui": ["../../packages/ui/src"],
+      "@supportops/ui-theme": ["../../packages/ui/theme/src"],
+      "@supportops/ui-form": ["../../packages/ui/form/src"],
+      "@supportops/ui-avatar": ["../../packages/ui/avatar/dist"],
+      "@supportops/ui-file-upload": ["../../packages/ui/file-upload/dist"]
     }
   },
-  "include": ["next-env.d.ts", "src", "../../shared/contracts/src/**/*", "../../shared/ui/src/**/*"],
+  "include": ["next-env.d.ts", "src", "../../packages/types/src/**/*", "../../packages/ui/src/**/*"],
   "exclude": [
-    "../../shared/ui/src/**/__tests__/**/*",
-    "../../shared/ui/src/**/*.test.ts",
-    "../../shared/ui/src/**/*.test.tsx",
-    "../../shared/ui/src/test-utils/**/*"
+    "../../packages/ui/src/**/__tests__/**/*",
+    "../../packages/ui/src/**/*.test.ts",
+    "../../packages/ui/src/**/*.test.tsx",
+    "../../packages/ui/src/test-utils/**/*"
   ],
   "references": [
-    { "path": "../../shared/ui/theme" },
-    { "path": "../../shared/ui/form" }
+    { "path": "../../packages/ui/theme" },
+    { "path": "../../packages/ui/form" }
   ]
 }

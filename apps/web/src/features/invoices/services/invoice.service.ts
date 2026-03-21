@@ -1,4 +1,4 @@
-import type { Invoice } from "@supportops/contracts";
+import type { Invoice } from "@supportops/types";
 
 import { ENDPOINTS, apiClient } from "@/lib/api";
 

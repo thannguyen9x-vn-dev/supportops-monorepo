@@ -15,12 +15,12 @@ const config: Config = {
   setupFilesAfterEnv: ["<rootDir>/__tests__/setup/jest.setup.ts"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
-    "^@supportops/contracts$": "<rootDir>/../../shared/contracts/src",
-    "^@supportops/ui$": "<rootDir>/../../shared/ui/src",
-    "^@supportops/ui-theme$": "<rootDir>/../../shared/ui/theme/src",
-    "^@supportops/ui-form$": "<rootDir>/../../shared/ui/form/src",
-    "^@supportops/ui-avatar$": "<rootDir>/../../shared/ui/avatar/dist",
-    "^@supportops/ui-file-upload$": "<rootDir>/../../shared/ui/file-upload/dist",
+    "^@supportops/types$": "<rootDir>/../../packages/types/src",
+    "^@supportops/ui$": "<rootDir>/../../packages/ui/src",
+    "^@supportops/ui-theme$": "<rootDir>/../../packages/ui/theme/src",
+    "^@supportops/ui-form$": "<rootDir>/../../packages/ui/form/src",
+    "^@supportops/ui-avatar$": "<rootDir>/../../packages/ui/avatar/dist",
+    "^@supportops/ui-file-upload$": "<rootDir>/../../packages/ui/file-upload/dist",
     // until-async is ESM-only ("type": "module") which Jest's CJS mode cannot process.
     // Map it to a CJS stub with the same API to avoid "Unexpected token 'export'" errors.
     "^until-async$": "<rootDir>/__tests__/mocks/until-async.js",

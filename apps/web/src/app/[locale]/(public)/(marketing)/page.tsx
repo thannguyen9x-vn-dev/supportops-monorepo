@@ -1,551 +1,210 @@
 "use client";
 
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import ChangeHistoryRoundedIcon from "@mui/icons-material/ChangeHistoryRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import CurrencyExchangeRoundedIcon from "@mui/icons-material/CurrencyExchangeRounded";
-import LocalFireDepartmentRoundedIcon from "@mui/icons-material/LocalFireDepartmentRounded";
-import Groups2RoundedIcon from "@mui/icons-material/Groups2Rounded";
-import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
-import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
-import SentimentSatisfiedAltRoundedIcon from "@mui/icons-material/SentimentSatisfiedAltRounded";
-import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded";
-import ShowChartRoundedIcon from "@mui/icons-material/ShowChartRounded";
-import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
-import ViewInArRoundedIcon from "@mui/icons-material/ViewInArRounded";
+import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
+import Image from "next/image";
+import Link from "next/link";
 import {
   Box,
   Button,
   Card,
   CardContent,
+  Chip,
   Container,
-  Divider,
   Grid,
-  Link,
   Stack,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
 } from "@mui/material";
-import type { SvgIconComponent } from "@mui/icons-material";
-import { useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 
-interface PricingPlan {
-  name: string;
-  monthlyPrice: number;
-  yearlyPrice: number;
-  description: string;
-  features: string[];
-}
+import { LanguageMenu } from "@/features/layout/components/Header/LanguageMenu";
+import { ThemeModeToggle } from "@/features/layout/components/Header/ThemeModeToggle";
 
-interface ComparisonFeature {
-  name: string;
-  freelancer: boolean | string;
-  company: boolean | string;
-  enterprise: boolean | string;
-}
-
-interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-interface FooterColumn {
-  title: string;
-  links: string[];
-}
-
-const plans: PricingPlan[] = [
-  {
-    name: "Freelancer",
-    monthlyPrice: 49,
-    yearlyPrice: 39,
-    description: "Great for personal use and side projects.",
-    features: [
-      "Everything you need to manage payments",
-      "No setup fees, monthly fees, or hidden fees",
-    ],
-  },
-  {
-    name: "Company",
-    monthlyPrice: 299,
-    yearlyPrice: 249,
-    description: "Best for large scale uses and extended redistribution rights.",
-    features: [
-      "Everything you need to manage payments",
-      "No setup fees, monthly fees, or hidden fees",
-      "Comprehensive security and rigorous compliance",
-      "Get hundreds of feature updates each year",
-    ],
-  },
-  {
-    name: "Enterprise",
-    monthlyPrice: 2799,
-    yearlyPrice: 2399,
-    description: "Best for large scale uses and extended redistribution rights.",
-    features: [
-      "Everything you need to manage payments",
-      "No setup fees, monthly fees, or hidden fees",
-      "Comprehensive security and rigorous compliance",
-      "Get hundreds of feature updates each year",
-      "Fast, predictable payouts to your bank accounts",
-      "Financial reconciliation and reporting",
-      "24x7 phone, chat, and email support",
-      "Robust developer platform and third-party integrations",
-    ],
-  },
-];
-
-const featureIconsByPlan: Record<string, SvgIconComponent[]> = {
-  Freelancer: [CurrencyExchangeRoundedIcon, SentimentSatisfiedAltRoundedIcon],
-  Company: [
-    CurrencyExchangeRoundedIcon,
-    SentimentSatisfiedAltRoundedIcon,
-    SecurityRoundedIcon,
-    ChangeHistoryRoundedIcon,
-  ],
-  Enterprise: [
-    CurrencyExchangeRoundedIcon,
-    SentimentSatisfiedAltRoundedIcon,
-    SecurityRoundedIcon,
-    ChangeHistoryRoundedIcon,
-    LocalFireDepartmentRoundedIcon,
-    ShowChartRoundedIcon,
-    SupportAgentRoundedIcon,
-    ViewInArRoundedIcon,
-  ],
-};
-
-const comparisonFeatures: ComparisonFeature[] = [
-  { name: "Seperate business/personal", freelancer: true, company: true, enterprise: true },
-  { name: "Estimate tax payments", freelancer: true, company: true, enterprise: true },
-  { name: "Stock control", freelancer: true, company: true, enterprise: true },
-  { name: "Create invoices & estimates", freelancer: false, company: true, enterprise: true },
-  { name: "Manage bills & payments", freelancer: false, company: true, enterprise: true },
-  { name: "Run payroll", freelancer: false, company: true, enterprise: true },
-  { name: "Handle multiple currencies", freelancer: false, company: false, enterprise: true },
-  { name: "Number of Users", freelancer: "1 User", company: "5-10 Users", enterprise: "20+ Users" },
-  { name: "Track deductible mileage", freelancer: false, company: false, enterprise: true },
-  { name: "Track employee time", freelancer: false, company: false, enterprise: true },
-  { name: "Multi-device", freelancer: false, company: false, enterprise: true },
-];
-
-const faqColumns: FaqItem[][] = [
-  [
-    {
-      question: "Why are you calling it \"early access\"?",
-      answer:
-        "We're really happy with the components we've put together so far, but we're still planning to build. Every component you see in the preview is available to use today, but there's still at least a few dozen more ideas we're planning to design and include.",
-    },
-    {
-      question: "What is the difference between the Freelancer/Company/Enterprise licenses?",
-      answer:
-        "The Freelancer license is aimed at people who work on their own. The Enterprise license is aimed at large companies with multiple projects. Depending on the license you purchase, you can use the product in single or multiple domains.",
-    },
-    {
-      question: "What does the Tech Support refer to?",
-      answer:
-        "Depending on your license type, you have a fixed period when you can submit any ticket related to not including custom features and bug fixes. You will get responses directly from product creators in 24 hours (during business days).",
-    },
-    {
-      question: "Can I remove the copyright notice from the files?",
-      answer:
-        "You can remove the copyright notice if it's a premium item, but then you'll need to create a separate .txt file called LICENSE.txt and copy the copyright text in there. This file should be added to the root folder of your project.",
-    },
-    {
-      question: "What does the Team Size refer to?",
-      answer:
-        "The Team size for each license reflects the number of people who can access the product. For a team of 6-10 people, you will need the Company license.",
-    },
-  ],
-  [
-    {
-      question: "Why are you calling it \"early access\"?",
-      answer:
-        "We're really happy with the components we've put together so far, but we're still planning to build. Every component you see in the preview is available to use today, but there's still at least a few dozen more ideas we're planning to design and include.",
-    },
-    {
-      question: "What browsers does Tailwind Dashboard support?",
-      answer:
-        "The components in Tailwind UI are designed to work in the latest, stable releases of all major browsers, including Chrome, Firefox, Safari, and Edge. We don't support Internet Explorer 11.",
-    },
-    {
-      question: "What is the difference between the Freelancer/Company/Enterprise licenses?",
-      answer:
-        "For example, if you purchased the Freelancer License, you can create only one website. If you want to create multiple websites, you will need a bigger license (like Company or Enterprise).",
-    },
-    {
-      question: "What does the Free Updates refer to?",
-      answer:
-        "Freelancer: You will receive Free Updates for 6 months. Company: You will receive Free Updates for 12 months. Enterprise: You will benefit from 24 months of Free Updates.",
-    },
-  ],
-];
-
-const footerColumns: FooterColumn[] = [
-  { title: "Company", links: ["About", "Premium", "Blog", "Affiliate Program", "Get Coupon"] },
-  { title: "Help and support", links: ["Contact Us", "Knowledge Center", "Premium Support", "Sponsorships"] },
-  { title: "Resources", links: ["Third-Party Tools", "Illustrations", "Themesberg", "Bluehost", "Stock Photos"] },
-  { title: "Legal", links: ["Privacy Policy", "Terms & Conditions", "EULA"] },
-];
-
-function BrandMark() {
-  return (
-    <Box component="svg" viewBox="0 0 64 64" aria-hidden="true" sx={{ width: 36, height: 36, color: "#1f2a3d" }}>
-      <path
-        d="M13 20c5-8 14-12 23-12 15 0 28 12 28 28S51 64 36 64c-9 0-18-4-23-12l9-6c3 5 8 8 14 8 10 0 18-8 18-18s-8-18-18-18c-6 0-11 3-14 8l-9-6Z"
-        fill="currentColor"
-      />
-      <path d="M6 26h10l8 10-8 10H6l8-10-8-10Z" fill="currentColor" />
-    </Box>
-  );
-}
-
-function renderComparisonCell(value: boolean | string) {
-  if (typeof value === "string") {
-    const icon = value.includes("User") ? (
-      value.startsWith("1") ? (
-        <PersonRoundedIcon sx={{ fontSize: 14 }} />
-      ) : (
-        <Groups2RoundedIcon sx={{ fontSize: 14 }} />
-      )
-    ) : null;
-
-    return (
-      <Stack direction="row" alignItems="center" justifyContent="center" gap={0.5}>
-        {icon}
-        <Typography variant="body2" fontWeight={600} color="text.primary">
-          {value}
-        </Typography>
-      </Stack>
-    );
-  }
-
-  return value ? (
-    <CheckCircleRoundedIcon sx={{ color: "success.main", fontSize: 16 }} aria-label="included" />
-  ) : (
-    <CloseRoundedIcon sx={{ color: "error.main", fontSize: 16 }} aria-label="not included" />
-  );
-}
+const flowItems = ["Draft", "Submitted", "Triage", "Assigned", "In Progress", "Resolved", "Closed"];
 
 export default function MarketingPage() {
-  const [isYearly, setIsYearly] = useState(false);
+  const locale = useLocale();
+  const isEn = locale === "en";
 
-  const displayedPlans = useMemo(
-    () =>
-      plans.map((plan) => ({
-        ...plan,
-        price: isYearly ? plan.yearlyPrice : plan.monthlyPrice,
-      })),
-    [isYearly],
-  );
+  const copy = isEn
+    ? {
+        heroTitle: "ServiceOps for Internal Service Requests",
+        heroSubtitle:
+          "Create requests fast, triage with confidence, assign technicians, and keep SLA visible in one operational flow.",
+        ctaPrimary: "Login",
+        ctaSecondary: "See Workflow",
+        sectionFlow: "Core Workflow",
+        flowNote: "Optional states: Reopened, Escalated, Waiting External Vendor.",
+        sectionRoles: "Roles and Responsibilities",
+        roles: [
+          "Requester: create request, track progress, add public comments.",
+          "Ops Coordinator: triage, assign/reassign, escalate, update metadata.",
+          "Technician: start work, add internal notes, submit resolution.",
+          "Tenant Admin: configure workflow, SLA, permissions, and audit visibility.",
+        ],
+        sectionOpsInbox: "Operational Inbox in Request List",
+        opsPoints: [
+          "Filter by status, priority, assignee, location, SLA health.",
+          "See overdue and at-risk items clearly.",
+          "Open request detail directly from each row.",
+        ],
+        sectionDetail: "Request Detail as Single Workspace",
+        detailPoints: [
+          "Header with status/priority/SLA and contextual actions.",
+          "Timeline and comments for collaboration and execution history.",
+          "Metadata, SLA summary, and audit summary in right sidebar.",
+        ],
+        finalTitle: "Ready to standardize your ServiceOps workflow?",
+        finalSubtitle: "Start with Create Request, Request List, and Request Detail.",
+      }
+    : {
+        heroTitle: "ServiceOps cho quy trình yêu cầu dịch vụ nội bộ",
+        heroSubtitle:
+          "Tạo request nhanh, triage rõ ràng, phân công kỹ thuật viên và theo dõi SLA trong một luồng vận hành duy nhất.",
+        ctaPrimary: "Đăng nhập",
+        ctaSecondary: "Xem luồng xử lý",
+        sectionFlow: "Luồng xử lý cốt lõi",
+        flowNote: "Trạng thái mở rộng: Reopened, Escalated, Waiting External Vendor.",
+        sectionRoles: "Vai trò và trách nhiệm",
+        roles: [
+          "Requester: tạo request, theo dõi tiến độ, thêm public comment.",
+          "Ops Coordinator: triage, assign/reassign, escalate, cập nhật metadata.",
+          "Technician: bắt đầu xử lý, thêm internal note, submit resolution.",
+          "Tenant Admin: cấu hình workflow, SLA, permission, và audit visibility.",
+        ],
+        sectionOpsInbox: "Request List như Operational Inbox",
+        opsPoints: [
+          "Lọc theo status, priority, assignee, location, SLA health.",
+          "Nhìn rõ request quá hạn và request có rủi ro SLA.",
+          "Mở request detail trực tiếp từ từng row.",
+        ],
+        sectionDetail: "Request Detail là workspace xử lý",
+        detailPoints: [
+          "Header có status/priority/SLA và action theo role.",
+          "Timeline + comments cho collaboration và history.",
+          "Sidebar metadata, SLA summary, audit summary.",
+        ],
+        finalTitle: "Sẵn sàng chuẩn hóa quy trình ServiceOps?",
+        finalSubtitle: "Bắt đầu từ Create Request, Request List và Request Detail.",
+      };
 
   return (
-    <Box sx={{ bgcolor: "#f3f4f6", minHeight: "100vh" }}>
-      <Box
-        component="header"
-        sx={{ bgcolor: "common.white", borderBottom: "1px solid", borderColor: "divider" }}
-      >
+    <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
+      <Box component="header" sx={{ bgcolor: "background.paper", borderBottom: "1px solid", borderColor: "divider" }}>
         <Container maxWidth="lg" sx={{ py: 1.5 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Stack direction="row" spacing={2} alignItems="center">
-              <BrandMark />
-              <Stack direction="row" spacing={2.5}>
-                {[{ label: "Dashboard", active: true }].map((item) => (
-                  <Link
-                    key={item.label}
-                    href="#"
-                    underline="none"
-                    sx={{
-                      color: item.active ? "primary.main" : "text.secondary",
-                      fontWeight: item.active ? 700 : 500,
-                      fontSize: 13,
-                    }}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </Stack>
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <Image src="/icons/brand-mark.png" alt="ServiceOps logo" width={36} height={36} priority />
+              <Typography fontWeight={700} fontSize={28}>ServiceOps</Typography>
             </Stack>
-
-            <Button
-              variant="text"
-              color="inherit"
-              startIcon={<LogoutOutlinedIcon sx={{ fontSize: 22 }} />}
-              sx={{
-                textTransform: "none",
-                color: "text.secondary",
-                fontWeight: 500,
-                fontSize: 13,
-              }}
-            >
-              Login/Register
-            </Button>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <LanguageMenu />
+              <ThemeModeToggle />
+              <Button component={Link} href={`/${locale}/login`} variant="text" color="inherit" sx={{ textTransform: "none", fontWeight: 600 }}>
+                {copy.ctaPrimary}
+              </Button>
+            </Stack>
           </Stack>
         </Container>
       </Box>
 
-      <Container
-        maxWidth={false}
-        sx={{ px: { xs: 2, md: 4, lg: 6 }, py: { xs: 5, md: 6 } }}
-      >
+      <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
         <Stack spacing={8}>
-          <Stack spacing={4}>
-            <Stack spacing={2}>
-              <Typography
-                component="h1"
-                fontWeight={800}
-                sx={{
-                  fontSize: { xs: 21, md: 39 },
-                  lineHeight: 1.06,
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                Our pricing plan made simple
-              </Typography>
-              <Typography
-                color="text.secondary"
-                sx={{ maxWidth: 1220, fontSize: { xs: 9, md: 18 }, lineHeight: 1.35 }}
-              >
-                All types of businesses need access to development resources, so we give you the option to
-                decide how much you need to use.
-              </Typography>
-            </Stack>
+          <Card sx={{ borderRadius: 4, border: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}>
+            <CardContent sx={{ p: { xs: 3, md: 6 } }}>
+              <Stack spacing={3}>
+                <Chip label="ServiceOps + TeamOps Core" color="primary" sx={{ width: "fit-content", fontWeight: 700 }} />
+                <Typography component="h1" fontWeight={800} sx={{ fontSize: { xs: 34, md: 52 }, lineHeight: 1.04, letterSpacing: "-0.02em", maxWidth: 900 }}>
+                  {copy.heroTitle}
+                </Typography>
+                <Typography color="text.secondary" sx={{ fontSize: { xs: 16, md: 20 }, maxWidth: 860, lineHeight: 1.5 }}>
+                  {copy.heroSubtitle}
+                </Typography>
+                <Stack direction="row" spacing={1.5}>
+                  <Button component={Link} href={`/${locale}/login`} variant="contained" sx={{ textTransform: "none", fontWeight: 700, px: 3 }}>
+                    {copy.ctaPrimary}
+                  </Button>
+                  <Button href="#workflow" component="a" variant="outlined" endIcon={<KeyboardArrowRightRoundedIcon />} sx={{ textTransform: "none", fontWeight: 700, px: 2.5 }}>
+                    {copy.ctaSecondary}
+                  </Button>
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
 
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              <Typography
-                fontWeight={700}
-                color="text.primary"
-                sx={{ fontSize: { xs: 10, md: 20 }, lineHeight: 1.2 }}
-              >
-                Monthly
-              </Typography>
-              <Switch
-                checked={isYearly}
-                onChange={(event) => setIsYearly(event.target.checked)}
-                inputProps={{ "aria-label": "Switch pricing period" }}
-                sx={{
-                  "& .MuiSwitch-track": { bgcolor: "#d1d5db", opacity: "1 !important" },
-                }}
-              />
-              <Typography
-                fontWeight={500}
-                color="text.secondary"
-                sx={{ fontSize: { xs: 10, md: 20 }, lineHeight: 1.2 }}
-              >
-                Yearly
-              </Typography>
-            </Stack>
-
-            <Grid container spacing={{ xs: 2.5, md: 3 }}>
-              {displayedPlans.map((plan) => (
-                <Grid size={{ xs: 12, md: 4 }} key={plan.name}>
-                  <Card
-                    sx={{
-                      borderRadius: 3.5,
-                      border: "1px solid #d9e1ea",
-                      bgcolor: "#f9fafb",
-                      height: "100%",
-                    }}
-                  >
-                    <CardContent sx={{ p: { xs: 3, md: 4.5 }, height: "100%" }}>
-                      <Stack spacing={3} sx={{ height: "100%" }}>
-                        <Typography color="text.secondary" fontWeight={700} sx={{ fontSize: { xs: 17, md: 28 } }}>
-                          {plan.name}
-                        </Typography>
-
-                        <Stack direction="row" alignItems="baseline" spacing={0.75}>
-                          <Typography
-                            fontWeight={800}
-                            sx={{ color: "text.primary", fontSize: { xs: 24, md: 44 }, lineHeight: 1 }}
-                          >
-                            ${plan.price}
-                          </Typography>
-                          <Typography
-                            color="text.secondary"
-                            fontWeight={400}
-                            sx={{ fontSize: { xs: 17, md: 33 }, lineHeight: 1 }}
-                          >
-                            /month
-                          </Typography>
-                        </Stack>
-
-                        <Typography
-                          color="text.secondary"
-                          sx={{ minHeight: { xs: 0, md: 65 }, fontSize: { xs: 13, md: 20 }, lineHeight: 1.35 }}
-                        >
-                          {plan.description}
-                        </Typography>
-
-                        <Stack spacing={1.25}>
-                          {plan.features.map((feature, featureIndex) => {
-                            const FeatureIcon =
-                              featureIconsByPlan[plan.name]?.[featureIndex] ?? CheckCircleRoundedIcon;
-
-                            return (
-                              <Stack key={feature} direction="row" spacing={1} alignItems="flex-start">
-                                <FeatureIcon sx={{ color: "#21c48c", fontSize: 21, mt: 0.25 }} />
-                                <Typography color="text.secondary" sx={{ fontSize: { xs: 11, md: 16 }, lineHeight: 1.35 }}>
-                                  {feature}
-                                </Typography>
-                              </Stack>
-                            );
-                          })}
-                        </Stack>
-
-                        <Button
-                          variant="contained"
-                          fullWidth
-                          sx={{
-                            mt: "auto",
-                            textTransform: "none",
-                            fontWeight: 700,
-                            py: { xs: 1.2, md: 1.8 },
-                            borderRadius: 2,
-                            fontSize: { xs: 13, md: 20 },
-                          }}
-                        >
-                          Choose plan
-                        </Button>
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                </Grid>
+          <Stack id="workflow" spacing={2}>
+            <Typography variant="h4" fontWeight={800}>{copy.sectionFlow}</Typography>
+            <Stack direction="row" useFlexGap flexWrap="wrap" gap={1}>
+              {flowItems.map((item) => (
+                <Chip key={item} label={item} variant="outlined" color="primary" sx={{ fontWeight: 700 }} />
               ))}
-            </Grid>
+            </Stack>
+            <Typography color="text.secondary">{copy.flowNote}</Typography>
           </Stack>
 
-          <TableContainer sx={{ bgcolor: "transparent" }}>
-            <Table aria-label="Pricing comparison table" sx={{ borderCollapse: "separate", borderSpacing: "0 10px" }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ borderBottom: 0 }} />
-                  <TableCell align="center" sx={{ borderBottom: 0, fontWeight: 700 }}>
-                    Freelancer
-                  </TableCell>
-                  <TableCell align="center" sx={{ borderBottom: 0, fontWeight: 700 }}>
-                    Company
-                  </TableCell>
-                  <TableCell align="center" sx={{ borderBottom: 0, fontWeight: 700 }}>
-                    Enterprise
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {comparisonFeatures.map((feature) => (
-                  <TableRow key={feature.name}>
-                    <TableCell
-                      sx={{
-                        bgcolor: "common.white",
-                        border: 0,
-                        borderTopLeftRadius: 12,
-                        borderBottomLeftRadius: 12,
-                        color: "text.secondary",
-                        width: "52%",
-                      }}
-                    >
-                      {feature.name}
-                    </TableCell>
-                    {[feature.freelancer, feature.company, feature.enterprise].map((value, index) => (
-                      <TableCell
-                        key={`${feature.name}-${index}`}
-                        align="center"
-                        sx={{
-                          bgcolor: "common.white",
-                          border: 0,
-                          width: "16%",
-                          ...(index === 2
-                            ? {
-                                borderTopRightRadius: 12,
-                                borderBottomRightRadius: 12,
-                              }
-                            : undefined),
-                        }}
-                      >
-                        {renderComparisonCell(value)}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          <Stack spacing={4}>
-            <Stack spacing={1}>
-              <Typography variant="h2" fontWeight={800} sx={{ fontSize: { xs: 18, md: 28 } }}>
-                Frequently asked questions
-              </Typography>
-              <Typography color="text.secondary" maxWidth={760}>
-                All types of businesses need access to development resources, so we give you the option to
-                decide how much you need to use.
-              </Typography>
-            </Stack>
-
-            <Divider />
-
-            <Grid container spacing={6}>
-              {faqColumns.map((column, index) => (
-                <Grid size={{ xs: 12, md: 6 }} key={index}>
-                  <Stack spacing={4}>
-                    {column.map((item) => (
-                      <Stack key={item.question} spacing={1.3}>
-                        <Typography fontWeight={700} color="text.primary" sx={{ fontSize: 11 }}>
-                          {item.question}
-                        </Typography>
-                        <Typography color="text.secondary" sx={{ lineHeight: 1.75 }}>
-                          {item.answer}
-                        </Typography>
+          <Grid container spacing={3}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider", height: "100%" }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Stack spacing={2}>
+                    <Typography variant="h5" fontWeight={800}>{copy.sectionRoles}</Typography>
+                    {copy.roles.map((item) => (
+                      <Stack key={item} direction="row" spacing={1.25} alignItems="flex-start">
+                        <CheckCircleRoundedIcon color="primary" sx={{ mt: 0.2, fontSize: 18 }} />
+                        <Typography color="text.secondary">{item}</Typography>
                       </Stack>
                     ))}
                   </Stack>
-                </Grid>
-              ))}
+                </CardContent>
+              </Card>
             </Grid>
-          </Stack>
-        </Stack>
-      </Container>
-
-      <Box component="footer" sx={{ bgcolor: "common.white", borderTop: "1px solid", borderColor: "divider" }}>
-        <Container maxWidth="lg" sx={{ py: 6 }}>
-          <Grid container spacing={4}>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <Stack spacing={1.5}>
-                <BrandMark />
-                <Typography color="text.secondary" maxWidth={320}>
-                  UI Kits, Templates and Dashboards built on top of Tailwind, Vue.js, React, Angular, Node.js and
-                  Laravel. Join over 516,257 creatives to access all our products.
-                </Typography>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Stack spacing={3} sx={{ height: "100%" }}>
+                <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
+                  <CardContent sx={{ p: 3 }}>
+                    <Stack spacing={1.5}>
+                      <Typography variant="h6" fontWeight={800}>{copy.sectionOpsInbox}</Typography>
+                      {copy.opsPoints.map((item) => (
+                        <Stack key={item} direction="row" spacing={1.25} alignItems="flex-start">
+                          <CheckCircleRoundedIcon color="primary" sx={{ mt: 0.2, fontSize: 18 }} />
+                          <Typography color="text.secondary">{item}</Typography>
+                        </Stack>
+                      ))}
+                    </Stack>
+                  </CardContent>
+                </Card>
+                <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider", flexGrow: 1 }}>
+                  <CardContent sx={{ p: 3 }}>
+                    <Stack spacing={1.5}>
+                      <Typography variant="h6" fontWeight={800}>{copy.sectionDetail}</Typography>
+                      {copy.detailPoints.map((item) => (
+                        <Stack key={item} direction="row" spacing={1.25} alignItems="flex-start">
+                          <CheckCircleRoundedIcon color="primary" sx={{ mt: 0.2, fontSize: 18 }} />
+                          <Typography color="text.secondary">{item}</Typography>
+                        </Stack>
+                      ))}
+                    </Stack>
+                  </CardContent>
+                </Card>
               </Stack>
             </Grid>
-
-            {footerColumns.map((column) => (
-              <Grid size={{ xs: 6, md: 2 }} key={column.title}>
-                <Stack spacing={1.5}>
-                  <Typography fontWeight={700} textTransform="uppercase" sx={{ fontSize: 13 }}>
-                    {column.title}
-                  </Typography>
-                  {column.links.map((item) => (
-                    <Link key={item} href="#" underline="hover" color="text.secondary" sx={{ fontSize: 14 }}>
-                      {item}
-                    </Link>
-                  ))}
-                </Stack>
-              </Grid>
-            ))}
           </Grid>
 
-          <Divider sx={{ mt: 5, mb: 2 }} />
-          <Typography color="text.secondary" textAlign="center" sx={{ fontSize: 14 }}>
-            © 2021 Themesberg. All rights reserved.
-          </Typography>
-        </Container>
-      </Box>
+          <Card sx={{ borderRadius: 3.5, border: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}>
+            <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+              <Stack direction={{ xs: "column", md: "row" }} spacing={2} alignItems={{ xs: "flex-start", md: "center" }} justifyContent="space-between">
+                <Stack spacing={0.75}>
+                  <Typography variant="h5" fontWeight={800}>{copy.finalTitle}</Typography>
+                  <Typography color="text.secondary">{copy.finalSubtitle}</Typography>
+                </Stack>
+                <Button component={Link} href={`/${locale}/login`} variant="contained" sx={{ textTransform: "none", fontWeight: 700, px: 3 }}>
+                  {copy.ctaPrimary}
+                </Button>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Stack>
+      </Container>
     </Box>
   );
 }

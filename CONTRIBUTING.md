@@ -33,7 +33,7 @@ chore: short summary
 ```
 
 ## Feature Delivery Order
-1. Contracts first (`shared/contracts`)
+1. Contracts first (`packages/types`)
 2. Migration (`apps/api/src/main/resources/db/migration`)
 3. Backend module
 4. Frontend service/hook/component/page

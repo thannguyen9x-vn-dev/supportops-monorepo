@@ -1,6 +1,8 @@
-import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
-import { getTranslations } from "next-intl/server";
+import Link from "next/link";
+import { LanguageMenu } from "@/features/layout/components/Header/LanguageMenu";
+import { ThemeModeToggle } from "@/features/layout/components/Header/ThemeModeToggle";
 
 import styles from "./auth.module.css";
 
@@ -12,27 +14,29 @@ export default async function AuthLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "auth.layout" });
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <div className={styles.brand}>
-          <span className={styles.brandMark}>D</span>
+        <Link className={styles.brandLink} href={`/${locale}`}>
+          <div className={styles.brand}>
+          <Image
+            className={styles.brandLogo}
+            src="/icons/brand-mark.png"
+            alt="ServiceOps logo"
+            width={36}
+            height={36}
+            priority
+          />
           <span>ServiceOps</span>
-        </div>
-        <nav className={styles.nav}>
-          <Link className="active" href={`/${locale}`}>
-            {t("dashboard")}
-          </Link>
-          <Link href={`/${locale}/team`}>{t("team")}</Link>
-          <Link href={`/${locale}/requests/list`}>{t("requests")}</Link>
-          <Link href={`/${locale}/settings`}>{t("settings")}</Link>
-        </nav>
-        <Link className={styles.ctaLink} href={`/${locale}/login`}>
-          {t("loginRegister")}
+          </div>
         </Link>
+        <div className={styles.headerActions}>
+          <LanguageMenu />
+          <ThemeModeToggle />
+        </div>
       </header>
+      <div aria-hidden className={styles.headerDivider} />
       <main className={styles.main}>{children}</main>
     </div>
   );

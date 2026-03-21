@@ -5,6 +5,8 @@ import { useEntityTableColumnEdit } from "./useEntityTableColumnEdit";
 import { useEntityTableFilter } from "./useEntityTableFilter";
 import { useEntityTableRowForm } from "./useEntityTableRowForm";
 import { useColumnVisibility } from "./useColumnVisibility";
+import { useColumnOrder } from "./useColumnOrder";
+import { useColumnSizing } from "./useColumnSizing";
 import type { EntityTableConfig, EntityTableInstance, TableEditState } from "./types";
 
 export function useEntityTable<TData extends object, TFilters extends object>(
@@ -25,6 +27,8 @@ export function useEntityTable<TData extends object, TFilters extends object>(
     pinnedColumns,
     defaultColumn,
     columnVisibilityStorageKey,
+    columnOrderStorageKey,
+    columnSizingStorageKey,
     onSaveRow,
     onSaveBulkColumn,
   } = config;
@@ -45,6 +49,21 @@ export function useEntityTable<TData extends object, TFilters extends object>(
     columns,
     storageKey: columnVisibilityStorageKey || "table-columns-visibility-default",
   });
+
+  // ── Column order ──────────────────────────────────────────────────────────
+  const allColumnIds = useMemo(
+    () =>
+      columns.map((col) => {
+        if ("id" in col && col.id) return col.id;
+        if ("accessorKey" in col && col.accessorKey) return String(col.accessorKey);
+        return "";
+      }).filter(Boolean),
+    [columns],
+  );
+  const columnOrderHook = useColumnOrder({ allColumnIds, storageKey: columnOrderStorageKey });
+
+  // ── Column sizing ─────────────────────────────────────────────────────────
+  const columnSizingHook = useColumnSizing({ storageKey: columnSizingStorageKey });
 
   // ── Exclusive mode guard ───────────────────────────────────────────────────
   // When switching between row-mode and column-mode, the callers
@@ -104,6 +123,8 @@ export function useEntityTable<TData extends object, TFilters extends object>(
       pinnedColumns,
       defaultColumn,
       columnVisibilityStorageKey,
+      columnOrderStorageKey,
+      columnSizingStorageKey,
       onSaveRow,
       onSaveBulkColumn,
     },
@@ -124,6 +145,12 @@ export function useEntityTable<TData extends object, TFilters extends object>(
     toggleColumn: columnVisibilityHook.toggleColumn,
     showAllColumns: columnVisibilityHook.showAllColumns,
     isColumnVisible: columnVisibilityHook.isColumnVisible,
+
+    // Column order & sizing
+    columnOrder: columnOrderHook.columnOrder,
+    setColumnOrder: columnOrderHook.setColumnOrder,
+    columnSizing: columnSizingHook.columnSizing,
+    setColumnSizing: columnSizingHook.setColumnSizing,
 
     // Edit state machine
     editState,

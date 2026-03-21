@@ -1,4 +1,12 @@
 .sidebar {
+  --sidebar-bg: var(--mui-palette-background-paper);
+  --sidebar-border: var(--mui-palette-divider);
+  --sidebar-text: var(--mui-palette-text-primary);
+  --sidebar-strong: var(--mui-palette-text-primary);
+  --sidebar-muted: var(--mui-palette-text-secondary);
+  --sidebar-hover: var(--mui-palette-action-hover);
+  --sidebar-active: rgba(var(--mui-palette-primary-mainChannel) / 0.16);
+  --sidebar-active-text: var(--mui-palette-primary-main);
   width: 280px;
   height: calc(100% - 8px);
   margin-left: 4px;
@@ -6,10 +14,10 @@
   margin-bottom: 4px;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--mui-palette-divider);
+  border: 1px solid var(--sidebar-border);
   border-radius: 8px;
   overflow: hidden;
-  background: var(--mui-palette-background-paper);
+  background: var(--sidebar-bg);
   transition: width 0.2s ease, transform 0.2s ease;
 }
 
@@ -38,34 +46,36 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
   min-height: 68px;
   padding: 0 20px;
-  border-bottom: 1px solid var(--mui-palette-grey-100);
+  border-bottom: 1px solid var(--sidebar-border);
 }
 
-.brandMark {
+.brandIdentity {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brandLogo {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--mui-palette-common-white);
-  background: linear-gradient(
-    130deg,
-    var(--mui-palette-primary-darker),
-    var(--mui-palette-primary-dark)
-  );
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .brandName {
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: var(--mui-palette-grey-800);
+  color: var(--sidebar-strong);
+}
+
+.toggleButton {
+  color: var(--sidebar-muted);
 }
 
 .nav {
@@ -84,7 +94,7 @@
   padding: 0 10px;
   font-size: 11px;
   font-weight: 700;
-  color: var(--mui-palette-grey-500);
+  color: var(--sidebar-muted);
   letter-spacing: 0.08em;
 }
 
@@ -105,18 +115,18 @@
   border-radius: 10px;
   padding: 0 10px;
   font-size: 14px;
-  color: var(--mui-palette-grey-700);
+  color: var(--sidebar-text);
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .item:hover {
-  background: var(--mui-palette-grey-100);
+  background: var(--sidebar-hover);
 }
 
 .active {
-  color: var(--mui-palette-primary-darker);
-  background: var(--mui-palette-primary-lighter);
+  color: var(--sidebar-active-text);
+  background: var(--sidebar-active);
 }
 
 .icon {
@@ -166,20 +176,29 @@
   margin-bottom: 2px;
   padding: 0 10px;
   font-size: 13px;
-  color: var(--mui-palette-grey-600);
+  color: var(--sidebar-text);
 }
 
 .subitem:hover {
-  background: var(--mui-palette-grey-100);
+  background: var(--sidebar-hover);
 }
 
 .footer {
   min-height: 72px;
-  border-top: 1px solid var(--mui-palette-grey-100);
+  border-top: 1px solid var(--sidebar-border);
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
+  text-decoration: none;
+}
+
+.footer:hover {
+  background: var(--sidebar-hover);
+}
+
+.footerActive {
+  background: var(--sidebar-active);
 }
 
 .userInfo {
@@ -189,7 +208,7 @@
 .userName {
   font-size: 13px;
   font-weight: 700;
-  color: var(--mui-palette-grey-800);
+  color: var(--sidebar-strong);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -197,7 +216,7 @@
 
 .userRole {
   font-size: 12px;
-  color: var(--mui-palette-grey-500);
+  color: var(--sidebar-muted);
 }
 
 .backdrop {

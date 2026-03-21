@@ -14,6 +14,10 @@
       "settings": "Settings"
     },
     "common": {
+      "tenantSlugLabel": "Workspace slug",
+      "tenantSlugPlaceholder": "supportops-demo",
+      "tenantSlugRequired": "Workspace slug is required",
+      "tenantSlugInvalid": "Use lowercase letters, numbers, and hyphens only",
       "emailLabel": "Your email",
       "emailPlaceholder": "name@example.com",
       "emailRequired": "Email is required",
@@ -31,7 +35,7 @@
       "unableToSignIn": "Unable to sign in",
       "unableToRegister": "Unable to register"
     },
-    "login": {
+  "login": {
       "title": "Sign in",
       "subtitle": "Welcome back. Pick up where you left off.",
       "badge": "Secure access",
@@ -39,11 +43,13 @@
       "illustrationText": "Keep projects moving with quick, reliable sign in.",
       "footerPrompt": "New here?",
       "footerAction": "Create an account",
-      "rememberMe": "Remember me",
-      "forgotPassword": "Forgot password?",
-      "submit": "Sign In"
-    },
-    "register": {
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "submit": "Sign In",
+    "emailNotVerified": "Your email is not verified. Please verify your email before signing in.",
+    "goToVerify": "Open email verification page"
+  },
+  "register": {
       "title": "Create your free account",
       "subtitle": "Launch your workspace in minutes.",
       "badge": "Onboarding",
@@ -65,45 +71,92 @@
         "number": "At least one number",
         "specialCharacter": "Inclusion of at least one special character, e.g., ! @ # ?"
       },
-      "submit": "Create account"
-    },
-    "forgotPassword": {
-      "title": "Forgot your password?",
-      "subtitle": "We will send a reset link to your email.",
+    "submit": "Create account",
+    "submitSuccess": "We sent a verification email to {email}. Please verify before signing in.",
+    "resendVerificationEmail": "Resend verification email",
+    "resendSuccess": "A new verification email has been sent.",
+    "resendError": "Unable to resend verification email. Please try again.",
+    "goToLogin": "Go to sign in"
+  },
+  "forgotPassword": {
+    "title": "Forgot your password?",
+    "subtitle": "We will send a 6-digit reset code to your email. The code is valid for 10 minutes.",
       "badge": "Recovery",
       "illustrationTitle": "Reset in minutes",
       "illustrationText": "Enter your email and we will help you get back in.",
       "footerPrompt": "Remembered your password?",
       "footerAction": "Back to sign in",
-      "submit": "Recover password",
-      "submitSuccess": "If the account exists, we sent a reset link.",
-      "submitError": "Unable to process your request. Please try again."
-    },
-    "resetPassword": {
+    "submit": "Send reset code",
+    "submitSuccess": "If the account exists, we sent a reset code.",
+    "submitError": "Unable to process your request. Please try again."
+  },
+  "resetPassword": {
       "title": "Reset password",
       "subtitle": "Choose a new password to secure your account.",
       "badge": "Security",
       "illustrationTitle": "Stay protected",
       "illustrationText": "Update your credentials and keep your work safe.",
-      "footerPrompt": "Need to start over?",
-      "footerAction": "Request a new link",
+    "footerPrompt": "Need to start over?",
+    "footerAction": "Request a new code",
+    "codeLabel": "Reset code",
+    "codePlaceholder": "Enter 6-digit code",
+    "codeRequired": "Reset code is required",
+    "codeInvalid": "Reset code must be 6 digits",
       "newPasswordLabel": "New password",
       "newPasswordPlaceholder": "Create a strong password",
       "confirmNewPasswordLabel": "Confirm new password",
       "confirmNewPasswordPlaceholder": "Repeat your password",
       "confirmNewPasswordRequired": "Confirm your password",
-      "submit": "Reset password",
-      "submitSuccess": "Password reset successfully. You can sign in now.",
-      "submitError": "Unable to reset password. Please try again.",
-      "missingToken": "Invalid reset link. Please request a new one.",
-      "passwordRequirements": {
+    "submit": "Reset password",
+    "submitSuccess": "Password reset successfully. You can sign in now.",
+    "submitError": "Unable to reset password. Please try again.",
+    "missingEmail": "Missing email context. Please start from forgot password.",
+    "passwordRequirements": {
         "minLength": "At least 10 characters (and up to 32 characters)",
         "lowercase": "At least one lowercase character",
         "uppercase": "At least one UPPERCASE letter",
         "number": "At least one number",
-        "specialCharacter": "Inclusion of at least one special character, e.g., ! @ # ?"
-      }
+      "specialCharacter": "Inclusion of at least one special character, e.g., ! @ # ?"
     }
+  },
+  "verifyEmail": {
+    "title": "Verify your email",
+    "subtitle": "Use the link in your email to verify your account before signing in.",
+    "verifying": "Verifying your email...",
+    "success": "Email verified successfully. You can sign in now.",
+    "error": "Unable to verify email. The link may be invalid or expired.",
+    "missingToken": "Missing verification token. Please open the link from your email.",
+    "missingEmail": "Missing email. Please register again or contact support.",
+    "resend": "Resend verification email",
+    "resendSuccess": "Verification email sent.",
+    "resendError": "Unable to resend verification email. Please try again.",
+    "goToLogin": "Go to sign in",
+    "footerPrompt": "Already verified?",
+    "footerAction": "Sign in"
+  },
+  "acceptInvite": {
+    "title": "Accept invitation",
+    "subtitle": "Set your password to activate your account.",
+    "footerPrompt": "Already have an account?",
+    "footerAction": "Sign in",
+    "fullNameLabel": "Full name",
+    "fullNamePlaceholder": "Input full name",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Input password",
+    "confirmPasswordLabel": "Confirm password",
+    "confirmPasswordPlaceholder": "Input confirm password",
+    "missingToken": "Missing invite token. Please open the invitation link from your email.",
+    "submit": "Activate account",
+    "submitSuccess": "Account activated successfully. Redirecting to sign in...",
+    "submitError": "Unable to accept invitation. The link may be invalid or expired.",
+    "passwordRequirements": {
+      "minLength": "At least 10 characters (and up to 32 characters)",
+      "lowercase": "At least one lowercase character",
+      "uppercase": "At least one UPPERCASE letter",
+      "number": "At least one number",
+      "specialCharacter": "Inclusion of at least one special character, e.g., ! @ # ?"
+    }
+  }
   },
   "nav": {
     "main": "MAIN",
@@ -111,7 +164,7 @@
     "system": "SYSTEM",
     "dashboard": "Dashboard",
     "projects": "Projects",
-    "team": "Team",
+    "team": "Users",
     "calendar": "Calendar",
     "reports": "Reports",
     "reportsOverview": "Overview",
@@ -127,6 +180,8 @@
     "toggleNavigationAriaLabel": "Toggle navigation",
     "closeNavigationAriaLabel": "Close navigation",
     "languageMenuAriaLabel": "Open language menu",
+    "switchToDarkModeAriaLabel": "Switch to dark mode",
+    "switchToLightModeAriaLabel": "Switch to light mode",
     "notificationsAriaLabel": "Notifications",
     "userMenuAriaLabel": "Open user menu",
     "profile": "Profile",
@@ -136,6 +191,58 @@
     "dashboardComingSoon": "Dashboard - coming soon",
     "projectsComingSoon": "Projects - coming soon",
     "teamComingSoon": "Team - coming soon",
+    "teamAdmin": {
+      "title": "Team Administration",
+      "subtitle": "Invite users, assign roles, and manage account access in your tenant.",
+      "loading": "Loading users...",
+      "loadError": "Unable to load tenant users.",
+      "inviteSuccess": "Invite created successfully.",
+      "inviteError": "Failed to create invite.",
+      "roleUpdated": "Role updated successfully.",
+      "roleUpdateError": "Failed to update role.",
+      "departmentUpdated": "Department updated successfully.",
+      "departmentUpdateError": "Failed to update department.",
+      "deactivateSuccess": "User deactivated successfully.",
+      "deactivateError": "Failed to deactivate user.",
+      "reactivateSuccess": "User reactivated successfully.",
+      "reactivateError": "Failed to reactivate user.",
+      "roles": {
+        "EMPLOYEE": "Employee",
+        "OPS_COORDINATOR": "Ops Coordinator",
+        "TECHNICIAN": "Technician",
+        "TENANT_ADMIN": "Tenant Admin"
+      },
+      "form": {
+        "email": "Email",
+        "emailPlaceholder": "Input email",
+        "fullName": "Full name",
+        "fullNamePlaceholder": "Input full name",
+        "role": "Role",
+        "department": "Department",
+        "rolePlaceholder": "Select role",
+        "invite": "Invite user",
+        "dialogTitle": "Invite team member",
+        "cancel": "Cancel"
+      },
+      "table": {
+        "title": "Tenant users",
+        "empty": "No users found in this tenant.",
+        "email": "Email",
+        "name": "Name",
+        "department": "Department",
+        "departmentPlaceholder": "Input department",
+        "allDepartments": "All departments",
+        "clearDepartmentFilter": "Clear filter",
+        "role": "Role",
+        "membership": "Membership",
+        "lastLogin": "Last login",
+        "actions": "Actions",
+        "updateRole": "Update role",
+        "updateDepartment": "Update department",
+        "deactivate": "Deactivate",
+        "reactivate": "Reactivate"
+      }
+    },
     "calendarComingSoon": "Calendar - coming soon",
     "settingsComingSoon": "Settings - coming soon",
     "reportsComingSoon": "Reports - coming soon",
@@ -245,7 +352,15 @@
           "showFilters": "Show Filters",
           "hideFilters": "Hide Filters",
           "clear": "Clear",
-          "apply": "Apply"
+          "apply": "Apply",
+          "cancel": "Cancel",
+          "submitRequest": "Submit Request",
+          "rowActions": {
+            "view": "View",
+            "edit": "Edit",
+            "assign": "Assign",
+            "cancelRequest": "Cancel Request"
+          }
         },
         "filters": {
           "searchPlaceholder": "Search requests",
@@ -304,6 +419,77 @@
           "next": "Next page"
         },
         "emptyState": "No requests match current filters."
+      },
+      "detail": {
+        "header": {
+          "backToList": "Back to requests",
+          "title": "Office AC leaking at Floor 5 - Meeting Room C",
+          "subtitle": "Last updated {updatedAgo} · Requested by {requester} ({role})",
+          "updatedMinutesAgo": "{minutes} min ago",
+          "breadcrumbs": {
+            "requests": "Requests"
+          },
+          "meta": {
+            "inProgress": "In progress"
+          }
+        },
+        "statusLabels": {
+          "DRAFT": "Draft",
+          "SUBMITTED": "Submitted",
+          "TRIAGE": "Triage",
+          "ASSIGNED": "Assigned",
+          "IN_PROGRESS": "In progress",
+          "WAITING_EXTERNAL_VENDOR": "Waiting vendor",
+          "RESOLVED": "Resolved",
+          "CLOSED": "Closed",
+          "REOPENED": "Reopened",
+          "CANCELLED": "Cancelled"
+        },
+        "priorityLabels": {
+          "LOW": "Low priority",
+          "MEDIUM": "Medium priority",
+          "HIGH": "High priority",
+          "URGENT": "Urgent priority",
+          "CRITICAL": "Critical priority"
+        },
+        "assignment": {
+          "assigneeRole": "Assignee"
+        },
+        "assignDialog": {
+          "titleAssign": "Assign request",
+          "titleReassign": "Reassign request",
+          "assignee": "Assignee",
+          "assigneePlaceholder": "Select assignee",
+          "loadingUsers": "Loading users...",
+          "emptyUsers": "No active assignees available.",
+          "cancel": "Cancel",
+          "confirmAssign": "Assign",
+          "confirmReassign": "Reassign"
+        },
+        "workLog": {
+          "sectionTitle": "WORK LOG",
+          "empty": "No work logs yet.",
+          "noDuration": "No duration",
+          "addTitle": "ADD WORK LOG",
+          "placeholder": "Describe what was done...",
+          "minutes": "Minutes",
+          "add": "Add",
+          "timelineTitle": "Work log added"
+        },
+        "feedback": {
+          "loadingDetail": "Loading request detail...",
+          "loadDetailError": "Unable to load request detail.",
+          "loadAssigneesError": "Unable to load assignees.",
+          "actionFailed": "Action failed.",
+          "addNoteHint": "Use comment box and tick 'Internal note' to add note.",
+          "statusUpdated": "Status updated.",
+          "assignedToYou": "Assigned to you.",
+          "requestAssigned": "Request assigned.",
+          "requestReassigned": "Request reassigned.",
+          "commentAdded": "Comment added.",
+          "workLogAdded": "Work log added.",
+          "retry": "Retry"
+        }
       }
     },
     "settings": {
@@ -318,11 +504,18 @@
         "retry": "Retry",
         "reload": "Reload",
         "update": "Update",
+        "saveChanges": "Save changes",
+        "savePassword": "Save password",
         "saving": "Saving...",
         "savePreferences": "Save preferences"
       },
       "profile": {
         "userRole": "Senior Software Engineer",
+        "systemRoleFallback": "Employee",
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
         "changePicture": "Change picture",
         "avatarUploadSuccess": "Avatar uploaded successfully",
         "avatarUploadError": "Unable to upload avatar. Please try again.",
@@ -347,18 +540,23 @@
           "birthday": "Birthday",
           "phoneCountryCode": "Area code",
           "phoneNumber": "Phone number",
-          "address": "Address",
-          "country": "Country",
           "email": "Email",
           "organization": "Organization",
-          "zipCode": "Zip/Postal code",
-          "city": "City",
-          "department": "Department"
+          "department": "Department",
+          "location": "Location",
+          "systemRole": "System role"
         },
         "placeholders": {
+          "firstName": "Nguyen",
+          "lastName": "Nham Than",
+          "selectDate": "Select date",
           "phoneNumber": "e.g. 3456 789",
-          "selectDate": "Select date"
+          "email": "name@example.com",
+          "location": "e.g. San Francisco"
         },
+        "aboutWorkLabel": "About my work:",
+        "aboutWorkValue": "Developing and maintaining internal software tools for ServiceOps.",
+        "departmentLockedHint": "Only admin roles can update department.",
         "datePicker": {
           "month": "Month",
           "year": "Year",
@@ -370,7 +568,7 @@
         }
       },
       "password": {
-        "title": "Password information",
+        "title": "Email Settings",
         "currentPassword": "Current password",
         "newPassword": "New password",
         "confirmNewPassword": "Confirm new password",
@@ -391,43 +589,72 @@
       },
       "notifications": {
         "alertsTitle": "Alerts & Notifications",
-        "alertsDescription": "You can set up Themesberg to get notifications",
+        "alertsDescription": "Get ServiceOps news, announcements and related updates.",
         "emailTitle": "Email Settings",
-        "emailDescription": "You can set up Themesberg to get email notifications",
+        "emailDescription": "Choose which emails ServiceOps should send you.",
         "items": {
           "companyNews": {
             "title": "Company News",
-            "description": "Get Themesberg news, announcements, and product updates"
+            "description": "Get ServiceOps news, announcements, and product updates."
           },
           "accountActivity": {
-            "title": "Account Activity",
-            "description": "Get important notifications about you or activity you've missed"
+            "title": "Assignment Notifications",
+            "description": "Get notifications when new requests are assigned to you."
           },
           "meetupsNearYou": {
-            "title": "Meetups Near You",
-            "description": "Get an email when a Dribbble Meetup is posted close to my location"
+            "title": "SLA Risk Alerts",
+            "description": "Get alerts when requests are at risk of SLA breach."
           },
           "newMessages": {
-            "title": "New Messages",
-            "description": "Get Themesberg news, announcements, and product updates"
+            "title": "Escalation Alerts",
+            "description": "Get notified when requests are escalated."
           },
           "ratingReminders": {
             "title": "Rating reminders",
-            "description": "Send an email reminding me to rate an item a week after purchase"
+            "description": "Send an email reminding me to rate an item after a week."
           },
           "itemUpdateNotifications": {
             "title": "Item update notifications",
-            "description": "Send an email when an item I've purchased is updated"
+            "description": "Send an email when an item I have purchased is updated."
           },
           "itemCommentNotifications": {
             "title": "Item comment notifications",
-            "description": "Send me an email when someone comments on one of my items"
+            "description": "Send me an email when someone comments on one of my items."
           },
           "buyerReviewNotifications": {
             "title": "Buyer review notifications",
             "description": "Send me an email when someone leaves a review with their rating"
           }
         }
+      },
+      "tabs": {
+        "ariaLabel": "Profile settings sections",
+        "introLabel": "Settings Workspace",
+        "introTitle": "Manage your account settings",
+        "generalDescription": "Update your personal profile details that teammates can see.",
+        "notificationsDescription": "Choose which alerts and email updates you want to receive.",
+        "securityDescription": "Keep your account safe by updating your password regularly.",
+        "sessionsDescription": "Review your active devices and sign out sessions you no longer use.",
+        "general": "General",
+        "notifications": "Notifications",
+        "security": "Security",
+        "sessions": "Sessions"
+      },
+      "sessions": {
+        "title": "Active Sessions",
+        "currentTitle": "Current Session",
+        "otherTitle": "Other Sessions",
+        "currentSession": "Current Session",
+        "browserOnDevice": "{browser} on {device}",
+        "location": "Location",
+        "lastActive": "Last Active",
+        "unknown": "Unknown",
+        "empty": "No active session data.",
+        "error": "Unable to load active sessions.",
+        "signOutOthers": "Sign out from other sessions",
+        "signOutOthersSuccess": "Signed out from other sessions.",
+        "signOutOthersError": "Unable to sign out from other sessions.",
+        "noOtherSession": "No other active sessions."
       },
       "validation": {
         "required": "This field is required",
@@ -553,7 +780,16 @@
           "titleRequired": "Title is required to submit."
         },
         "hints": {
-          "title": "Tip: Be specific, e.g., “AC unit leaking in Server Room B.”"
+          "title": "Tip: Be specific, e.g., \"AC unit leaking in Server Room B.\"",
+          "description": "Tip: Include what happened, when it started, and impact.",
+          "attachments": "Upload photos, documents, or other relevant files to help us understand and resolve your request faster."
+        },
+        "placeholders": {
+          "select": "Select",
+          "title": "E.g., AC unit leaking in Server Room B",
+          "description": "Describe the issue, timeline, and affected area...",
+          "preferredContact": "Input contact info",
+          "assetId": "Input Asset ID"
         },
         "actions": {
           "saveDraft": "Save Draft",

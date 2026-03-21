@@ -61,7 +61,7 @@ export function ColumnVisibilityPopover<TData>({
         sx={{
           width: 40,
           height: 40,
-          borderRadius: 2,
+          borderRadius: "6px",
           border: "1px solid",
           borderColor: "grey.300",
           backgroundColor: "grey.50",

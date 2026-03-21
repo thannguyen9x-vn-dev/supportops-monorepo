@@ -1,10 +1,15 @@
 "use client";
 
+import FirstPageIcon from "@mui/icons-material/FirstPage";
+import LastPageIcon from "@mui/icons-material/LastPage";
 import { Avatar } from "@mui/material";
+import { IconButton } from "@mui/material";
+import Image from "next/image";
+import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
-import type { UserRole } from "@supportops/contracts";
+import type { UserRole } from "@supportops/types";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { navigationConfig } from "../../config/navigation";
@@ -61,10 +66,12 @@ function filterNavigationByRole(groups: NavGroup[], role?: UserRole): NavGroup[]
 export function Sidebar() {
   const { locale } = useParams<{ locale: string }>();
   const pathname = usePathname();
-  const { isCollapsed, isMobileOpen, closeMobileSidebar } = useSidebar();
+  const { isCollapsed, isMobileOpen, closeMobileSidebar, toggleSidebar } = useSidebar();
   const { user } = useAuth();
   const t = useTranslations();
   const roleLabel = user?.role.replace("_", " ") ?? "";
+  const profileHref = `/${locale}/settings`;
+  const isProfileActive = pathname === profileHref;
   const filteredNavigation = filterNavigationByRole(navigationConfig, user?.role);
 
   useEffect(() => {
@@ -89,8 +96,37 @@ export function Sidebar() {
         ].join(" ")}
       >
         <div className={styles.brand}>
-          <span className={styles.brandMark}>D</span>
-          {!isCollapsed ? <span className={styles.brandName}>ServiceOps</span> : null}
+          {isCollapsed ? (
+            <IconButton
+              className={styles.toggleButton}
+              onClick={toggleSidebar}
+              size="small"
+              aria-label={t("header.toggleNavigationAriaLabel")}
+            >
+              <LastPageIcon />
+            </IconButton>
+          ) : (
+            <>
+              <div className={styles.brandIdentity}>
+                <Image
+                  className={styles.brandLogo}
+                  src="/icons/brand-mark.png"
+                  alt="ServiceOps logo"
+                  width={28}
+                  height={28}
+                />
+                <span className={styles.brandName}>ServiceOps</span>
+              </div>
+              <IconButton
+                className={styles.toggleButton}
+                onClick={toggleSidebar}
+                size="small"
+                aria-label={t("header.closeNavigationAriaLabel")}
+              >
+                <FirstPageIcon />
+              </IconButton>
+            </>
+          )}
         </div>
 
         <nav className={styles.nav}>
@@ -107,7 +143,12 @@ export function Sidebar() {
         </nav>
 
         {!isCollapsed ? (
-          <div className={styles.footer}>
+          <Link
+            href={profileHref}
+            className={[styles.footer, isProfileActive ? styles.footerActive : ""].join(" ")}
+            aria-label={t("header.profile")}
+            title={t("header.profile")}
+          >
             <Avatar src={user?.avatarUrl ?? undefined} sx={{ width: 36, height: 36 }}>
               {`${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.trim() || "U"}
             </Avatar>
@@ -115,7 +156,7 @@ export function Sidebar() {
               <p className={styles.userName}>{`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "-"}</p>
               <p className={styles.userRole}>{roleLabel}</p>
             </div>
-          </div>
+          </Link>
         ) : null}
       </aside>
     </>

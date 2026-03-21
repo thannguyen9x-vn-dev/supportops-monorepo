@@ -42,9 +42,10 @@ export function AuthCard({
         maxWidth: '100%',
         mx: 'auto',
         boxShadow: 'none',
-        border: '1px solid #E2E8F0',
-        bgcolor: '#FFFFFF',
-        backgroundColor: '#FFFFFF',
+        border: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
+        backgroundColor: 'background.paper',
         backgroundImage: 'none !important',
         flexDirection: 'column',
         '@media (min-width: 960px)': {
@@ -56,15 +57,18 @@ export function AuthCard({
         <Box
           sx={{
             flex: '0 0 auto',
-            background: (theme) =>
-              `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+            bgcolor: 'background.paper',
+            backgroundColor: 'background.paper',
+            backgroundImage: 'none !important',
             p: {xs: '24px 16px', md: '24px 16px'},
             minHeight: {xs: 180, sm: 220},
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'primary.contrastText',
+            color: 'text.primary',
+            borderRight: {xs: 'none', md: '1px solid'},
+            borderColor: 'divider',
             '@media (min-width: 960px)': {
               flex: '0 0 45%',
               minHeight: 'auto',
@@ -81,8 +85,8 @@ export function AuthCard({
         sx={{
           flex: 1,
           p: {xs: '24px 16px', md: '24px 16px'},
-          bgcolor: '#FFFFFF',
-          backgroundColor: '#FFFFFF',
+          bgcolor: 'background.paper',
+          backgroundColor: 'background.paper',
           backgroundImage: 'none !important',
           display: 'flex',
           flexDirection: 'column',

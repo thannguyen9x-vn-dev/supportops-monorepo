@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { UserRole } from "@supportops/contracts";
+import type { UserRole } from "@supportops/types";
 
 export type NavItem = {
   label: string;

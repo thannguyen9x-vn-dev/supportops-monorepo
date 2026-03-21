@@ -1,12 +1,13 @@
 'use client';
 
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
+import PinOutlinedIcon from "@mui/icons-material/PinOutlined";
 import VpnKeyOutlinedIcon from "@mui/icons-material/VpnKeyOutlined";
 import { Alert, Button } from "@mui/material";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
@@ -20,15 +21,18 @@ import { AuthCard } from "../../../../../components/auth/AuthCard";
 import styles from "../auth.module.css";
 
 type ResetFormValues = {
+  code: string;
   password: string;
   confirmPassword: string;
 };
 
 export default function ResetPasswordPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { locale } = useParams<{ locale: string }>();
   const t = useTranslations("auth.resetPassword");
   const commonT = useTranslations("auth.common");
+  const supportLabel = locale.toLowerCase().startsWith("vi") ? "Hỗ trợ kỹ thuật" : "Technical support";
   const [imageLoadError, setImageLoadError] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const {
@@ -38,11 +42,13 @@ export default function ResetPasswordPage() {
     setError
   } = useForm<ResetFormValues>({
     defaultValues: {
+      code: "",
       password: "",
       confirmPassword: "",
     },
+    mode: "onTouched",
   });
-  const token = searchParams.get("token") ?? "";
+  const email = searchParams.get("email") ?? "";
 
   const password = useWatch({
     control,
@@ -53,18 +59,22 @@ export default function ResetPasswordPage() {
   const onSubmit = async (data: ResetFormValues) => {
     setSubmitted(false);
 
-    if (!token) {
-      setError("root", { message: t("missingToken") });
+    if (!email) {
+      setError("root", { message: t("missingEmail") });
       return;
     }
 
     try {
       await authService.resetPassword({
-        token,
+        email,
+        code: data.code,
         newPassword: data.password,
         confirmPassword: data.confirmPassword
       });
       setSubmitted(true);
+      setTimeout(() => {
+        router.replace(`/${locale}/login`);
+      }, 1200);
     } catch (error: unknown) {
       const message = error instanceof ApiError ? error.message : t("submitError");
       setError("root", { message });
@@ -77,15 +87,7 @@ export default function ResetPasswordPage() {
       title={t("title")}
       subtitle={t("subtitle")}
       titleSx={{ fontSize: { xs: "1.9rem", md: "1.9rem" } }}
-      illustrationPanelSx={{
-        background: "#FFFFFF",
-        backgroundColor: "#FFFFFF",
-        color: "text.primary",
-      }}
       formPanelSx={{
-        background: "#FFFFFF",
-        backgroundColor: "#FFFFFF",
-        backgroundImage: "none",
         justifyContent: { xs: "flex-start", md: "center" },
       }}
       illustration={
@@ -103,7 +105,7 @@ export default function ResetPasswordPage() {
               />
             </div>
           ) : (
-            <ShieldOutlinedIcon sx={{ fontSize: 120, color: "#2563eb", mt: 2 }} />
+            <ShieldOutlinedIcon sx={{ fontSize: 120, color: "primary.main", mt: 2 }} />
           )}
         </>
       }
@@ -111,6 +113,8 @@ export default function ResetPasswordPage() {
         <>
           <span>{t("footerPrompt")}</span>
           <Link href={`/${locale}/forgot-password`}>{t("footerAction")}</Link>
+          <span aria-hidden>·</span>
+          <Link href={`/${locale}/auth-support`}>{supportLabel}</Link>
         </>
       }
     >
@@ -132,6 +136,20 @@ export default function ResetPasswordPage() {
           style={{ position: "absolute", opacity: 0, pointerEvents: "none", height: 0, width: 0 }}
         />
         <div className={styles.fields}>
+          <TextInputField
+            name="code"
+            control={control}
+            label={t("codeLabel")}
+            placeholder={t("codePlaceholder")}
+            startIcon={<PinOutlinedIcon fontSize="small" />}
+            rules={{
+              required: t("codeRequired"),
+              pattern: {
+                value: /^\d{6}$/,
+                message: t("codeInvalid")
+              }
+            }}
+          />
           <TextInputField
             name="password"
             control={control}
@@ -194,18 +212,17 @@ export default function ResetPasswordPage() {
             type="submit"
             variant="contained"
             fullWidth
-            disabled={isSubmitting}
+            disabled={isSubmitting || !email}
             sx={{
               borderRadius: 2,
               textTransform: "none",
               py: 1.2,
               fontWeight: 600,
-              bgcolor: "#2563eb",
-              "&:hover": { bgcolor: "#1d4ed8" },
             }}
           >
             {t("submit")}
           </Button>
+          {!email ? <Alert severity="warning">{t("missingEmail")}</Alert> : null}
           {submitted ? <Alert severity="success">{t("submitSuccess")}</Alert> : null}
           {errors.root?.message ? <Alert severity="error">{errors.root.message}</Alert> : null}
         </div>

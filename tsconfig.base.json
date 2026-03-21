@@ -1,39 +1,14 @@
 {
+  "extends": "./packages/tsconfig/base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "jsx": "react-jsx",
-    
-    // Strict mode
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "useUnknownInCatchVariables": true,
-    
-    // Module resolution
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    
-    // Declaration files
-    "declaration": true,
-    "declarationMap": true,
-    
-    // Path mapping (optional)
     "baseUrl": ".",
     "paths": {
-      "@supportops/contracts": ["./shared/contracts/src"],
-      "@supportops/ui": ["./shared/ui/src"],
-      "@supportops/ui-theme": ["./shared/ui/theme/src"],
-      "@supportops/ui-form": ["./shared/ui/form/src"],
-      "@supportops/ui-avatar": ["./shared/ui/avatar/dist"],
-      "@supportops/ui-file-upload": ["./shared/ui/file-upload/dist"]
+      "@supportops/types": ["./packages/types/src"],
+      "@supportops/ui": ["./packages/ui/src"],
+      "@supportops/ui-theme": ["./packages/ui/theme/src"],
+      "@supportops/ui-form": ["./packages/ui/form/src"],
+      "@supportops/ui-avatar": ["./packages/ui/avatar/dist"],
+      "@supportops/ui-file-upload": ["./packages/ui/file-upload/dist"]
     }
   }
 }

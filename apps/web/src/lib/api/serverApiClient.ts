@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { ApiErrorDetail, ApiResponse } from "@supportops/contracts";
+import type { ApiErrorDetail, ApiResponse } from "@supportops/types";
 import { cookies, headers } from "next/headers";
 
 import { env } from "@/lib/config/env";

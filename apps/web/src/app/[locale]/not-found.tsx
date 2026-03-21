@@ -16,7 +16,14 @@ export default function LocaleNotFoundPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.brand}>
-          <span className={styles.brandMark}>D</span>
+          <Image
+            className={styles.brandLogo}
+            src="/icons/brand-mark.png"
+            alt="ServiceOps logo"
+            width={36}
+            height={36}
+            priority
+          />
           <span>ServiceOps</span>
         </div>
 
@@ -24,7 +31,7 @@ export default function LocaleNotFoundPage() {
           <Link className="active" href={`/${locale}/dashboard`}>
             Dashboard
           </Link>
-          <Link href={`/${locale}/team`}>Team</Link>
+          <Link href={`/${locale}/admin/user`}>Users</Link>
           <Link href={`/${locale}/requests/list`}>Requests</Link>
           <Link href={`/${locale}/settings`}>Settings</Link>
         </nav>
@@ -64,8 +71,6 @@ export default function LocaleNotFoundPage() {
               px: 3,
               py: 1,
               fontWeight: 600,
-              bgcolor: '#2563eb',
-              '&:hover': { bgcolor: '#1d4ed8' },
             }}
           >
             Go back home

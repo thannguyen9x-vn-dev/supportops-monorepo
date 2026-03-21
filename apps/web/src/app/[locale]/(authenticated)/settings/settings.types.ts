@@ -6,13 +6,13 @@ export type SubmitState = "idle" | "saving" | "success" | "error";
 export type ProfileFormValues = {
   firstName: string;
   lastName: string;
+  systemRole: string;
   birthday: string;
   phoneCountry: CountryCode;
   phoneNumber: string;
   address: string;
   country: CountryCode;
   email: string;
-  organization: string;
   zipCode: string;
   city: string;
   department: string;

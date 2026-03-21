@@ -10,10 +10,10 @@ declare module "@supportops/ui-file-upload" {
     progress: number;
   };
 
-  export type UploadFn = (
+  export type UploadFn<T = unknown> = (
     uploadableFile: UploadableFile,
     onProgress: (progress: UploadProgress) => void
-  ) => Promise<void>;
+  ) => Promise<T>;
 
   export interface AvatarUploadProps {
     buttonLabel: string;
@@ -41,6 +41,32 @@ declare module "@supportops/ui-file-upload" {
     value?: File[];
   }
 
+  export interface UploadedFileInfo {
+    id: string;
+    fileName: string;
+    fileUrl: string;
+    mimeType: string;
+    sizeBytes: number;
+    uploadedAt?: string;
+  }
+
+  export interface FileUploadFieldProps {
+    value?: UploadedFileInfo[];
+    onChange?: (files: UploadedFileInfo[]) => void;
+    maxFiles?: number;
+    maxFileSizeBytes?: number;
+    accept?: string;
+    acceptedMimeTypes?: string[];
+    disabled?: boolean;
+    error?: string;
+    helperText?: string;
+    label?: string;
+    uploadFn?: UploadFn<UploadedFileInfo>;
+    onUploadSuccess?: (files: UploadedFileInfo[]) => void;
+    onUploadError?: (errors: string[]) => void;
+  }
+
   export const AvatarUpload: ComponentType<AvatarUploadProps>;
   export const FileUpload: ComponentType<FileUploadProps>;
+  export const FileUploadField: ComponentType<FileUploadFieldProps>;
 }

@@ -11,11 +11,12 @@ import { toUpdateProfileRequest } from "../settings.mapper";
 import { getErrorMessage } from "../utils/getErrorMessage";
 
 type UseProfileFormOptions = {
+  canEditDepartment: boolean;
   onSaved: (values: ProfileFormValues) => void;
   t: (key: string) => string;
 };
 
-export function useProfileForm({ t, onSaved }: UseProfileFormOptions) {
+export function useProfileForm({ canEditDepartment, t, onSaved }: UseProfileFormOptions) {
   const toast = useToast();
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
 
@@ -27,13 +28,13 @@ export function useProfileForm({ t, onSaved }: UseProfileFormOptions) {
     defaultValues: {
       firstName: "",
       lastName: "",
+      systemRole: "",
       birthday: "",
       phoneCountry: "US",
       phoneNumber: "",
       address: "",
       country: "US",
       email: "",
-      organization: "",
       zipCode: "",
       city: "",
       department: ""
@@ -44,7 +45,9 @@ export function useProfileForm({ t, onSaved }: UseProfileFormOptions) {
     setSubmitState("saving");
 
     try {
-      await settingsService.updateProfile(toUpdateProfileRequest(values));
+      await settingsService.updateProfile(
+        toUpdateProfileRequest(values, { includeDepartment: canEditDepartment }),
+      );
       onSaved(values);
       setSubmitState("success");
       toast.success(t("state.saved"));

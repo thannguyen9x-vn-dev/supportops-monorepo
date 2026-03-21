@@ -42,12 +42,24 @@ export function useEntityTabs<TKey extends string>(
   );
 
   const activeKey = isControlled ? (options.activeKey as TKey) : uncontrolledKey;
+  const [visitedKeys, setVisitedKeys] = useState<Set<TKey>>(
+    () => new Set(activeKey ? [activeKey] : []),
+  );
 
   const setActiveKey = useCallback(
     (key: TKey) => {
       if (!isControlled) {
         setUncontrolledKey(key);
       }
+      setVisitedKeys((current) => {
+        if (current.has(key)) {
+          return current;
+        }
+
+        const next = new Set(current);
+        next.add(key);
+        return next;
+      });
       onChange?.(key);
     },
     [isControlled, onChange],
@@ -57,6 +69,7 @@ export function useEntityTabs<TKey extends string>(
     items,
     activeKey,
     setActiveKey,
+    visitedKeys,
     mountPolicy,
     instanceId,
   };

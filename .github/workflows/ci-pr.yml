@@ -1,0 +1,60 @@
+name: CI Pull Request
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ci-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: |
+          pnpm typecheck
+          pnpm --filter web typecheck
+          pnpm --filter @supportops/api-nest typecheck
+
+      - name: Test
+        run: pnpm -r --if-present test
+
+      - name: Build shared UI packages
+        run: |
+          pnpm --filter @supportops/ui-avatar build
+          pnpm --filter @supportops/ui-dialog build
+          pnpm --filter @supportops/ui-file-upload build
+          pnpm --filter @supportops/ui-form build
+          pnpm --filter @supportops/ui-theme build
+          pnpm --filter @supportops/ui build
+
+      - name: Build web
+        run: pnpm --filter web build
+
+      - name: Build api-nest
+        run: pnpm --filter @supportops/api-nest build

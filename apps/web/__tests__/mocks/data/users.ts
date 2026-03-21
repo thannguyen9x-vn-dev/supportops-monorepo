@@ -1,4 +1,4 @@
-import type { AuthUser } from "@supportops/contracts";
+import type { AuthUser } from "@supportops/types";
 
 export const mockUser: AuthUser = {
   id: "user-1",
@@ -6,7 +6,7 @@ export const mockUser: AuthUser = {
   firstName: "SupportOps",
   lastName: "Admin",
   avatarUrl: null,
-  role: "ADMIN",
+  role: "TENANT_ADMIN",
   tenantId: "tenant-1",
   tenantName: "SupportOps"
 };

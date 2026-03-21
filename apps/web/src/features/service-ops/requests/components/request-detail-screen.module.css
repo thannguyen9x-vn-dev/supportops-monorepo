@@ -1,0 +1,56 @@
+.pageWrap {
+  padding: 12px;
+}
+
+.sectionTitle {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  color: var(--mui-palette-text-secondary);
+  font-weight: 700;
+}
+
+.descriptionBox {
+  margin-top: 6px;
+  border: 1px solid var(--mui-palette-divider);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--mui-palette-background-default);
+}
+
+.timelineWrap {
+  position: relative;
+}
+
+.timelineWrap::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  background: var(--mui-palette-divider);
+}
+
+.timelineItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  position: relative;
+}
+
+.timelineAvatar {
+  width: 32px;
+  height: 32px;
+  background: var(--mui-palette-background-paper);
+  color: var(--mui-palette-text-secondary);
+  border: 1px solid var(--mui-palette-divider);
+  z-index: 1;
+}
+
+.sideBlock {
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--mui-palette-divider);
+  background: var(--mui-palette-background-default);
+  padding: 10px 12px;
+}

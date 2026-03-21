@@ -2,9 +2,9 @@
   min-height: 56px;
   margin-top: 4px;
   margin-right: 4px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--mui-palette-divider);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--mui-palette-background-paper);
   padding: 0 12px;
   display: flex;
   align-items: center;
@@ -19,6 +19,10 @@
   min-width: 0;
 }
 
+.mobileMenuButton {
+  display: none;
+}
+
 .right {
   display: flex;
   align-items: center;
@@ -29,12 +33,12 @@
   height: 32px;
   min-width: 58px;
   border-radius: 999px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--mui-palette-divider);
   padding: 0 8px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #111827;
+  color: var(--mui-palette-text-primary);
 }
 
 .languageCode {
@@ -43,15 +47,23 @@
   line-height: 1;
 }
 
+.themeButton {
+  height: 32px;
+  width: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--mui-palette-divider);
+  color: var(--mui-palette-text-primary);
+}
+
 .search {
   min-width: 280px;
   height: 38px;
   border-radius: 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--mui-palette-divider);
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #6b7280;
+  color: var(--mui-palette-text-secondary);
   padding: 0 10px;
 }
 
@@ -62,12 +74,12 @@
 .userButton {
   height: 38px;
   border-radius: 999px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--mui-palette-divider);
   padding: 0 8px 0 4px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #111827;
+  color: var(--mui-palette-text-primary);
 }
 
 .userButtonName {
@@ -88,6 +100,12 @@
 
   .userButtonName {
     display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .mobileMenuButton {
+    display: inline-flex;
   }
 }
 
