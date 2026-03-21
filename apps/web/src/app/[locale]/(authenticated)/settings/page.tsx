@@ -295,8 +295,11 @@ export default function SettingsPage() {
                 canEditDepartment={canEditDepartment}
                 control={profile.control}
                 handleSubmit={profile.handleSubmit}
+                initialDepartment={data.profile.department}
+                isDirty={profile.isDirty}
                 onSubmit={profile.onSubmit}
                 systemRoleLabel={roleLabel}
+                systemRoleValue={data.profile.systemRole}
                 submitState={profile.submitState}
               />
             </div>

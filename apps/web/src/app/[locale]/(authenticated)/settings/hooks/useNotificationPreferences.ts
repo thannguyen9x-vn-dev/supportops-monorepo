@@ -23,22 +23,25 @@ export function useNotificationPreferences({ t }: UseNotificationPreferencesOpti
 
       setPreferences((current) => {
         const updatedPreferences = current.map((item) =>
-          item.key === key
-            ? ((previousEnabled = item.enabled), { ...item, enabled: checked })
-            : item
+          item.key === key ? ((previousEnabled = item.enabled), { ...item, enabled: checked }) : item,
         );
 
-        void settingsService.updatePreferences(toUserPreferences(updatedPreferences)).catch((error) => {
-          const rollbackEnabled = previousEnabled;
-          if (rollbackEnabled === undefined) {
-            return;
-          }
+        void settingsService
+          .updatePreferences(toUserPreferences(updatedPreferences))
+          .then(() => {
+            toast.success(t("state.saved"));
+          })
+          .catch((error) => {
+            const rollbackEnabled = previousEnabled;
+            if (rollbackEnabled === undefined) {
+              return;
+            }
 
-          setPreferences((prev) =>
-            prev.map((item) => (item.key === key ? { ...item, enabled: rollbackEnabled } : item))
-          );
-          toast.error(getErrorMessage(error, t("state.saveError")));
-        });
+            setPreferences((prev) =>
+              prev.map((item) => (item.key === key ? { ...item, enabled: rollbackEnabled } : item)),
+            );
+            toast.error(getErrorMessage(error, t("state.saveError")));
+          });
 
         return updatedPreferences;
       });

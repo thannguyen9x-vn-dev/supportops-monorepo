@@ -2,8 +2,8 @@
 
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import LastPageIcon from "@mui/icons-material/LastPage";
-import { Avatar } from "@mui/material";
 import { IconButton } from "@mui/material";
+import { Avatar } from "@supportops/ui-avatar";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -149,9 +149,13 @@ export function Sidebar() {
             aria-label={t("header.profile")}
             title={t("header.profile")}
           >
-            <Avatar src={user?.avatarUrl ?? undefined} sx={{ width: 36, height: 36 }}>
-              {`${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.trim() || "U"}
-            </Avatar>
+            <Avatar
+              dimension={36}
+              name={`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || undefined}
+              ring
+              ringVariant="neutral"
+              src={user?.avatarUrl ?? undefined}
+            />
             <div className={styles.userInfo}>
               <p className={styles.userName}>{`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "-"}</p>
               <p className={styles.userRole}>{roleLabel}</p>

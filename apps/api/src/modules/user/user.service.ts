@@ -338,6 +338,14 @@ export class UserService {
   }
 
   async changePassword(tenantId: string, userId: string, dto: ChangePasswordDto): Promise<void> {
+    if (dto.currentPassword === dto.newPassword) {
+      throw new UnprocessableEntityException('New password must be different from current password');
+    }
+
+    if (dto.newPassword !== dto.confirmPassword) {
+      throw new UnprocessableEntityException('Passwords do not match');
+    }
+
     const user = await this.prisma.user.findFirst({
       where: {
         id: userId,

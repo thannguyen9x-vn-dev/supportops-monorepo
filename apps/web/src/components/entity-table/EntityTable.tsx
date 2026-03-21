@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useRef, useMemo, type ReactNode } from "react";
 import { flexRender } from "@tanstack/react-table";
 import type { CellContext, ColumnDef, HeaderContext } from "@tanstack/react-table";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -252,11 +252,43 @@ export function EntityTable<TData extends object, TFilters extends object>({
     hasActiveFilters,
   };
 
+  // ── Scroll shadow ─────────────────────────────────────────────────────────
+
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    // The scroll container is always the direct parent of the <table> element
+    const table = root.querySelector("table");
+    if (!table) return;
+    const scroller = table.parentElement;
+    if (!scroller) return;
+
+    const update = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = scroller;
+      if (styles.scrolledLeft) root.classList.toggle(styles.scrolledLeft, scrollLeft > 1);
+      if (styles.scrolledRight) root.classList.toggle(styles.scrolledRight, scrollLeft < scrollWidth - clientWidth - 1);
+    };
+
+    update();
+    // Observe the TABLE (not the scroller) so we re-check when rows/columns
+    // change size after data loads.
+    const ro = new ResizeObserver(update);
+    ro.observe(table);
+    scroller.addEventListener("scroll", update, { passive: true });
+    return () => {
+      ro.disconnect();
+      scroller.removeEventListener("scroll", update);
+    };
+  }, []);
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <EntityTableProvider instance={entityTable}>
-      <div className={styles.root}>
+      <div className={styles.root} ref={rootRef}>
         {tabs}
 
         {!hideFilters ? (

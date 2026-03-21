@@ -1,7 +1,7 @@
 "use client";
 
-import { Avatar, Box, Stack, Tooltip, Typography } from "@mui/material";
-import { useMemo } from "react";
+import { Box, Stack, Tooltip, Typography } from "@mui/material";
+import { Avatar } from "@supportops/ui-avatar";
 import type { ReactElement } from "react";
 
 export interface UserIdentityProps {
@@ -10,22 +10,6 @@ export interface UserIdentityProps {
   avatarUrl?: string | null;
   variant?: "full" | "avatar";
   avatarSize?: number;
-}
-
-function buildInitials(name?: string | null, email?: string | null): string {
-  const normalizedName = name?.trim();
-  if (normalizedName) {
-    const parts = normalizedName.split(/\s+/).filter(Boolean);
-    const initials = parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("");
-    if (initials) return initials;
-  }
-
-  const normalizedEmail = email?.trim();
-  if (normalizedEmail) {
-    return normalizedEmail.slice(0, 1).toUpperCase();
-  }
-
-  return "?";
 }
 
 function UserTooltipContent({ name, email }: { name?: string | null; email?: string | null }): ReactElement {
@@ -48,21 +32,15 @@ export function UserIdentity({
   variant = "full",
   avatarSize = 28,
 }: UserIdentityProps): ReactElement {
-  const initials = useMemo(() => buildInitials(name, email), [name, email]);
   const hasMetadata = Boolean(name || email);
 
   const avatarNode = (
     <Avatar
+      dimension={avatarSize}
+      name={name ?? email ?? undefined}
       src={avatarUrl ?? undefined}
-      sx={{
-        width: avatarSize,
-        height: avatarSize,
-        fontSize: Math.max(11, Math.round(avatarSize * 0.42)),
-        fontWeight: 600,
-      }}
-    >
-      {initials}
-    </Avatar>
+      sx={{ fontWeight: 600 }}
+    />
   );
 
   if (variant === "avatar") {

@@ -32,6 +32,10 @@ export const changePasswordSchema = z
       .regex(/[!@#$%^&*(),.?":{}|<>]/, "At least one special character"),
     confirmPassword: z.string()
   })
+  .refine((data: { currentPassword: string; newPassword: string }) => data.currentPassword !== data.newPassword, {
+    message: "New password must be different from current password",
+    path: ["newPassword"]
+  })
   .refine((data: { newPassword: string; confirmPassword: string }) => data.newPassword === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"]

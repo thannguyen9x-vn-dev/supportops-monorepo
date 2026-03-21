@@ -37,7 +37,10 @@ function getStickyStyle(
     left: pinned === "left" ? offsetLeft : undefined,
     right: pinned === "right" ? offsetRight : undefined,
     zIndex,
-    background,
+    // Use an opaque base + transparent overlay so scrolled content doesn't
+    // bleed through the semi-transparent hover/selected palette colours.
+    backgroundColor: "var(--mui-palette-background-paper)",
+    backgroundImage: `linear-gradient(${background}, ${background})`,
     boxShadow: isBoundary
       ? pinned === "left"
         ? "6px 0 10px -2px rgba(0,0,0,0.14)"

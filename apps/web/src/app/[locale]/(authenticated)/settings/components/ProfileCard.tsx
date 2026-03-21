@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import {
@@ -15,8 +15,8 @@ import {
 } from "@mui/material";
 
 import { Avatar } from "@supportops/ui-avatar";
-import { FileUpload } from "@supportops/ui-file-upload";
-import type { RejectedFile } from "@supportops/ui-file-upload";
+import { AvatarUpload } from "@supportops/ui-file-upload";
+import type { UploadFn, UploadableFile } from "@supportops/ui-file-upload";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useToast } from "@/features/common/toast/useToast";
@@ -50,53 +50,15 @@ export function ProfileCard({ avatarUrl = null, email, firstName, lastName, stat
   const statusLabel = status === "ACTIVE" ? t("profile.status.active") : t("profile.status.inactive");
   const userEmail = email || user?.email || "-";
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [displayAvatarUrl, setDisplayAvatarUrl] = useState<string | null>(avatarUrl);
 
   useEffect(() => {
     setDisplayAvatarUrl(avatarUrl);
   }, [avatarUrl]);
 
-  useEffect(() => {
-    if (!selectedFiles[0]) {
-      setPreviewUrl(null);
-      return;
-    }
-
-    const nextPreview = URL.createObjectURL(selectedFiles[0]);
-    setPreviewUrl(nextPreview);
-    return () => {
-      URL.revokeObjectURL(nextPreview);
-    };
-  }, [selectedFiles]);
-
-  const onRejectedFiles = useCallback(
-    (rejectedFiles: RejectedFile[]) => {
-      const firstRejected = rejectedFiles[0];
-      if (!firstRejected) {
-        return;
-      }
-
-      if (firstRejected.reason === "file-too-large") {
-        setValidationMessage(t("profile.avatarUploadSizeError"));
-        return;
-      }
-
-      if (firstRejected.reason === "invalid-type") {
-        setValidationMessage(t("profile.avatarUploadTypeError"));
-      }
-    },
-    [t],
-  );
-
   const resetDialogState = useCallback(() => {
-    setSelectedFiles([]);
     setValidationMessage(null);
-    setPreviewUrl(null);
-    setIsSubmitting(false);
   }, []);
 
   const handleCloseDialog = useCallback(() => {
@@ -104,54 +66,49 @@ export function ProfileCard({ avatarUrl = null, email, firstName, lastName, stat
     resetDialogState();
   }, [resetDialogState]);
 
-  const handleUploadSubmit = useCallback(async () => {
-    if (!selectedFiles[0]) {
-      setValidationMessage(t("profile.avatarDialog.fileRequired"));
-      return;
-    }
-
-    setIsSubmitting(true);
-    setValidationMessage(null);
-
-    try {
-      const { data } = await settingsService.uploadAvatar(selectedFiles[0]);
-      const nextAvatarUrl = data?.url ?? previewUrl ?? null;
-
-      if (!nextAvatarUrl) {
-        throw new Error(t("profile.avatarUploadError"));
-      }
-
-      setDisplayAvatarUrl(nextAvatarUrl);
-      onAvatarUpdated?.(nextAvatarUrl);
-      toast.success(t("profile.avatarUploadSuccess"));
-      handleCloseDialog();
-    } catch (error) {
-      let message = error instanceof Error ? error.message : t("profile.avatarUploadError");
-
+  const resolveUploadErrorMessage = useCallback(
+    (error: unknown) => {
       if (error instanceof ApiError) {
-        if (error.code === "FILE_TOO_LARGE") {
-          message = t("profile.avatarUploadSizeError");
-        } else if (error.code === "INVALID_TYPE") {
-          message = t("profile.avatarUploadTypeError");
-        } else if (error.code === "MISSING_FILE") {
-          message = t("profile.avatarDialog.fileRequired");
-        } else {
-          message = t("profile.avatarUploadError");
-        }
+        if (error.code === "FILE_TOO_LARGE") return t("profile.avatarUploadSizeError");
+        if (error.code === "INVALID_TYPE") return t("profile.avatarUploadTypeError");
+        if (error.code === "MISSING_FILE") return t("profile.avatarDialog.fileRequired");
       }
 
-      setValidationMessage(message);
-      toast.error(message);
-      setIsSubmitting(false);
-    }
-  }, [handleCloseDialog, onAvatarUpdated, previewUrl, selectedFiles, t, toast]);
+      if (error instanceof Error && error.message) {
+        return error.message;
+      }
 
-  const validSelectionMessage = useMemo(() => {
-    if (!selectedFiles[0] || validationMessage) {
-      return null;
-    }
-    return t("profile.avatarDialog.validFile");
-  }, [selectedFiles, t, validationMessage]);
+      return t("profile.avatarUploadError");
+    },
+    [t],
+  );
+
+  const uploadAvatar: UploadFn<{ url: string }> = useCallback(
+    async (uploadableFile: UploadableFile) => {
+      const sourceBlob = uploadableFile.croppedBlob ?? uploadableFile.file;
+      const uploadFile =
+        sourceBlob instanceof File
+          ? sourceBlob
+          : new File([sourceBlob], uploadableFile.file.name || "avatar.png", {
+              type: sourceBlob.type || uploadableFile.file.type || "image/png",
+            });
+
+      try {
+        const { data } = await settingsService.uploadAvatar(uploadFile);
+        const nextAvatarUrl = data?.url ?? null;
+        if (!nextAvatarUrl) {
+          throw new Error(t("profile.avatarUploadError"));
+        }
+
+        setDisplayAvatarUrl(nextAvatarUrl);
+        onAvatarUpdated?.(nextAvatarUrl);
+        return { url: nextAvatarUrl };
+      } catch (error) {
+        throw new Error(resolveUploadErrorMessage(error));
+      }
+    },
+    [onAvatarUpdated, resolveUploadErrorMessage, t],
+  );
 
   return (
     <section className={`${styles.card} ${styles.profileCard}`}>
@@ -161,8 +118,14 @@ export function ProfileCard({ avatarUrl = null, email, firstName, lastName, stat
             dimension={120}
             imgProps={{ style: { objectFit: "contain", objectPosition: "center" } }}
             name={fullName}
+            ring
+            ringOffset={4}
+            ringShape="circular"
+            ringVariant="status"
+            ringWidth={3}
+            status={status === "ACTIVE" ? "active" : "inactive"}
             src={displayAvatarUrl ?? undefined}
-            variant="rounded"
+            variant="circular"
           />
         </Box>
         <div className={styles.userInfo}>
@@ -174,6 +137,7 @@ export function ProfileCard({ avatarUrl = null, email, firstName, lastName, stat
           </span>
           <Button
             onClick={() => {
+              setValidationMessage(null);
               setIsDialogOpen(true);
             }}
             size="small"
@@ -192,18 +156,23 @@ export function ProfileCard({ avatarUrl = null, email, firstName, lastName, stat
             {t("profile.avatarDialog.description")}
           </Typography>
 
-          <FileUpload
-            accept="image/jpeg,image/png,image/webp"
+          <AvatarUpload
+            avatarVariant="circular"
             buttonLabel={t("profile.avatarDialog.chooseFile")}
-            helperText={t("profile.avatarDialog.helperText")}
-            maxFileSizeInBytes={2 * 1024 * 1024}
-            multiple={false}
-            onFilesChange={(files) => {
-              setSelectedFiles(files.slice(0, 1));
+            currentSrc={displayAvatarUrl}
+            name={fullName}
+            onUploadError={(message) => {
               setValidationMessage(null);
+              setValidationMessage(message);
+              toast.error(message);
             }}
-            onRejectedFiles={onRejectedFiles}
-            value={selectedFiles}
+            onUploadSuccess={() => {
+              setValidationMessage(null);
+              toast.success(t("profile.avatarUploadSuccess"));
+              handleCloseDialog();
+            }}
+            size="xl"
+            uploadFn={uploadAvatar}
           />
 
           {validationMessage ? (
@@ -212,33 +181,10 @@ export function ProfileCard({ avatarUrl = null, email, firstName, lastName, stat
             </Alert>
           ) : null}
 
-          {validSelectionMessage ? (
-            <Alert severity="success" sx={{ mt: 2 }}>
-              {validSelectionMessage}
-            </Alert>
-          ) : null}
-
-          {previewUrl ? (
-            <Box className={styles.avatarDialogPreview}>
-              <Typography sx={{ mb: 1 }} variant="subtitle2">
-                {t("profile.avatarDialog.preview")}
-              </Typography>
-              <Avatar name={fullName} size="xl" src={previewUrl} variant="rounded" />
-            </Box>
-          ) : null}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} variant="outlined">
             {t("profile.avatarDialog.cancel")}
-          </Button>
-          <Button
-            disabled={isSubmitting || !selectedFiles[0]}
-            onClick={() => {
-              void handleUploadSubmit();
-            }}
-            variant="contained"
-          >
-            {isSubmitting ? t("profile.avatarDialog.submitting") : t("profile.avatarDialog.submit")}
           </Button>
         </DialogActions>
       </Dialog>

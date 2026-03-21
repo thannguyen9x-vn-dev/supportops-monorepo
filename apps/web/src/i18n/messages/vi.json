@@ -185,6 +185,7 @@
     "notificationsAriaLabel": "Thông báo",
     "userMenuAriaLabel": "Mở menu người dùng",
     "profile": "Hồ sơ",
+    "settings": "Cài đặt",
     "signOut": "Đăng xuất"
   },
   "pages": {
@@ -505,7 +506,7 @@
         "reload": "Tải lại",
         "update": "Cập nhật",
         "saveChanges": "Lưu thay đổi",
-        "savePassword": "Lưu mật khẩu",
+        "updatePassword": "Cập nhật mật khẩu",
         "saving": "Đang lưu...",
         "savePreferences": "Lưu tùy chọn"
       },
@@ -663,7 +664,8 @@
         "passwordMin": "Mật khẩu phải có ít nhất 10 ký tự",
         "passwordMax": "Mật khẩu tối đa 32 ký tự",
         "passwordFormat": "Mật khẩu phải có chữ hoa, chữ thường, số và ký tự đặc biệt",
-        "passwordMismatch": "Mật khẩu mới không khớp"
+        "passwordMismatch": "Mật khẩu mới không khớp",
+        "passwordSameAsCurrent": "Mật khẩu mới phải khác mật khẩu hiện tại"
       },
       "countries": {
         "unitedStates": "Hoa Kỳ",

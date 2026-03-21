@@ -185,6 +185,7 @@
     "notificationsAriaLabel": "Notifications",
     "userMenuAriaLabel": "Open user menu",
     "profile": "Profile",
+    "settings": "Settings",
     "signOut": "Sign out"
   },
   "pages": {
@@ -505,7 +506,7 @@
         "reload": "Reload",
         "update": "Update",
         "saveChanges": "Save changes",
-        "savePassword": "Save password",
+        "updatePassword": "Update password",
         "saving": "Saving...",
         "savePreferences": "Save preferences"
       },
@@ -663,7 +664,8 @@
         "passwordMin": "Password must be at least 10 characters",
         "passwordMax": "Password must be at most 32 characters",
         "passwordFormat": "Password must include uppercase, lowercase, number, and special character",
-        "passwordMismatch": "New passwords do not match"
+        "passwordMismatch": "New passwords do not match",
+        "passwordSameAsCurrent": "New password must be different from current password"
       },
       "countries": {
         "unitedStates": "United States",

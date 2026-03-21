@@ -10,7 +10,7 @@ import RateReviewOutlinedIcon from "@mui/icons-material/RateReviewOutlined";
 import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined";
 import {
   Alert,
-  Avatar,
+  Avatar as MuiAvatar,
   Box,
   Button,
   Card,
@@ -27,6 +27,7 @@ import {
   Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
+import { Avatar as UserAvatar } from "@supportops/ui-avatar";
 import type { RequestAssignee, RequestComment, RequestWorkLog, ServiceRequest, UserRole } from "@supportops/types";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -1028,7 +1029,7 @@ function AttachmentsCard({ request }: { request: RequestDetail }) {
                 p: 1,
               }}
             >
-              <Avatar sx={{ width: 30, height: 30 }}>•</Avatar>
+              <MuiAvatar sx={{ width: 30, height: 30 }}>•</MuiAvatar>
               <Box sx={{ flex: 1 }}>
                 <Typography fontWeight={600}>{attachment.fileName}</Typography>
                 <Typography color="text.secondary" variant="body2">
@@ -1073,7 +1074,7 @@ function AssignmentCard({
 
         {request.assignee ? (
           <Stack direction="row" spacing={1.25} sx={{ mt: 1.25 }}>
-            <Avatar>{request.assignee.name.slice(0, 1)}</Avatar>
+            <UserAvatar name={request.assignee.name} size="md" />
             <Box>
               <Stack alignItems="center" direction="row" spacing={0.75}>
                 <Typography fontWeight={600}>{request.assignee.name}</Typography>
@@ -1282,7 +1283,7 @@ function ActivityTimeline({
         <Stack className={styles.timelineWrap} spacing={2} sx={{ mt: 1.5 }}>
           {visibleEvents.map((event) => (
             <Box className={styles.timelineItem} key={event.id}>
-              <Avatar className={styles.timelineAvatar}>{eventIcon(event.type)}</Avatar>
+              <MuiAvatar className={styles.timelineAvatar}>{eventIcon(event.type)}</MuiAvatar>
               <Box sx={{ flex: 1 }}>
                 <Stack alignItems="center" direction="row" spacing={1}>
                   <Typography fontWeight={600}>{event.title}</Typography>
@@ -1351,7 +1352,7 @@ function CommentsPanel({
           {visibleComments.map((item) => (
             <Box key={item.id}>
               <Stack alignItems="center" direction="row" spacing={1}>
-                <Avatar sx={{ width: 30, height: 30 }}>{item.authorName.slice(0, 2).toUpperCase()}</Avatar>
+                <UserAvatar dimension={30} name={item.authorName} />
                 <Typography fontWeight={600}>{item.authorName}</Typography>
                 {item.authorRoleLabel ? <Chip label={item.authorRoleLabel} size="small" variant="outlined" /> : null}
                 <Chip

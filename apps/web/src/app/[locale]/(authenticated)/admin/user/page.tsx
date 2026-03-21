@@ -22,8 +22,7 @@ import { useForm } from "react-hook-form";
 import { useToast } from "@/features/common/toast/useToast";
 import { EntityTableActionMenu } from "@/components/entity-actions";
 import { EntityTable, useEntityTable, type EntityColumnDef } from "@/components/entity-table";
-import { FilterSelect } from "@/components/filters/FilterSelect";
-import { ConfirmSelectOptionPopupAction, ConfirmSelectPopupAction } from "@/components/table-select";
+import { ConfirmSelectPopupAction } from "@/components/table-select";
 import { EntityLayout } from "@/features/layout/components/EntityLayout/EntityLayout";
 import { teamService, type TeamRoleCode, type TeamUser } from "@/features/team/services/team.service";
 import { buildDepartmentOptions } from "@/shared/constants/departments";
@@ -34,10 +33,6 @@ const TEAM_INVITE_FORM_ID = "team-invite-form";
 type InviteFormValues = {
   email: string;
   roleCode: TeamRoleCode | "";
-};
-
-type TeamUserTableFilters = {
-  department: string;
 };
 
 function formatDateTime(value: string | null) {
@@ -59,8 +54,6 @@ export default function AdminUserPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [users, setUsers] = useState<TeamUser[]>([]);
-  const [draftFilters, setDraftFilters] = useState<TeamUserTableFilters>({ department: "" });
-  const [appliedFilters, setAppliedFilters] = useState<TeamUserTableFilters>({ department: "" });
 
   const {
     control: inviteControl,
@@ -75,7 +68,6 @@ export default function AdminUserPage() {
   });
 
   const hasUsers = users.length > 0;
-  const hasActiveFilters = Boolean(appliedFilters.department);
 
   const loadUsers = useCallback(async (showLoading = true) => {
     if (showLoading) {
@@ -185,36 +177,6 @@ export default function AdminUserPage() {
     }
   };
 
-  const departmentFilterOptions = useMemo(
-    () => {
-      const seen = new Set<string>();
-      return users
-        .flatMap((user) => {
-          const options = buildDepartmentOptions(user.department);
-          return options.map((option) => option.value);
-        })
-        .filter((value) => {
-          if (!value || seen.has(value)) {
-            return false;
-          }
-          seen.add(value);
-          return true;
-        })
-        .map((value) => ({ label: value, value }));
-    },
-    [users],
-  );
-
-  const filteredUsers = useMemo(
-    () => {
-      if (!appliedFilters.department) {
-        return users;
-      }
-      return users.filter((user) => user.department === appliedFilters.department);
-    },
-    [appliedFilters.department, users],
-  );
-
   const handleDeactivate = async (userId: string) => {
     const previousUsers = users;
     setUsers((current) =>
@@ -277,25 +239,25 @@ export default function AdminUserPage() {
       {
         accessorKey: "department",
         header: t("table.department"),
-        size: 320,
-        minSize: 240,
+        size: 260,
+        minSize: 200,
         maxSize: 520,
         sortable: true,
         resizable: true,
         cell: ({ row }) => (
-          <ConfirmSelectOptionPopupAction
+          <ConfirmSelectPopupAction
             cancelLabel={t("form.cancel")}
             disabled={submitting}
-            label={t("form.department")}
-            options={buildDepartmentOptions(row.original.department)}
             onSubmit={async (nextValue) => {
+              if (Array.isArray(nextValue)) return;
               await handleDepartmentChange(row.original.id, nextValue);
             }}
+            options={buildDepartmentOptions(row.original.department)}
             submitLabel={t("table.updateDepartment")}
             title={t("form.department")}
             triggerLabel={row.original.department || "-"}
-            triggerSx={{ minWidth: 220, justifyContent: "space-between" }}
-            value={row.original.department}
+            triggerSx={{ minWidth: 180, justifyContent: "space-between" }}
+            value={row.original.department ?? ""}
           />
         ),
       },
@@ -351,9 +313,9 @@ export default function AdminUserPage() {
       {
         id: "actions",
         header: t("table.actions"),
-        size: 44,
-        minSize: 44,
-        maxSize: 44,
+        size: 90,
+        minSize: 90,
+        maxSize: 90,
         sortable: false,
         hideable: false,
         resizable: false,
@@ -386,14 +348,14 @@ export default function AdminUserPage() {
         },
       },
     ],
-    [handleDeactivate, handleDepartmentChange, handleReactivate, handleRoleChange, roleOptions, submitting, t],
+    [handleDeactivate, handleDepartmentChange, handleReactivate, handleRoleChange, roleOptions, submitting, t, roleLabelMap],
   );
 
-  const userTable = useEntityTable<TeamUser, TeamUserTableFilters>({
-    data: filteredUsers,
+  const userTable = useEntityTable<TeamUser, Record<string, never>>({
+    data: users,
     columns: userColumns,
     rowId: "id",
-    initialFilters: { department: "" },
+    initialFilters: {},
     rowDensity: "comfortable",
     defaultColumn: { size: 180, minSize: 120, maxSize: 640 },
     pinnedColumns: {
@@ -403,23 +365,6 @@ export default function AdminUserPage() {
     columnOrderStorageKey: "team-admin-users-table-column-order",
     columnSizingStorageKey: "team-admin-users-table-column-sizing-v3",
   });
-
-  const userTableWithFilters = {
-    ...userTable,
-    draftFilters,
-    appliedFilters,
-    setDraftFilter: <K extends keyof TeamUserTableFilters>(key: K, value: TeamUserTableFilters[K]) => {
-      setDraftFilters((current) => ({ ...current, [key]: value }));
-    },
-    applyFilters: () => {
-      setAppliedFilters(draftFilters);
-    },
-    clearFilters: () => {
-      setDraftFilters({ department: "" });
-      setAppliedFilters({ department: "" });
-    },
-    hasActiveFilters,
-  };
 
   if (loading) {
     return (
@@ -502,29 +447,8 @@ export default function AdminUserPage() {
             <Alert severity="info">{t("table.empty")}</Alert>
           ) : (
             <EntityTable
-              entityTable={userTableWithFilters}
-              renderFilterControls={(f) => (
-                <Stack alignItems="center" direction="row" spacing={1.5} useFlexGap>
-                  <FilterSelect
-                    allLabel={t("table.allDepartments")}
-                    label={t("table.department")}
-                    onChange={(value) => {
-                      f.setDraftFilter("department", value);
-                      setAppliedFilters({ department: value });
-                    }}
-                    options={departmentFilterOptions}
-                    searchable
-                    searchPlaceholder={t("table.departmentPlaceholder")}
-                    sx={{ width: 220, minWidth: 220, maxWidth: 260 }}
-                    value={f.draftFilters.department}
-                  />
-                  {f.hasActiveFilters ? (
-                    <Button onClick={() => userTableWithFilters.clearFilters()} size="small" variant="outlined">
-                      {t("table.clearDepartmentFilter")}
-                    </Button>
-                  ) : null}
-                </Stack>
-              )}
+              entityTable={userTable}
+              hideFilters
             />
           )}
         </CardContent>

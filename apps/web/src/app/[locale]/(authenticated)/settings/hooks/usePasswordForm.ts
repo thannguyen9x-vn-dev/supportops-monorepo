@@ -31,6 +31,14 @@ export function usePasswordForm({ t }: UsePasswordFormOptions) {
   });
 
   const onSubmit = async (values: PasswordFormValues) => {
+    if (values.newPassword === values.currentPassword) {
+      setError("newPassword", {
+        type: "validate",
+        message: t("validation.passwordSameAsCurrent"),
+      });
+      return;
+    }
+
     if (values.newPassword !== values.confirmNewPassword) {
       setError("confirmNewPassword", {
         type: "validate",

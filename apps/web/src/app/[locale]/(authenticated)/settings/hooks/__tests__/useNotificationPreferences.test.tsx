@@ -216,7 +216,7 @@ describe("useNotificationPreferences", () => {
       });
     });
 
-    it("does not show a toast when the API call succeeds", async () => {
+    it("shows a success toast when the API call succeeds", async () => {
       // API thành công (đã setup trong beforeEach)
       const { result } = renderHook(() => useNotificationPreferences({ t }));
 
@@ -228,7 +228,7 @@ describe("useNotificationPreferences", () => {
         result.current.toggle("companyNews", true);
       });
 
-      // Không được hiện toast lỗi khi thành công
+      expect(mockToastSuccess).toHaveBeenCalledWith("state.saved");
       expect(mockToastError).not.toHaveBeenCalled();
     });
   });

@@ -59,6 +59,12 @@ const mismatchedValues: PasswordFormValues = {
   confirmNewPassword: "DifferentPass!99"
 };
 
+const sameAsCurrentValues: PasswordFormValues = {
+  currentPassword: "OldPass123!",
+  newPassword: "OldPass123!",
+  confirmNewPassword: "OldPass123!"
+};
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("usePasswordForm", () => {
@@ -119,6 +125,28 @@ describe("usePasswordForm", () => {
 
       expect(mockToastSuccess).not.toHaveBeenCalled();
       expect(mockToastError).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when new password equals current password", () => {
+    it("does not call the API", async () => {
+      const { result } = renderHook(() => usePasswordForm({ t: (k) => k }));
+
+      await act(async () => {
+        await result.current.onSubmit(sameAsCurrentValues);
+      });
+
+      expect(mockChangePassword).not.toHaveBeenCalled();
+    });
+
+    it("keeps submitState as 'idle'", async () => {
+      const { result } = renderHook(() => usePasswordForm({ t: (k) => k }));
+
+      await act(async () => {
+        await result.current.onSubmit(sameAsCurrentValues);
+      });
+
+      expect(result.current.submitState).toBe("idle");
     });
   });
 
