@@ -2,27 +2,30 @@
 
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Button } from "@mui/material";
+import { Button, Divider } from "@mui/material";
 import {
   getCountryCallingCode,
   parsePhoneNumberFromString,
   type CountryCode as PhoneLibCountryCode
 } from "libphonenumber-js";
-import type { Control, UseFormHandleSubmit } from "react-hook-form";
+import { useWatch, type Control, type UseFormHandleSubmit } from "react-hook-form";
 
 import { PhoneNumberField, SelectDateField, SelectOptionField, TextInputField } from "@supportops/ui-form";
 import type { PhoneCountryOption } from "@supportops/ui-form";
 
 import { createCountryOptions } from "@/shared/constants/countries";
+import { buildDepartmentOptions } from "@/shared/constants/departments";
 
 import type { ProfileFormValues, SubmitState } from "../settings.types";
 
 import styles from "../settings.module.css";
 
 type ProfileFormProps = {
+  canEditDepartment: boolean;
   control: Control<ProfileFormValues>;
   handleSubmit: UseFormHandleSubmit<ProfileFormValues>;
   onSubmit: (values: ProfileFormValues) => Promise<void>;
+  systemRoleLabel: string;
   submitState: SubmitState;
 };
 
@@ -34,9 +37,11 @@ function toFlagEmoji(countryCode: string): string {
     .join("");
 }
 
-export function ProfileForm({ control, handleSubmit, onSubmit, submitState }: ProfileFormProps) {
+export function ProfileForm({ canEditDepartment, control, handleSubmit, onSubmit, systemRoleLabel, submitState }: ProfileFormProps) {
   const t = useTranslations("pages.settings");
   const locale = useLocale();
+  const departmentValue = useWatch({ control, name: "department" });
+  const systemRoleValue = useWatch({ control, name: "systemRole" });
 
   const countryOptions = useMemo(() => createCountryOptions({ locale }), [locale]);
   const phoneCountryOptions = useMemo<PhoneCountryOption<ProfileFormValues["phoneCountry"]>[]>(
@@ -58,19 +63,44 @@ export function ProfileForm({ control, handleSubmit, onSubmit, submitState }: Pr
         }),
     [countryOptions],
   );
+  const departmentOptions = useMemo(
+    () => buildDepartmentOptions(departmentValue),
+    [departmentValue],
+  );
+  const systemRoleOptions = useMemo(
+    () => [{ label: systemRoleLabel, value: systemRoleValue || systemRoleLabel }],
+    [systemRoleLabel, systemRoleValue],
+  );
 
   return (
     <section className={styles.card}>
       <div className={styles.sectionHeader}>
         <h3 className={styles.sectionTitle}>{t("profile.generalInfoTitle")}</h3>
+        <Button
+          className={styles.sectionAction}
+          disabled={submitState === "saving"}
+          size="medium"
+          type="submit"
+          variant="contained"
+          form="general-information-form"
+        >
+          {submitState === "saving" ? t("action.saving") : t("action.saveChanges")}
+        </Button>
       </div>
 
-      <form className={styles.formGrid} onSubmit={handleSubmit(onSubmit)}>
+      <form id="general-information-form" className={styles.formGrid} onSubmit={handleSubmit(onSubmit)}>
         <TextInputField
           control={control}
           label={t("profile.fields.firstName")}
           name="firstName"
-          placeholder="Thomas"
+          placeholder={t("profile.placeholders.firstName")}
+          rules={{ required: t("validation.required") }}
+        />
+        <TextInputField
+          control={control}
+          label={t("profile.fields.lastName")}
+          name="lastName"
+          placeholder={t("profile.placeholders.lastName")}
           rules={{ required: t("validation.required") }}
         />
         <SelectDateField
@@ -88,21 +118,6 @@ export function ProfileForm({ control, handleSubmit, onSubmit, submitState }: Pr
             selectMonthAriaLabel: t("profile.datePicker.selectMonthAriaLabel"),
             selectYearAriaLabel: t("profile.datePicker.selectYearAriaLabel"),
           }}
-        />
-
-        <TextInputField
-          control={control}
-          label={t("profile.fields.lastName")}
-          name="lastName"
-          placeholder="Lean"
-          rules={{ required: t("validation.required") }}
-        />
-
-        <TextInputField
-          control={control}
-          label={t("profile.fields.organization")}
-          name="organization"
-          placeholder="Themesberg"
         />
 
         <PhoneNumberField
@@ -138,23 +153,13 @@ export function ProfileForm({ control, handleSubmit, onSubmit, submitState }: Pr
           searchPlaceholder={t("countries.searchPlaceholder")}
         />
 
-        <SelectOptionField
-          control={control}
-          label={t("profile.fields.country")}
-          name="country"
-          noOptionsText={t("countries.noOptions")}
-          options={countryOptions}
-          searchable
-          searchInPopup
-          searchPlaceholder={t("countries.searchPlaceholder")}
-        />
-
         <TextInputField
           control={control}
+          disabled
           inputType="email"
           label={t("profile.fields.email")}
           name="email"
-          placeholder="name@example.com"
+          placeholder={t("profile.placeholders.email")}
           rules={{
             required: t("validation.required"),
             pattern: {
@@ -163,38 +168,36 @@ export function ProfileForm({ control, handleSubmit, onSubmit, submitState }: Pr
             },
           }}
         />
-        <TextInputField
+        <SelectOptionField
           control={control}
-          label={t("profile.fields.zipCode")}
-          name="zipCode"
-          placeholder="123456"
+          disabled
+          hideEmptyHelperText
+          label={t("profile.fields.systemRole")}
+          name="systemRole"
+          options={systemRoleOptions}
         />
 
-        <TextInputField
+        <SelectOptionField
           control={control}
+          disabled={!canEditDepartment}
+          helperText={!canEditDepartment ? t("profile.departmentLockedHint") : undefined}
+          hideEmptyHelperText={canEditDepartment}
           label={t("profile.fields.department")}
           name="department"
-          placeholder="Marketing"
+          noOptionsText={t("countries.noOptions")}
+          options={departmentOptions}
         />
         <TextInputField
           control={control}
-          label={t("profile.fields.city")}
+          label={t("profile.fields.location")}
           name="city"
-          placeholder="e.g. San Francisco"
+          placeholder={t("profile.placeholders.location")}
         />
-
-        <TextInputField
-          className={styles.fullRow}
-          control={control}
-          label={t("profile.fields.address")}
-          name="address"
-          placeholder="e.g. California"
-        />
-
-        <div className={styles.formActions}>
-          <Button disabled={submitState === "saving"} size="medium" type="submit" variant="contained">
-            {submitState === "saving" ? t("action.saving") : t("action.update")}
-          </Button>
+        <div className={styles.fullRow}>
+          <Divider sx={{ mb: 2 }} />
+          <p className={styles.aboutWork}>
+            <strong>{t("profile.aboutWorkLabel")}</strong> {t("profile.aboutWorkValue")}
+          </p>
         </div>
       </form>
     </section>

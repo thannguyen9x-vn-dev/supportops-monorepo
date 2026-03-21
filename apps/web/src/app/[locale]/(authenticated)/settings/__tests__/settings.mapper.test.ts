@@ -17,7 +17,7 @@
  *   4. Derived logic   → kết quả tính toán phức tạp (phone assembly)
  */
 
-import type { UserPreferences, UserProfile } from "@supportops/contracts";
+import type { UserPreferences, UserProfile } from "@supportops/types";
 
 import {
   toNotificationPreferences,
@@ -48,7 +48,7 @@ function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
     department: null,
     timezone: "UTC",
     locale: "en",
-    role: "ADMIN",
+    role: "TENANT_ADMIN",
     ...overrides
   };
 }
@@ -79,7 +79,6 @@ describe("toProfileFormValues", () => {
       city: "New York",
       zipCode: "10001",
       country: "US",
-      organization: "Acme",
       department: "Engineering"
     });
 
@@ -92,20 +91,18 @@ describe("toProfileFormValues", () => {
     expect(result.city).toBe("New York");
     expect(result.zipCode).toBe("10001");
     expect(result.country).toBe("US");
-    expect(result.organization).toBe("Acme");
     expect(result.department).toBe("Engineering");
   });
 
   it("converts null optional fields to empty string", () => {
     // Null từ API → chuỗi rỗng trong form để tránh "uncontrolled input" lỗi
     const result = toProfileFormValues(
-      makeProfile({ address: null, city: null, zipCode: null, organization: null, department: null })
+      makeProfile({ address: null, city: null, zipCode: null, department: null })
     );
 
     expect(result.address).toBe("");
     expect(result.city).toBe("");
     expect(result.zipCode).toBe("");
-    expect(result.organization).toBe("");
     expect(result.department).toBe("");
   });
 
@@ -171,13 +168,13 @@ describe("toUpdateProfileRequest", () => {
   const baseFormValues = {
     firstName: "Alice",
     lastName: "Smith",
+    systemRole: "TENANT_ADMIN",
     birthday: "1990-05-15",
     phoneCountry: "US" as const,
     phoneNumber: "2025551234",
     address: "123 Main St",
     country: "US" as const,
     email: "alice@example.com",
-    organization: "Acme",
     zipCode: "10001",
     city: "New York",
     department: "Engineering"
@@ -205,13 +202,28 @@ describe("toUpdateProfileRequest", () => {
       firstName: "Alice",
       lastName: "Smith",
       birthday: "1990-05-15",
-      address: "123 Main St",
-      country: "US",
-      organization: "Acme",
-      zipCode: "10001",
       city: "New York",
       department: "Engineering"
     });
+  });
+
+  it("omits optional fields when they are empty", () => {
+    const result = toUpdateProfileRequest({
+      ...baseFormValues,
+      birthday: "",
+      city: "",
+      department: "",
+      phoneNumber: ""
+    });
+
+    expect(result).toMatchObject({
+      firstName: "Alice",
+      lastName: "Smith"
+    });
+    expect(result).not.toHaveProperty("birthday");
+    expect(result).not.toHaveProperty("city");
+    expect(result).not.toHaveProperty("department");
+    expect(result).not.toHaveProperty("phone");
   });
 
   it("does not include email in the update request", () => {
@@ -219,6 +231,16 @@ describe("toUpdateProfileRequest", () => {
     const result = toUpdateProfileRequest(baseFormValues);
 
     expect(result).not.toHaveProperty("email");
+  });
+
+  it("does not include department when includeDepartment is false", () => {
+    const result = toUpdateProfileRequest(baseFormValues, { includeDepartment: false });
+    expect(result).not.toHaveProperty("department");
+  });
+
+  it("does not include organization in the update request", () => {
+    const result = toUpdateProfileRequest(baseFormValues);
+    expect(result).not.toHaveProperty("organization");
   });
 });
 

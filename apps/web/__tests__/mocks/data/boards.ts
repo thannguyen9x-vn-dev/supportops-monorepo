@@ -1,4 +1,4 @@
-import type { Board } from "@supportops/contracts";
+import type { Board } from "@supportops/types";
 
 export const mockBoards: Board[] = [
   {

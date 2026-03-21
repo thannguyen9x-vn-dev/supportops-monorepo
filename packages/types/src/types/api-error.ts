@@ -1,0 +1,29 @@
+export interface ApiErrorDetail {
+  code: string;
+  message: string;
+  details?: unknown[];
+  traceId?: string;
+}
+
+export interface ApiErrorResponse {
+  error: ApiErrorDetail;
+}
+
+export const ErrorCodes = {
+  INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
+  TOKEN_EXPIRED: "TOKEN_EXPIRED",
+  TOKEN_INVALID: "TOKEN_INVALID",
+  EMAIL_ALREADY_EXISTS: "EMAIL_ALREADY_EXISTS",
+  EMAIL_NOT_VERIFIED: "EMAIL_NOT_VERIFIED",
+
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+  NOT_FOUND: "NOT_FOUND",
+  FORBIDDEN: "FORBIDDEN",
+  UNAUTHORIZED: "UNAUTHORIZED",
+  INTERNAL_ERROR: "INTERNAL_ERROR",
+
+  PLAN_LIMIT_EXCEEDED: "PLAN_LIMIT_EXCEEDED",
+  SUBSCRIPTION_INACTIVE: "SUBSCRIPTION_INACTIVE"
+} as const;
+
+export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];

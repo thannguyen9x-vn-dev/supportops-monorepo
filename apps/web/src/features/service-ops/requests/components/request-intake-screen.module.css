@@ -4,13 +4,13 @@
 
 .kicker {
   margin-bottom: 10px;
-  color: #5f6c7b;
+  color: var(--mui-palette-text-secondary);
 }
 
 .surface {
   border-radius: 14px;
-  border: 1px solid #d8dee7;
-  background: #f8fafc;
+  border: 1px solid var(--mui-palette-divider);
+  background: var(--mui-palette-background-default);
 }
 
 .pageTitle {
@@ -21,20 +21,20 @@
 
 .dropzone {
   width: 100%;
-  border: 1px dashed #bec9d9;
+  border: 1px dashed var(--mui-palette-divider);
   border-radius: 10px;
   min-height: 96px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #f9fbff;
+  background: var(--mui-palette-background-paper);
   cursor: pointer;
 }
 
 .dropzone:hover {
-  border-color: #6b8ecf;
-  background: #f2f7ff;
+  border-color: var(--mui-palette-primary-main);
+  background: rgba(var(--mui-palette-primary-mainChannel) / 0.08);
 }
 
 .hiddenInput {
@@ -42,7 +42,7 @@
 }
 
 .fileRow {
-  border: 1px solid #dde4ef;
+  border: 1px solid var(--mui-palette-divider);
   border-radius: 8px;
   padding: 8px 10px;
   display: flex;
@@ -69,8 +69,8 @@
 .slaBox {
   margin-top: 4px;
   border-radius: 8px;
-  border: 1px solid #e0e7f0;
-  background: #f4f7fb;
+  border: 1px solid var(--mui-palette-divider);
+  background: var(--mui-palette-background-default);
   padding: 10px 12px;
 }
 

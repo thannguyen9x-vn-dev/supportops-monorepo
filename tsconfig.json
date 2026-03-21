@@ -1,10 +1,10 @@
 {
   "files": [],
   "references": [
-    { "path": "./shared/contracts" },
-    { "path": "./shared/ui" },
-    { "path": "./shared/ui/theme" },
-    { "path": "./shared/ui/form" },
+    { "path": "./packages/types" },
+    { "path": "./packages/ui" },
+    { "path": "./packages/ui/theme" },
+    { "path": "./packages/ui/form" },
     { "path": "./apps/web" }
   ]
 }

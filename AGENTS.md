@@ -1,21 +1,14 @@
 # AGENTS.md — SupportOps Platform
 
 ## Project Overview
-SupportOps is a multi-tenant SaaS Operations Platform.
+SupportOps is a multi-tenant internal operations platform for managing service requests — think IT helpdesk / internal ticketing where teams submit, assign, track, and resolve requests.
 
-- **Frontend**: Next.js 15 (App Router) + TypeScript + MUI-based design system
-- **Backend**: Java 21 + Spring Boot 3.4 + Gradle (Kotlin DSL)
-- **Database**: PostgreSQL 16 + Flyway migrations
-- **Cache**: Redis 7
+- **Frontend**: Next.js (App Router) + TypeScript + MUI-based design system
+- **Backend**: NestJS + TypeScript + Prisma
+- **Database**: PostgreSQL + Prisma migrations
+- **Cache**: Redis (queued jobs planned)
 - **Storage**: MinIO (S3-compatible) for file uploads
 - **Monorepo**: pnpm workspaces
-
-**Business model**: Subscription-based with 3 tiers:
-- Freelancer ($49/mo) — 1 user
-- Company ($299/mo) — 5-10 users
-- Enterprise ($2799/mo) — 20+ users
-
-Users can manage tasks (Kanban), products, invoices, billing, and internal messages.
 
 ## Monorepo Structure
 
@@ -23,50 +16,58 @@ Users can manage tasks (Kanban), products, invoices, billing, and internal messa
 root/
 ├── apps/
 │   ├── web/                    # Next.js Frontend (port 3000)
-│   └── api/                    # Java Spring Boot Backend (port 8080)
-├── shared/
+│   ├── api/                    # NestJS Backend (port 8081)
+│   └── worker/                 # Background job workers (BullMQ — planned)
+├── packages/
 │   ├── ui/                     # Shared UI components (React + MUI)
-│   └── contracts/              # API types, Zod schemas, endpoint constants
+│   ├── types/                  # API contracts: types, Zod schemas, endpoint constants
+│   ├── eslint-config/          # Shared ESLint flat configs
+│   └── tsconfig/               # Shared TypeScript base configs
 ├── docs/                       # Documentation
 ├── pnpm-workspace.yaml
-├── AGENTS.md                   # ← This file
-└── .cursorrules                # AI assistant rules
+└── AGENTS.md                   # ← This file
 ```
 
 ## Module Map
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                    SupportOps Platform                       │
-├──────────────┬──────────────┬──────────────┬────────────────┤
-│   CORE       │   COMMERCE   │  COLLAB      │  PLATFORM      │
-├──────────────┼──────────────┼──────────────┼────────────────┤
-│ Auth & RBAC  │ Products     │ Kanban       │ Subscription   │
-│ User Profile │ Billing      │ Messages     │ Pricing/Plans  │
-│ Settings     │ Invoices     │ Calendar*    │ Dashboard      │
-│ Team*        │ Payments     │ Comments     │ Notifications  │
-└──────────────┴──────────────┴──────────────┴────────────────┘
-                                              * = Phase 2
+┌─────────────────────────────────────────────────────────────────┐
+│                      SupportOps Platform                         │
+├──────────────────┬───────────────────────┬──────────────────────┤
+│   CORE           │   SERVICE-OPS         │   SETTINGS/ADMIN     │
+├──────────────────┼───────────────────────┼──────────────────────┤
+│ Auth & RBAC      │ Requests (CRUD)       │ Workflow config      │
+│ User Profile     │ Assignment            │ SLA policies         │
+│ Team Management  │ SLA tracking          │ Service types        │
+│ File Upload      │ Escalation            │ Admin (user mgmt)    │
+│                  │ Resolution            │                      │
+│                  │ Work Logs             │                      │
+│                  │ Audit Log             │                      │
+└──────────────────┴───────────────────────┴──────────────────────┘
 ```
+
+**Legacy modules** (still in codebase, being phased out):
+`product`, `kanban`, `message`, `billing`, `subscription`, `invoice`
 
 ## Key Architectural Principles
 
 ### 1. Backend-Agnostic Frontend
 - Frontend NEVER hardcodes backend URLs
 - All API calls: Component → Hook → Service → `apiClient.ts`
-- All types come from `@supportops/contracts`
+- All types come from `@supportops/types`
 - Changing backend = changing ONE env variable (`NEXT_PUBLIC_API_BASE_URL`)
 
 ### 2. Contracts as Single Source of Truth
-- `shared/contracts/` defines ALL API types, Zod schemas, and endpoint paths
+- `packages/types/` defines ALL API types, Zod schemas, and endpoint paths
 - Both FE and BE MUST conform to these contracts
-- When adding a new API endpoint: update `shared/contracts/` FIRST
+- When adding a new API endpoint: update `packages/types/` FIRST
+- Organized under `core/` and `service-ops/` subdirectories
 
 ### 3. Multi-Tenancy (Shared DB, tenant_id column)
-- Every data table has `tenant_id` column
+- Every data table has `tenantId` column
 - Tenant resolved from JWT claims on every request
-- Backend uses `TenantContext` (ThreadLocal) to scope ALL queries
-- NEVER write a query without `tenant_id` filter
+- Backend uses `@CurrentTenant()` decorator to scope ALL queries
+- NEVER write a query without `tenantId` filter
 
 ### 4. Consistent API Response Format
 ```json
@@ -91,59 +92,66 @@ root/
 ```
 
 ### 5. Module-Based Architecture
-Both FE and BE are organized by feature modules:
-`auth`, `user`, `product`, `message`, `dashboard`, `kanban`, `subscription`, `billing`, `invoice`, `file`
+Backend organized under `apps/api/src/modules/`:
+- `auth/` — register, login, refresh, logout, verify-email, forgot/reset password, invite
+- `user/` — profile, preferences, sessions, team management
+- `file/` — upload, access URL
+- `service-ops/request/` — service request CRUD
+- `service-ops/assignment/`, `sla/`, `escalation/`, `resolution/`, `work-log/`, `asset/`
 
-## Database ERD
+Frontend organized under `apps/web/src/features/`:
+- `auth/` — guards, services, hooks
+- `team/` — team member list, invite, role management
+- `service-ops/requests/` — list, detail, intake screens
+- `layout/` — navigation, header, sidebar
+
+## Database Schema (Core Models)
 
 ```text
-tenants
+Tenant
   │
-  ├── users ──── user_preferences
-  │     │──── user_sessions
-  │     │──── refresh_tokens
+  ├── User ──── Membership (role in tenant)
+  │      │──── UserPreference
+  │      │──── RefreshSession
+  │      │──── Invite
   │
-  ├── plans
-  │     └── subscriptions
+  ├── AuthRole ──── AuthRolePermission ──── AuthPermission
   │
-  ├── billing_info
-  ├── payment_methods
-  ├── order_history
+  ├── ServiceType
   │
-  ├── products ──── product_images
+  ├── ServiceRequest
+  │      │──── RequestActivity
+  │      │──── RequestComment
+  │      │──── RequestAttachment
+  │      │──── WorkLog
+  │      │──── SlaRecord
+  │      └──── AssignmentHistory
   │
-  ├── invoices ──── invoice_items
+  ├── AuditLog
   │
-  ├── boards
-  │     └── board_columns
-  │           └── tasks ──── task_assignees (join table)
-  │                    ├── task_comments
-  │                    └── task_attachments
-  │
-  └── messages ──── message_attachments
+  └── UploadedFile
 ```
 
-## Implementation Priority
+## Implementation Status (v1)
 
-### Phase 1: Foundation
-1. Project scaffold (Gradle + Spring Boot + Docker Compose)
-2. Common layer (ApiResponse, GlobalExceptionHandler, TraceIdFilter, BaseEntity)
-3. Auth module (Register, Login, JWT, Refresh, RBAC)
-4. `shared/contracts` package
-5. FE `apiClient.ts` + `AuthContext`
-6. User Profile CRUD + Settings
+### Done
+- Auth full flow: register, login, logout, refresh (HttpOnly cookie), verify-email, forgot/reset password, invite/accept-invite
+- User profile: get, update, avatar upload, change password, sessions
+- Team management: list members, invite, deactivate, reactivate, change role
+- Service requests: list (paginated, filtered by status), create (draft or submit mode)
+- Request detail screen (UI)
+- Settings routes: workflow, SLA, service-types (UI scaffold)
+- Admin: user management (UI)
+- File upload via MinIO
+- RBAC: permission-based guards on all endpoints
 
-### Phase 2: Core Features
-7. Products CRUD + image upload
-8. Kanban board + tasks + drag & drop
-9. Messages (inbox, detail, reply)
-10. Dashboard (aggregated data)
-
-### Phase 3: Commerce
-11. Plans + Subscription management
-12. Billing info + payment methods
-13. Invoice CRUD + PDF generation
-14. Plan-based feature gating
+### In Progress / Planned
+- Request detail: full backend (get by ID, update status, add comment, work log)
+- SLA background jobs (assignment SLA + resolution SLA monitoring)
+- Escalation automation
+- Background worker (BullMQ + Redis)
+- Email notifications
+- Dashboard / KPI aggregation
 
 ## Coding Standards
 
@@ -154,14 +162,13 @@ tenants
 - Use barrel exports (`index.ts`) per module
 - Components: `PascalCase.tsx`, Utils: `camelCase.ts`, Services: `kebab-case.service.ts`
 
-### Java (Backend)
-- Java 21 features: records, pattern matching, sealed classes, text blocks
-- Spring Boot conventions
-- Lombok: `@Data`, `@Builder`, `@Slf4j`, `@RequiredArgsConstructor`
-- MapStruct for DTO ↔ Entity mapping
-- Validation: `jakarta.validation` annotations
-- All exceptions through `GlobalExceptionHandler`
-- Constructor injection ONLY (no `@Autowired` field injection)
+### TypeScript (Backend - NestJS)
+- Strict mode enabled
+- Use DTO classes with `class-validator` and `class-transformer`
+- Keep controllers thin; business logic in services
+- Module-first organization (`modules/<feature>`)
+- Prisma for data access — always include `tenantId` in queries
+- Global exception handling through Nest filters
 
 ### Git Commits
 - Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
@@ -174,19 +181,17 @@ tenants
 |---|---|
 | API Client | `apps/web/src/lib/api/apiClient.ts` |
 | Auth Context | `apps/web/src/lib/auth/AuthContext.tsx` |
-| Token Manager | `apps/web/src/lib/auth/tokenManager.ts` |
 | Environment Config | `apps/web/src/lib/config/env.ts` |
-| API Contracts (types) | `shared/contracts/src/types/` |
-| API Contracts (schemas) | `shared/contracts/src/schemas/` |
-| API Endpoints | `shared/contracts/src/endpoints.ts` |
+| API Contracts (types) | `packages/types/src/types/` and `packages/types/src/service-ops/` |
+| API Contracts (schemas) | `packages/types/src/schemas/` |
+| API Endpoints | `packages/types/src/endpoints.ts` |
 | Feature Services (FE) | `apps/web/src/features/*/services/` |
-| Spring Boot Entry | `apps/api/src/main/java/com/supportops/api/SupportOpsApplication.java` |
-| Flyway Migrations | `apps/api/src/main/resources/db/migration/` |
-| Global Exception Handler | `apps/api/src/.../common/exception/GlobalExceptionHandler.java` |
-| Base Entity | `apps/api/src/.../common/entity/BaseEntity.java` |
-| Tenant Context | `apps/api/src/.../common/security/TenantContext.java` |
-| Security Config | `apps/api/src/.../config/SecurityConfig.java` |
-| Docker Compose | `apps/api/docker-compose.yml` |
+| Nest Entry | `apps/api/src/main.ts` |
+| App Module | `apps/api/src/app.module.ts` |
+| Prisma Schema | `apps/api/prisma/schema.prisma` |
+| Auth Module | `apps/api/src/modules/auth/` |
+| Request Module | `apps/api/src/modules/service-ops/request/` |
+| Docker Compose | `docker-compose.prod.yml` |
 
 ## How to Run
 
@@ -195,24 +200,27 @@ tenants
 cd apps/api && docker compose up -d
 
 # Backend
-cd apps/api && ./gradlew bootRun        # http://localhost:8080
+cd apps/api && pnpm dev                  # http://localhost:8081
 
 # Frontend
 cd apps/web && pnpm dev                  # http://localhost:3000
 
 # Type-check contracts
-cd shared/contracts && pnpm typecheck
+cd packages/types && pnpm typecheck
+
+# Build shared UI (required after source changes)
+cd packages/ui && pnpm build
 ```
 
 ## Testing
 
 ### Frontend
-- Unit: Vitest + React Testing Library
-- E2E: Playwright (Phase 2)
-- Files: `*.test.ts(x)` colocated with source
+- Unit: Jest 29 + React Testing Library + MSW v2
+- E2E: Playwright (planned)
+- Files: `*.test.ts(x)` — see `docs/tech-debt/frontend-architecture.md` for MSW setup details
+- Run: `npx jest --testPathPattern="..." --no-coverage` from `apps/web/`
 
 ### Backend
-- Unit: JUnit 5 + Mockito
-- Integration: Testcontainers (PostgreSQL)
-- Files: mirror `src/main` structure under `src/test`
-- Base class: `BaseIntegrationTest.java`
+- Unit: Jest (Nest testing utilities)
+- Integration: Supertest + real PostgreSQL/containers
+- Files: `*.spec.ts` under module directories

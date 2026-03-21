@@ -1,4 +1,4 @@
-import type { ProductListItem } from "@supportops/contracts";
+import type { ProductListItem } from "@supportops/types";
 
 export const mockProducts: ProductListItem[] = [
   {

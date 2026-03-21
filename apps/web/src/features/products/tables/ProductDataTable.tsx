@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { PageMeta, Product } from "@supportops/contracts";
+import type { PageMeta, Product } from "@supportops/types";
 import {
   Box,
   CircularProgress,

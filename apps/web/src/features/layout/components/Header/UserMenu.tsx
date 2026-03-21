@@ -2,6 +2,7 @@
 
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { Avatar, ButtonBase, Menu, MenuItem } from "@mui/material";
+import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, type MouseEvent } from "react";
 
@@ -12,6 +13,9 @@ import styles from "./header.module.css";
 export function UserMenu() {
   const t = useTranslations("header");
   const { logout, user } = useAuth();
+  const router = useRouter();
+  const params = useParams<{ locale?: string }>();
+  const locale = params.locale ?? "en";
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isOpen = Boolean(anchorEl);
 
@@ -26,6 +30,11 @@ export function UserMenu() {
   const handleSignOut = () => {
     handleClose();
     logout();
+  };
+
+  const handleOpenProfile = () => {
+    handleClose();
+    router.push(`/${locale}/settings`);
   };
 
   const displayName = user ? `${user.firstName} ${user.lastName}`.trim() : mockUser.name;
@@ -43,7 +52,9 @@ export function UserMenu() {
         aria-controls="header-user-menu"
         aria-label={t("userMenuAriaLabel")}
       >
-        <Avatar sx={{ width: 32, height: 32 }}>{initials}</Avatar>
+        <Avatar src={user?.avatarUrl ?? undefined} sx={{ width: 32, height: 32 }}>
+          {initials}
+        </Avatar>
         <span className={styles.userButtonName}>{displayName}</span>
         <KeyboardArrowDownIcon fontSize="small" />
       </ButtonBase>
@@ -55,7 +66,7 @@ export function UserMenu() {
         onClose={handleClose}
         keepMounted
       >
-        <MenuItem onClick={handleClose}>{t("profile")}</MenuItem>
+        <MenuItem onClick={handleOpenProfile}>{t("profile")}</MenuItem>
         <MenuItem onClick={handleSignOut}>{t("signOut")}</MenuItem>
       </Menu>
     </>

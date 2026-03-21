@@ -1,4 +1,4 @@
-import type { ColumnDef, SortingState, VisibilityState } from "@tanstack/react-table";
+import type { ColumnDef, ColumnOrderState, ColumnSizingState, SortingState, VisibilityState } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 
 // ---------------------------------------------------------------------------
@@ -75,6 +75,13 @@ export type EntityColumnDef<TData> = ColumnDef<TData, any> & {
 
   /** Whether this column can be hidden via column visibility control. Default false. */
   hideable?: boolean;
+
+  /**
+   * Whether this column can be resized by dragging its right edge.
+   * Default true when `columnSizingStorageKey` is configured on the table.
+   * Set to false for fixed-size columns (e.g. actions, checkbox).
+   */
+  resizable?: boolean;
 };
 
 // ---------------------------------------------------------------------------
@@ -127,6 +134,18 @@ export type EntityTableConfig<TData extends object, TFilters extends object> = {
    * If not provided, column visibility will not be persisted.
    */
   columnVisibilityStorageKey?: string;
+
+  /**
+   * Storage key for persisting column order to localStorage.
+   * Also enables drag-to-reorder on non-pinned columns.
+   */
+  columnOrderStorageKey?: string;
+
+  /**
+   * Storage key for persisting column sizes to localStorage.
+   * Also enables column resize handles.
+   */
+  columnSizingStorageKey?: string;
 
   // ── Filters ───────────────────────────────────────────────────────────────
   initialFilters: TFilters;
@@ -185,6 +204,8 @@ export type EntityTableInstance<TData extends object, TFilters extends object> =
     pinnedColumns?: { left?: string[]; right?: string[] };
     defaultColumn?: { size?: number; minSize?: number; maxSize?: number };
     columnVisibilityStorageKey?: string;
+    columnOrderStorageKey?: string;
+    columnSizingStorageKey?: string;
     onSaveRow?: EntityTableConfig<TData, TFilters>["onSaveRow"];
     onSaveBulkColumn?: EntityTableConfig<TData, TFilters>["onSaveBulkColumn"];
   };
@@ -205,6 +226,12 @@ export type EntityTableInstance<TData extends object, TFilters extends object> =
   toggleColumn: (columnId: string) => void;
   showAllColumns: () => void;
   isColumnVisible: (columnId: string) => boolean;
+
+  // ── Column order & sizing API ─────────────────────────────────────────────
+  columnOrder: ColumnOrderState;
+  setColumnOrder: (order: ColumnOrderState | ((prev: ColumnOrderState) => ColumnOrderState)) => void;
+  columnSizing: ColumnSizingState;
+  setColumnSizing: (sizing: ColumnSizingState | ((prev: ColumnSizingState) => ColumnSizingState)) => void;
 
   // ── Edit state ────────────────────────────────────────────────────────────
   editState: TableEditState<TData>;

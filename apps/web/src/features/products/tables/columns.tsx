@@ -1,7 +1,7 @@
 "use client";
 
 import { createColumnHelper } from "@tanstack/react-table";
-import type { Product } from "@supportops/contracts";
+import type { Product } from "@supportops/types";
 import { Typography } from "@mui/material";
 
 import { ActionsCell } from "./cells/ActionsCell";

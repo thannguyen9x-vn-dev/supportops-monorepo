@@ -5,7 +5,7 @@ import type {
   TaskComment,
   TaskDetail,
   UpdateTaskRequest
-} from "@supportops/contracts";
+} from "@supportops/types";
 
 import { ENDPOINTS, apiClient } from "@/lib/api";
 

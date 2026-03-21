@@ -6,7 +6,7 @@ import { Alert, Button } from "@mui/material";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -22,11 +22,12 @@ type ForgotFormValues = {
 };
 
 export default function ForgotPasswordPage() {
+  const router = useRouter();
   const { locale } = useParams<{ locale: string }>();
   const t = useTranslations("auth.forgotPassword");
   const commonT = useTranslations("auth.common");
+  const supportLabel = locale.toLowerCase().startsWith("vi") ? "Hỗ trợ kỹ thuật" : "Technical support";
   const [imageLoadError, setImageLoadError] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const {
     control,
     handleSubmit,
@@ -36,13 +37,13 @@ export default function ForgotPasswordPage() {
     defaultValues: {
       email: "",
     },
+    mode: "onTouched",
   });
 
   const onSubmit = async (data: ForgotFormValues) => {
-    setSubmitted(false);
     try {
       await authService.forgotPassword({ email: data.email });
-      setSubmitted(true);
+      router.push(`/${locale}/reset-password?email=${encodeURIComponent(data.email)}`);
     } catch (error) {
       const message = error instanceof ApiError ? error.message : t("submitError");
       setError("root", { message });
@@ -55,15 +56,7 @@ export default function ForgotPasswordPage() {
       title={t("title")}
       subtitle={t("subtitle")}
       titleSx={{ fontSize: { xs: "1.9rem", md: "1.9rem" } }}
-      illustrationPanelSx={{
-        background: "#FFFFFF",
-        backgroundColor: "#FFFFFF",
-        color: "text.primary",
-      }}
       formPanelSx={{
-        background: "#FFFFFF",
-        backgroundColor: "#FFFFFF",
-        backgroundImage: "none",
         justifyContent: { xs: "flex-start", md: "center" },
       }}
       illustration={
@@ -81,7 +74,7 @@ export default function ForgotPasswordPage() {
               />
             </div>
           ) : (
-            <LockResetOutlinedIcon sx={{ fontSize: 120, color: "#2563eb", mt: 2 }} />
+            <LockResetOutlinedIcon sx={{ fontSize: 120, color: "primary.main", mt: 2 }} />
           )}
         </>
       }
@@ -89,6 +82,8 @@ export default function ForgotPasswordPage() {
         <>
           <span>{t("footerPrompt")}</span>
           <Link href={`/${locale}/login`}>{t("footerAction")}</Link>
+          <span aria-hidden>·</span>
+          <Link href={`/${locale}/auth-support`}>{supportLabel}</Link>
         </>
       }
     >
@@ -118,13 +113,10 @@ export default function ForgotPasswordPage() {
               textTransform: "none",
               py: 1.2,
               fontWeight: 600,
-              bgcolor: "#2563eb",
-              "&:hover": { bgcolor: "#1d4ed8" },
             }}
           >
             {t("submit")}
           </Button>
-          {submitted ? <Alert severity="success">{t("submitSuccess")}</Alert> : null}
           {errors.root?.message ? <Alert severity="error">{errors.root.message}</Alert> : null}
         </div>
       </form>

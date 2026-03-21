@@ -5,10 +5,11 @@ import LastPageIcon from "@mui/icons-material/LastPage";
 import { Avatar } from "@mui/material";
 import { IconButton } from "@mui/material";
 import Image from "next/image";
+import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
-import type { UserRole } from "@supportops/contracts";
+import type { UserRole } from "@supportops/types";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { navigationConfig } from "../../config/navigation";
@@ -69,6 +70,8 @@ export function Sidebar() {
   const { user } = useAuth();
   const t = useTranslations();
   const roleLabel = user?.role.replace("_", " ") ?? "";
+  const profileHref = `/${locale}/settings`;
+  const isProfileActive = pathname === profileHref;
   const filteredNavigation = filterNavigationByRole(navigationConfig, user?.role);
 
   useEffect(() => {
@@ -140,7 +143,12 @@ export function Sidebar() {
         </nav>
 
         {!isCollapsed ? (
-          <div className={styles.footer}>
+          <Link
+            href={profileHref}
+            className={[styles.footer, isProfileActive ? styles.footerActive : ""].join(" ")}
+            aria-label={t("header.profile")}
+            title={t("header.profile")}
+          >
             <Avatar src={user?.avatarUrl ?? undefined} sx={{ width: 36, height: 36 }}>
               {`${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.trim() || "U"}
             </Avatar>
@@ -148,7 +156,7 @@ export function Sidebar() {
               <p className={styles.userName}>{`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "-"}</p>
               <p className={styles.userRole}>{roleLabel}</p>
             </div>
-          </div>
+          </Link>
         ) : null}
       </aside>
     </>

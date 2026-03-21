@@ -1,6 +1,6 @@
 # SupportOps API Reference
 
-Base URL: `http://localhost:8080/api/v1`
+Base URL: `http://localhost:8081/api/v1`
 
 ## Authentication
 
@@ -16,81 +16,174 @@ Optional trace header:
 x-trace-id: <uuid>
 ```
 
+Refresh token is stored in `HttpOnly` cookie (`supportops_refresh_token`).
+See `docs/auth-cookie-contract.md` for full cookie spec.
+
+---
+
 ## Auth
 
 ### POST `/auth/register` [PUBLIC]
-Create tenant + user account.
+Create tenant + user account. Returns `accessToken` in body + sets refresh cookie.
+
+### POST `/auth/verify-email` [PUBLIC]
+Verify email with token from verification email.
+
+### POST `/auth/resend-verification-email` [PUBLIC]
+Resend the verification email.
 
 ### POST `/auth/login` [PUBLIC]
-Login and return access token; refresh token is rotated via cookie.
+Login. Returns `accessToken` in body + sets refresh cookie.
 
 ### POST `/auth/refresh` [PUBLIC]
-Issue new access token from refresh token.
+Issue new access token from refresh cookie. Rotates refresh token.
 
 ### POST `/auth/logout`
-Revoke refresh token.
+Revoke refresh token and clear cookie.
+
+### POST `/auth/logout-all`
+Revoke all refresh sessions for the current user.
+
+### POST `/auth/forgot-password` [PUBLIC]
+Send password reset email.
+
+### POST `/auth/reset-password` [PUBLIC]
+Reset password using token from email.
+
+### POST `/auth/invite/accept` [PUBLIC]
+Accept an invite and set password for the new account.
+
+---
 
 ## Users
 
 ### GET `/users/me`
-Get current profile.
+Get current user profile.
 
 ### PUT `/users/me`
-Update profile.
+Update profile (name, phone, etc.).
 
 ### PUT `/users/me/password`
-Change password.
+Change password (requires current password).
 
 ### GET `/users/me/preferences`
+Get notification/display preferences.
+
 ### PUT `/users/me/preferences`
-Get/update notification preferences.
+Update preferences.
 
-## Products
+### GET `/users/me/sessions`
+List active refresh sessions.
 
-### GET `/products?page=1&size=20&search=&category=`
-List products (tenant-scoped, paginated).
+### DELETE `/users/me/sessions/:id`
+Revoke a specific session.
 
-### GET `/products/{id}`
-Get product detail.
+### POST `/users/me/avatar`
+Upload avatar (multipart, `file`).
 
-### POST `/products`
-Create product.
+---
 
-### PUT `/products/{id}`
-Update product.
+## Team (Tenant User Management)
 
-### DELETE `/products/{id}`
-Delete product.
+### GET `/users`
+List all members in the current tenant with role and membership status.
+Requires: `user.invite` OR `role.manage` OR `user.deactivate` permission.
 
-### DELETE `/products/bulk`
-Bulk delete.
+### POST `/users/invite`
+Invite a user by email with a given role.
 
-### POST `/products/{id}/images`
-Upload images (multipart, `files`).
+### PATCH `/users/:id/role`
+Change the role of a tenant member.
 
-### DELETE `/products/{id}/images/{imageId}`
-Delete image.
+### PATCH `/users/:id/deactivate`
+Deactivate a tenant member (blocks login for this tenant).
 
-### PUT `/products/{id}/images/reorder`
-Reorder images.
+### PATCH `/users/:id/reactivate`
+Reactivate a previously deactivated member.
+
+---
+
+## Service Requests
+
+### GET `/requests`
+List requests (tenant-scoped, paginated).
+
+Query params:
+- `page` (default: 1)
+- `size` (default: 20)
+- `status` — filter by `RequestStatus` enum
+
+Access rules:
+- `request.read.all` → sees all tenant requests
+- `request.read.own` or `request.start_work` → sees own + assigned requests
+
+### POST `/requests`
+Create a service request.
+
+Body:
+```json
+{
+  "mode": "draft | submit",
+  "title": "string",
+  "description": "string (optional)",
+  "serviceTypeId": "uuid (optional)",
+  "priority": "LOW | MEDIUM | HIGH | CRITICAL",
+  "urgency": "LOW | MEDIUM | HIGH | CRITICAL",
+  "impact": "LOW | MEDIUM | HIGH | CRITICAL",
+  "attachmentIds": ["uuid"]
+}
+```
+
+Requires: `request.create` permission.
+
+On `submit` mode: status moves to `OPEN`, SLA record is created automatically.
+On `draft` mode: status stays `DRAFT`.
+
+---
 
 ## Files
 
+### POST `/files/upload`
+Upload one or more files (multipart, `files[]`).
+Returns array of `UploadedFile` records with IDs used in request attachments.
+
 ### GET `/files/access-url?url=...&expiresInSeconds=300`
-Get temporary read URL for storage objects.
+Get a temporary signed read URL for a MinIO object.
 
-## Kanban (Planned)
+---
 
-- `GET /boards`
-- `GET /boards/{boardId}`
-- `POST /boards`
-- `POST /boards/{boardId}/columns`
-- `PUT /boards/{boardId}/columns/{colId}`
-- `PUT /boards/{boardId}/columns/reorder`
-- `DELETE /boards/{boardId}/columns/{colId}`
-- `GET /boards/{boardId}/tasks`
-- `POST /boards/{boardId}/columns/{colId}/tasks`
-- `PUT /tasks/{taskId}`
-- `PUT /tasks/{taskId}/move`
-- `PUT /tasks/{taskId}/archive`
-- `DELETE /tasks/{taskId}`
+## Planned Endpoints (not yet implemented)
+
+### GET `/requests/:id`
+Get full request detail including comments, activity timeline, SLA record.
+
+### PATCH `/requests/:id/status`
+Transition request status.
+
+### POST `/requests/:id/comments`
+Add a comment to a request.
+
+### POST `/requests/:id/work-log`
+Log work time on a request.
+
+### GET `/service-types`
+List service types for the tenant.
+
+### POST `/service-types`
+Create a service type.
+
+### GET `/sla-policies`
+List SLA policies.
+
+---
+
+## Legacy Modules (to be retired)
+
+The following modules are still active in the backend but are NOT part of the v1 scope.
+They will be removed after ServiceOps reaches feature parity:
+
+- `/products` — product catalog
+- `/boards`, `/tasks` — Kanban
+- `/messages` — internal messaging
+- `/plans`, `/subscriptions` — subscription management
+- `/billing`, `/invoices` — commerce

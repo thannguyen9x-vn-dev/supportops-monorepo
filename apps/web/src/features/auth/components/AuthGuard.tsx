@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { CircularProgress } from "@mui/material";
-import type { UserRole } from "@supportops/contracts";
+import type { UserRole } from "@supportops/types";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
@@ -13,12 +13,11 @@ type AuthGuardProps = {
 };
 
 const routeRoleAccess: Array<{ pathPrefix: string; roles: UserRole[] }> = [
-  { pathPrefix: "/requests", roles: ["ADMIN", "SUPER_ADMIN"] },
-  { pathPrefix: "/team", roles: ["ADMIN", "SUPER_ADMIN"] },
-  { pathPrefix: "/reports", roles: ["ADMIN", "SUPER_ADMIN"] },
-  { pathPrefix: "/settings/workflow", roles: ["ADMIN", "SUPER_ADMIN"] },
-  { pathPrefix: "/settings/sla", roles: ["ADMIN", "SUPER_ADMIN"] },
-  { pathPrefix: "/settings/service-types", roles: ["ADMIN", "SUPER_ADMIN"] },
+  { pathPrefix: "/admin/user", roles: ["TENANT_ADMIN"] },
+  { pathPrefix: "/reports", roles: ["OPS_COORDINATOR", "TENANT_ADMIN"] },
+  { pathPrefix: "/settings/workflow", roles: ["TENANT_ADMIN"] },
+  { pathPrefix: "/settings/sla", roles: ["TENANT_ADMIN"] },
+  { pathPrefix: "/settings/service-types", roles: ["TENANT_ADMIN"] },
 ];
 
 function getPathWithoutLocale(pathname: string): string {

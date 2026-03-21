@@ -1,4 +1,4 @@
-import type { UpdateProfileRequest, UserPreferences, UserProfile } from "@supportops/contracts";
+import type { UpdateProfileRequest, UserPreferences, UserProfile } from "@supportops/types";
 import {
   getCountryCallingCode,
   parsePhoneNumberFromString,
@@ -20,13 +20,23 @@ function normalizeBirthdayValue(value: string | null | undefined): string {
     return "";
   }
 
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value;
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
   }
 
-  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  const isoDateTimeMatch = /^(\d{4}-\d{2}-\d{2})T/.exec(trimmed);
+  if (isoDateTimeMatch) {
+    return isoDateTimeMatch[1] ?? "";
+  }
+
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(trimmed);
   if (!match) {
-    return value;
+    return "";
   }
 
   const [, day, month, year] = match;
@@ -93,32 +103,54 @@ export function toProfileFormValues(profile: UserProfile): ProfileFormValues {
   return {
     firstName: profile.firstName,
     lastName: profile.lastName,
+    systemRole: profile.role ?? "",
     birthday: normalizeBirthdayValue(profile.birthday),
     phoneCountry,
     phoneNumber,
     address: profile.address ?? "",
     country,
     email: profile.email,
-    organization: profile.organization ?? "",
     zipCode: profile.zipCode ?? "",
     city: profile.city ?? "",
     department: profile.department ?? ""
   };
 }
 
-export function toUpdateProfileRequest(values: ProfileFormValues): UpdateProfileRequest {
-  return {
-    firstName: values.firstName,
-    lastName: values.lastName,
-    birthday: values.birthday,
-    phone: buildPhoneNumber(values.phoneCountry, values.phoneNumber),
-    address: values.address,
-    country: values.country,
-    organization: values.organization,
-    zipCode: values.zipCode,
-    city: values.city,
-    department: values.department
+type ToUpdateProfileRequestOptions = {
+  includeDepartment?: boolean;
+};
+
+export function toUpdateProfileRequest(
+  values: ProfileFormValues,
+  options: ToUpdateProfileRequestOptions = {},
+): UpdateProfileRequest {
+  const { includeDepartment = true } = options;
+  const request: UpdateProfileRequest = {
+    firstName: values.firstName.trim(),
+    lastName: values.lastName.trim(),
   };
+
+  const phone = buildPhoneNumber(values.phoneCountry, values.phoneNumber);
+  if (phone) {
+    request.phone = phone;
+  }
+
+  const birthday = normalizeBirthdayValue(values.birthday);
+  if (birthday) {
+    request.birthday = birthday;
+  }
+
+  const city = values.city.trim();
+  if (city) {
+    request.city = city;
+  }
+
+  const department = values.department.trim();
+  if (includeDepartment && department) {
+    request.department = department;
+  }
+
+  return request;
 }
 
 export function toNotificationPreferences(preferences: UserPreferences): NotificationPreference[] {

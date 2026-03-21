@@ -1,4 +1,4 @@
-import type { ApiErrorDetail, ApiResponse } from "@supportops/contracts";
+import type { ApiErrorDetail, ApiResponse } from "@supportops/types";
 
 import { tokenManager } from "@/lib/auth/tokenManager";
 import { env } from "@/lib/config/env";
@@ -54,7 +54,17 @@ class HttpClient {
         return { data: null as T };
       }
 
-      return (await response.json()) as ApiResponse<T>;
+      const contentLength = response.headers.get("content-length");
+      if (contentLength === "0") {
+        return { data: null as T };
+      }
+
+      const rawBody = await response.text();
+      if (!rawBody.trim()) {
+        return { data: null as T };
+      }
+
+      return JSON.parse(rawBody) as ApiResponse<T>;
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
@@ -102,6 +112,9 @@ class HttpClient {
 
     if (body && !(body instanceof FormData)) {
       headers.set("Content-Type", "application/json");
+    } else if (body instanceof FormData) {
+      // Let the browser generate multipart boundary automatically.
+      headers.delete("Content-Type");
     }
 
     if (!skipAuth) {
@@ -176,7 +189,7 @@ class HttpClient {
   }
 
   private getLoginRedirectPath(pathname: string): string | null {
-    const publicPaths = ["/login", "/register", "/forgot-password", "/pricing", "/reset-password"];
+    const publicPaths = ["/", "/login", "/register", "/verify-email", "/forgot-password", "/pricing", "/reset-password", "/auth-support", "/invite/accept"];
     const localeMatch = pathname.match(/^\/(en|vi)(?=\/|$)/);
     const locale = localeMatch?.[1] ?? "en";
     const pathWithoutLocale = pathname.replace(/^\/(en|vi)(?=\/|$)/, "") || "/";

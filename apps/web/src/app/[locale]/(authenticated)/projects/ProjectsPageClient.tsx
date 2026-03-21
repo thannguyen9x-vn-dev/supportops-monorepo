@@ -1,6 +1,6 @@
 "use client";
 
-import type { PageMeta, Product as ContractProduct, UpdateProductRequest } from "@supportops/contracts";
+import type { PageMeta, Product as ContractProduct, UpdateProductRequest } from "@supportops/types";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition, useState } from "react";
 import { useTranslations } from "next-intl";

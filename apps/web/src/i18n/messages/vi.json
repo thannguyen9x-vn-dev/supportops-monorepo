@@ -14,6 +14,10 @@
       "settings": "Cài đặt"
     },
     "common": {
+      "tenantSlugLabel": "Slug workspace",
+      "tenantSlugPlaceholder": "supportops-demo",
+      "tenantSlugRequired": "Slug workspace là bắt buộc",
+      "tenantSlugInvalid": "Chỉ dùng chữ thường, số và dấu gạch ngang",
       "emailLabel": "Email của bạn",
       "emailPlaceholder": "name@example.com",
       "emailRequired": "Email là bắt buộc",
@@ -31,7 +35,7 @@
       "unableToSignIn": "Không thể đăng nhập",
       "unableToRegister": "Không thể đăng ký"
     },
-    "login": {
+  "login": {
       "title": "Đăng nhập",
       "subtitle": "Chào mừng bạn quay lại. Tiếp tục công việc đang dở.",
       "badge": "Truy cập an toàn",
@@ -39,11 +43,13 @@
       "illustrationText": "Giữ dự án luôn vận hành với đăng nhập nhanh và ổn định.",
       "footerPrompt": "Bạn mới ở đây?",
       "footerAction": "Tạo tài khoản",
-      "rememberMe": "Ghi nhớ tôi",
-      "forgotPassword": "Quên mật khẩu?",
-      "submit": "Đăng nhập"
-    },
-    "register": {
+    "rememberMe": "Ghi nhớ tôi",
+    "forgotPassword": "Quên mật khẩu?",
+    "submit": "Đăng nhập",
+    "emailNotVerified": "Email của bạn chưa được xác thực. Vui lòng xác thực email trước khi đăng nhập.",
+    "goToVerify": "Mở trang xác thực email"
+  },
+  "register": {
       "title": "Tạo tài khoản miễn phí",
       "subtitle": "Khởi tạo workspace của bạn chỉ trong vài phút.",
       "badge": "Khởi tạo",
@@ -65,45 +71,92 @@
         "number": "Có ít nhất một chữ số",
         "specialCharacter": "Có ít nhất một ký tự đặc biệt, ví dụ: ! @ # ?"
       },
-      "submit": "Tạo tài khoản"
-    },
-    "forgotPassword": {
-      "title": "Quên mật khẩu?",
-      "subtitle": "Chúng tôi sẽ gửi liên kết đặt lại qua email của bạn.",
+    "submit": "Tạo tài khoản",
+    "submitSuccess": "Chúng tôi đã gửi email xác thực đến {email}. Vui lòng xác thực trước khi đăng nhập.",
+    "resendVerificationEmail": "Gửi lại email xác thực",
+    "resendSuccess": "Đã gửi lại email xác thực.",
+    "resendError": "Không thể gửi lại email xác thực. Vui lòng thử lại.",
+    "goToLogin": "Đi tới đăng nhập"
+  },
+  "forgotPassword": {
+    "title": "Quên mật khẩu?",
+    "subtitle": "Chúng tôi sẽ gửi mã đặt lại gồm 6 chữ số qua email. Mã có hiệu lực trong 10 phút.",
       "badge": "Khôi phục",
       "illustrationTitle": "Đặt lại trong vài phút",
       "illustrationText": "Nhập email, chúng tôi sẽ giúp bạn đăng nhập lại.",
       "footerPrompt": "Bạn đã nhớ mật khẩu?",
       "footerAction": "Quay lại đăng nhập",
-      "submit": "Khôi phục mật khẩu",
-      "submitSuccess": "Nếu tài khoản tồn tại, chúng tôi đã gửi liên kết đặt lại mật khẩu.",
-      "submitError": "Không thể xử lý yêu cầu. Vui lòng thử lại."
-    },
-    "resetPassword": {
+    "submit": "Gửi mã đặt lại",
+    "submitSuccess": "Nếu tài khoản tồn tại, chúng tôi đã gửi mã đặt lại.",
+    "submitError": "Không thể xử lý yêu cầu. Vui lòng thử lại."
+  },
+  "resetPassword": {
       "title": "Đặt lại mật khẩu",
       "subtitle": "Chọn mật khẩu mới để bảo vệ tài khoản của bạn.",
       "badge": "Bảo mật",
       "illustrationTitle": "Luôn được bảo vệ",
       "illustrationText": "Cập nhật thông tin đăng nhập để giữ an toàn cho công việc.",
-      "footerPrompt": "Muốn bắt đầu lại?",
-      "footerAction": "Yêu cầu liên kết mới",
+    "footerPrompt": "Muốn bắt đầu lại?",
+    "footerAction": "Yêu cầu mã mới",
+    "codeLabel": "Mã đặt lại",
+    "codePlaceholder": "Nhập mã 6 chữ số",
+    "codeRequired": "Mã đặt lại là bắt buộc",
+    "codeInvalid": "Mã đặt lại phải gồm 6 chữ số",
       "newPasswordLabel": "Mật khẩu mới",
       "newPasswordPlaceholder": "Tạo mật khẩu mạnh",
       "confirmNewPasswordLabel": "Xác nhận mật khẩu mới",
       "confirmNewPasswordPlaceholder": "Nhập lại mật khẩu",
       "confirmNewPasswordRequired": "Vui lòng xác nhận mật khẩu",
-      "submit": "Đặt lại mật khẩu",
-      "submitSuccess": "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập lại ngay.",
-      "submitError": "Không thể đặt lại mật khẩu. Vui lòng thử lại.",
-      "missingToken": "Liên kết đặt lại không hợp lệ. Vui lòng yêu cầu liên kết mới.",
-      "passwordRequirements": {
+    "submit": "Đặt lại mật khẩu",
+    "submitSuccess": "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập lại ngay.",
+    "submitError": "Không thể đặt lại mật khẩu. Vui lòng thử lại.",
+    "missingEmail": "Thiếu thông tin email. Vui lòng bắt đầu lại từ trang quên mật khẩu.",
+    "passwordRequirements": {
         "minLength": "Ít nhất 10 ký tự (và tối đa 32 ký tự)",
         "lowercase": "Có ít nhất một ký tự chữ thường",
         "uppercase": "Có ít nhất một ký tự chữ HOA",
         "number": "Có ít nhất một chữ số",
-        "specialCharacter": "Có ít nhất một ký tự đặc biệt, ví dụ: ! @ # ?"
-      }
+      "specialCharacter": "Có ít nhất một ký tự đặc biệt, ví dụ: ! @ # ?"
     }
+  },
+  "verifyEmail": {
+    "title": "Xác thực email",
+    "subtitle": "Hãy dùng liên kết trong email để xác thực tài khoản trước khi đăng nhập.",
+    "verifying": "Đang xác thực email...",
+    "success": "Xác thực email thành công. Bạn có thể đăng nhập ngay.",
+    "error": "Không thể xác thực email. Liên kết có thể đã hết hạn hoặc không hợp lệ.",
+    "missingToken": "Thiếu mã xác thực. Vui lòng mở lại liên kết từ email.",
+    "missingEmail": "Thiếu thông tin email. Vui lòng đăng ký lại hoặc liên hệ hỗ trợ.",
+    "resend": "Gửi lại email xác thực",
+    "resendSuccess": "Đã gửi email xác thực.",
+    "resendError": "Không thể gửi lại email xác thực. Vui lòng thử lại.",
+    "goToLogin": "Đi tới đăng nhập",
+    "footerPrompt": "Đã xác thực xong?",
+    "footerAction": "Đăng nhập"
+  },
+  "acceptInvite": {
+    "title": "Chấp nhận lời mời",
+    "subtitle": "Thiết lập mật khẩu để kích hoạt tài khoản của bạn.",
+    "footerPrompt": "Đã có tài khoản?",
+    "footerAction": "Đăng nhập",
+    "fullNameLabel": "Họ và tên",
+    "fullNamePlaceholder": "Nhập họ và tên",
+    "passwordLabel": "Mật khẩu",
+    "passwordPlaceholder": "Nhập mật khẩu",
+    "confirmPasswordLabel": "Xác nhận mật khẩu",
+    "confirmPasswordPlaceholder": "Nhập lại mật khẩu",
+    "missingToken": "Thiếu token lời mời. Vui lòng mở lại liên kết trong email mời.",
+    "submit": "Kích hoạt tài khoản",
+    "submitSuccess": "Kích hoạt tài khoản thành công. Đang chuyển về trang đăng nhập...",
+    "submitError": "Không thể chấp nhận lời mời. Liên kết có thể không hợp lệ hoặc đã hết hạn.",
+    "passwordRequirements": {
+      "minLength": "Ít nhất 10 ký tự (và tối đa 32 ký tự)",
+      "lowercase": "Có ít nhất một ký tự chữ thường",
+      "uppercase": "Có ít nhất một ký tự chữ HOA",
+      "number": "Có ít nhất một chữ số",
+      "specialCharacter": "Có ít nhất một ký tự đặc biệt, ví dụ: ! @ # ?"
+    }
+  }
   },
   "nav": {
     "main": "CHÍNH",
@@ -111,7 +164,7 @@
     "system": "HỆ THỐNG",
     "dashboard": "Bảng điều khiển",
     "projects": "Dự án",
-    "team": "Đội ngũ",
+    "team": "Người dùng",
     "calendar": "Lịch",
     "reports": "Báo cáo",
     "reportsOverview": "Tổng quan",
@@ -127,6 +180,8 @@
     "toggleNavigationAriaLabel": "Mở hoặc thu gọn menu điều hướng",
     "closeNavigationAriaLabel": "Đóng menu điều hướng",
     "languageMenuAriaLabel": "Mở menu ngôn ngữ",
+    "switchToDarkModeAriaLabel": "Chuyển sang giao diện tối",
+    "switchToLightModeAriaLabel": "Chuyển sang giao diện sáng",
     "notificationsAriaLabel": "Thông báo",
     "userMenuAriaLabel": "Mở menu người dùng",
     "profile": "Hồ sơ",
@@ -136,6 +191,58 @@
     "dashboardComingSoon": "Bảng điều khiển - sắp ra mắt",
     "projectsComingSoon": "Dự án - sắp ra mắt",
     "teamComingSoon": "Đội ngũ - sắp ra mắt",
+    "teamAdmin": {
+      "title": "Quản trị thành viên",
+      "subtitle": "Mời người dùng, gán vai trò và quản lý quyền truy cập trong tenant của bạn.",
+      "loading": "Đang tải danh sách người dùng...",
+      "loadError": "Không thể tải danh sách người dùng trong tenant.",
+      "inviteSuccess": "Tạo lời mời thành công.",
+      "inviteError": "Tạo lời mời thất bại.",
+      "roleUpdated": "Cập nhật vai trò thành công.",
+      "roleUpdateError": "Cập nhật vai trò thất bại.",
+      "departmentUpdated": "Cập nhật phòng ban thành công.",
+      "departmentUpdateError": "Cập nhật phòng ban thất bại.",
+      "deactivateSuccess": "Vô hiệu hóa người dùng thành công.",
+      "deactivateError": "Vô hiệu hóa người dùng thất bại.",
+      "reactivateSuccess": "Kích hoạt lại người dùng thành công.",
+      "reactivateError": "Kích hoạt lại người dùng thất bại.",
+      "roles": {
+        "EMPLOYEE": "Nhân viên",
+        "OPS_COORDINATOR": "Điều phối vận hành",
+        "TECHNICIAN": "Kỹ thuật viên",
+        "TENANT_ADMIN": "Quản trị tenant"
+      },
+      "form": {
+        "email": "Email",
+        "emailPlaceholder": "Nhập email",
+        "fullName": "Họ tên",
+        "fullNamePlaceholder": "Nhập họ tên",
+        "role": "Vai trò",
+        "department": "Phòng ban",
+        "rolePlaceholder": "Chọn vai trò",
+        "invite": "Mời người dùng",
+        "dialogTitle": "Mời thành viên",
+        "cancel": "Hủy"
+      },
+      "table": {
+        "title": "Người dùng trong tenant",
+        "empty": "Chưa có người dùng nào trong tenant này.",
+        "email": "Email",
+        "name": "Tên",
+        "department": "Phòng ban",
+        "departmentPlaceholder": "Nhập phòng ban",
+        "allDepartments": "Tất cả phòng ban",
+        "clearDepartmentFilter": "Xóa bộ lọc",
+        "role": "Vai trò",
+        "membership": "Trạng thái membership",
+        "lastLogin": "Đăng nhập gần nhất",
+        "actions": "Thao tác",
+        "updateRole": "Cập nhật vai trò",
+        "updateDepartment": "Cập nhật phòng ban",
+        "deactivate": "Vô hiệu hóa",
+        "reactivate": "Kích hoạt lại"
+      }
+    },
     "calendarComingSoon": "Lịch - sắp ra mắt",
     "settingsComingSoon": "Cài đặt - sắp ra mắt",
     "reportsComingSoon": "Báo cáo - sắp ra mắt",
@@ -245,7 +352,15 @@
           "showFilters": "Hiện bộ lọc",
           "hideFilters": "Ẩn bộ lọc",
           "clear": "Xóa",
-          "apply": "Áp dụng"
+          "apply": "Áp dụng",
+          "cancel": "Hủy",
+          "submitRequest": "Gửi yêu cầu",
+          "rowActions": {
+            "view": "Xem",
+            "edit": "Chỉnh sửa",
+            "assign": "Phân công",
+            "cancelRequest": "Hủy yêu cầu"
+          }
         },
         "filters": {
           "searchPlaceholder": "Tìm kiếm yêu cầu",
@@ -304,6 +419,77 @@
           "next": "Trang sau"
         },
         "emptyState": "Không có yêu cầu phù hợp với bộ lọc hiện tại."
+      },
+      "detail": {
+        "header": {
+          "backToList": "Quay lại danh sách yêu cầu",
+          "title": "Máy lạnh văn phòng rò rỉ ở tầng 5 - Phòng họp C",
+          "subtitle": "Cập nhật lần cuối {updatedAgo} · Người yêu cầu {requester} ({role})",
+          "updatedMinutesAgo": "{minutes} phút trước",
+          "breadcrumbs": {
+            "requests": "Yêu cầu"
+          },
+          "meta": {
+            "inProgress": "Đang xử lý"
+          }
+        },
+        "statusLabels": {
+          "DRAFT": "Nháp",
+          "SUBMITTED": "Đã gửi",
+          "TRIAGE": "Phân loại",
+          "ASSIGNED": "Đã phân công",
+          "IN_PROGRESS": "Đang xử lý",
+          "WAITING_EXTERNAL_VENDOR": "Chờ nhà cung cấp",
+          "RESOLVED": "Đã xử lý",
+          "CLOSED": "Đã đóng",
+          "REOPENED": "Mở lại",
+          "CANCELLED": "Đã hủy"
+        },
+        "priorityLabels": {
+          "LOW": "Ưu tiên thấp",
+          "MEDIUM": "Ưu tiên trung bình",
+          "HIGH": "Ưu tiên cao",
+          "URGENT": "Ưu tiên khẩn",
+          "CRITICAL": "Ưu tiên nghiêm trọng"
+        },
+        "assignment": {
+          "assigneeRole": "Người xử lý"
+        },
+        "assignDialog": {
+          "titleAssign": "Phân công yêu cầu",
+          "titleReassign": "Phân công lại yêu cầu",
+          "assignee": "Người xử lý",
+          "assigneePlaceholder": "Chọn người xử lý",
+          "loadingUsers": "Đang tải danh sách người dùng...",
+          "emptyUsers": "Không có người xử lý đang hoạt động.",
+          "cancel": "Hủy",
+          "confirmAssign": "Phân công",
+          "confirmReassign": "Phân công lại"
+        },
+        "workLog": {
+          "sectionTitle": "NHẬT KÝ CÔNG VIỆC",
+          "empty": "Chưa có nhật ký công việc.",
+          "noDuration": "Không có thời lượng",
+          "addTitle": "THÊM NHẬT KÝ CÔNG VIỆC",
+          "placeholder": "Mô tả phần việc đã thực hiện...",
+          "minutes": "Phút",
+          "add": "Thêm",
+          "timelineTitle": "Đã thêm nhật ký công việc"
+        },
+        "feedback": {
+          "loadingDetail": "Đang tải chi tiết yêu cầu...",
+          "loadDetailError": "Không thể tải chi tiết yêu cầu.",
+          "loadAssigneesError": "Không thể tải danh sách người xử lý.",
+          "actionFailed": "Thao tác thất bại.",
+          "addNoteHint": "Dùng ô bình luận và bật 'Ghi chú nội bộ' để thêm ghi chú.",
+          "statusUpdated": "Đã cập nhật trạng thái.",
+          "assignedToYou": "Đã phân công cho bạn.",
+          "requestAssigned": "Đã phân công yêu cầu.",
+          "requestReassigned": "Đã phân công lại yêu cầu.",
+          "commentAdded": "Đã thêm bình luận.",
+          "workLogAdded": "Đã thêm nhật ký công việc.",
+          "retry": "Thử lại"
+        }
       }
     },
     "settings": {
@@ -318,11 +504,18 @@
         "retry": "Thử lại",
         "reload": "Tải lại",
         "update": "Cập nhật",
+        "saveChanges": "Lưu thay đổi",
+        "savePassword": "Lưu mật khẩu",
         "saving": "Đang lưu...",
         "savePreferences": "Lưu tùy chọn"
       },
       "profile": {
         "userRole": "Kỹ sư phần mềm cao cấp",
+        "systemRoleFallback": "Nhân viên",
+        "status": {
+          "active": "Hoạt động",
+          "inactive": "Không hoạt động"
+        },
         "changePicture": "Đổi ảnh",
         "avatarUploadSuccess": "Tải ảnh đại diện thành công",
         "avatarUploadError": "Không thể tải ảnh đại diện. Vui lòng thử lại.",
@@ -347,18 +540,23 @@
           "birthday": "Ngày sinh",
           "phoneCountryCode": "Mã vùng",
           "phoneNumber": "Số điện thoại",
-          "address": "Địa chỉ",
-          "country": "Quốc gia",
           "email": "Email",
           "organization": "Tổ chức",
-          "zipCode": "Mã bưu chính",
-          "city": "Thành phố",
-          "department": "Phòng ban"
+          "department": "Phòng ban",
+          "location": "Địa điểm",
+          "systemRole": "Vai trò hệ thống"
         },
         "placeholders": {
+          "firstName": "Nguyễn",
+          "lastName": "Nhâm Thân",
+          "selectDate": "Chọn ngày",
           "phoneNumber": "ví dụ: 3456 789",
-          "selectDate": "Chọn ngày"
+          "email": "name@example.com",
+          "location": "ví dụ: San Francisco"
         },
+        "aboutWorkLabel": "Về công việc của tôi:",
+        "aboutWorkValue": "Phát triển và duy trì các công cụ phần mềm nội bộ cho ServiceOps.",
+        "departmentLockedHint": "Chỉ vai trò quản trị mới có thể cập nhật phòng ban.",
         "datePicker": {
           "month": "Tháng",
           "year": "Năm",
@@ -370,7 +568,7 @@
         }
       },
       "password": {
-        "title": "Thông tin mật khẩu",
+        "title": "Cài đặt Email",
         "currentPassword": "Mật khẩu hiện tại",
         "newPassword": "Mật khẩu mới",
         "confirmNewPassword": "Xác nhận mật khẩu mới",
@@ -391,43 +589,72 @@
       },
       "notifications": {
         "alertsTitle": "Cảnh báo & Thông báo",
-        "alertsDescription": "Bạn có thể thiết lập Themesberg để nhận thông báo",
+        "alertsDescription": "Nhận tin tức ServiceOps, thông báo và các cập nhật liên quan.",
         "emailTitle": "Cài đặt email",
-        "emailDescription": "Bạn có thể thiết lập Themesberg để nhận thông báo qua email",
+        "emailDescription": "Chọn loại email ServiceOps sẽ gửi cho bạn.",
         "items": {
           "companyNews": {
             "title": "Tin tức công ty",
-            "description": "Nhận tin tức Themesberg, thông báo và cập nhật sản phẩm"
+            "description": "Nhận tin tức, thông báo và cập nhật sản phẩm từ ServiceOps."
           },
           "accountActivity": {
-            "title": "Hoạt động tài khoản",
-            "description": "Nhận các thông báo quan trọng về bạn hoặc hoạt động bạn đã bỏ lỡ"
+            "title": "Thông báo phân công",
+            "description": "Nhận thông báo khi có yêu cầu mới được giao cho bạn."
           },
           "meetupsNearYou": {
-            "title": "Sự kiện gần bạn",
-            "description": "Nhận email khi có Dribbble Meetup được đăng gần vị trí của tôi"
+            "title": "Cảnh báo rủi ro SLA",
+            "description": "Nhận cảnh báo khi yêu cầu có nguy cơ vi phạm SLA."
           },
           "newMessages": {
-            "title": "Tin nhắn mới",
-            "description": "Nhận tin tức Themesberg, thông báo và cập nhật sản phẩm"
+            "title": "Cảnh báo leo thang",
+            "description": "Nhận thông báo khi yêu cầu bị leo thang."
           },
           "ratingReminders": {
             "title": "Nhắc đánh giá",
-            "description": "Gửi email nhắc tôi đánh giá một mục sau một tuần kể từ khi mua"
+            "description": "Gửi email nhắc tôi đánh giá một mục sau một tuần."
           },
           "itemUpdateNotifications": {
             "title": "Thông báo cập nhật mục",
-            "description": "Gửi email khi mục tôi đã mua được cập nhật"
+            "description": "Gửi email khi mục tôi đã mua được cập nhật."
           },
           "itemCommentNotifications": {
             "title": "Thông báo bình luận mục",
-            "description": "Gửi email cho tôi khi có người bình luận vào một trong các mục của tôi"
+            "description": "Gửi email cho tôi khi có người bình luận vào một trong các mục của tôi."
           },
           "buyerReviewNotifications": {
             "title": "Thông báo đánh giá người mua",
             "description": "Gửi email cho tôi khi có người để lại đánh giá kèm xếp hạng"
           }
         }
+      },
+      "tabs": {
+        "ariaLabel": "Các nhóm cài đặt hồ sơ",
+        "introLabel": "Không gian cài đặt",
+        "introTitle": "Quản lý cài đặt tài khoản",
+        "generalDescription": "Cập nhật thông tin hồ sơ cá nhân mà đồng nghiệp có thể nhìn thấy.",
+        "notificationsDescription": "Chọn các cảnh báo và email cập nhật bạn muốn nhận.",
+        "securityDescription": "Giữ tài khoản an toàn bằng cách cập nhật mật khẩu định kỳ.",
+        "sessionsDescription": "Kiểm tra các thiết bị đang đăng nhập và đăng xuất phiên không còn sử dụng.",
+        "general": "Chung",
+        "notifications": "Thông báo",
+        "security": "Bảo mật",
+        "sessions": "Phiên đăng nhập"
+      },
+      "sessions": {
+        "title": "Phiên đang hoạt động",
+        "currentTitle": "Phiên hiện tại",
+        "otherTitle": "Phiên khác",
+        "currentSession": "Phiên hiện tại",
+        "browserOnDevice": "{browser} trên {device}",
+        "location": "Địa điểm",
+        "lastActive": "Hoạt động gần nhất",
+        "unknown": "Không xác định",
+        "empty": "Không có dữ liệu phiên hoạt động.",
+        "error": "Không thể tải thông tin phiên hoạt động.",
+        "signOutOthers": "Đăng xuất khỏi các phiên khác",
+        "signOutOthersSuccess": "Đã đăng xuất khỏi các phiên khác.",
+        "signOutOthersError": "Không thể đăng xuất khỏi các phiên khác.",
+        "noOtherSession": "Không có phiên hoạt động nào khác."
       },
       "validation": {
         "required": "Trường này là bắt buộc",
@@ -553,7 +780,16 @@
           "titleRequired": "Cần nhập tiêu đề để gửi."
         },
         "hints": {
-          "title": "Gợi ý: Mô tả cụ thể, ví dụ: “Máy lạnh bị rò nước tại Phòng Server B.”"
+          "title": "Gợi ý: Mô tả cụ thể, ví dụ: \"Máy lạnh bị rò nước tại Phòng Server B.\"",
+          "description": "Gợi ý: Nêu hiện tượng, thời điểm bắt đầu và mức độ ảnh hưởng.",
+          "attachments": "Tải lên hình ảnh, tài liệu hoặc các file liên quan để giúp chúng tôi hiểu và xử lý yêu cầu của bạn nhanh hơn."
+        },
+        "placeholders": {
+          "select": "Chọn",
+          "title": "Ví dụ: Máy lạnh rò nước tại Phòng Server B",
+          "description": "Mô tả sự cố, thời điểm xảy ra và khu vực bị ảnh hưởng...",
+          "preferredContact": "Nhập thông tin liên hệ",
+          "assetId": "Nhập mã tài sản"
         },
         "actions": {
           "saveDraft": "Lưu nháp",

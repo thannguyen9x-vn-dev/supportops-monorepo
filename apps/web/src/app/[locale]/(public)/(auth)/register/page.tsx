@@ -8,13 +8,12 @@ import { TextInputField } from "@supportops/ui-form";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { authService } from "@/features/auth/services/auth.service";
 import { ApiError } from "@/lib/api";
-import { tokenManager } from "@/lib/auth/tokenManager";
 import { buildPasswordRules, getPasswordRequirementState } from "@/lib/validation/passwordPolicy";
 
 import { AuthCard } from "@/components/auth/AuthCard";
@@ -43,11 +42,12 @@ function splitFullName(fullName: string): { firstName: string; lastName: string 
 }
 
 export default function RegisterPage() {
-  const router = useRouter();
   const { locale } = useParams<{ locale: string }>();
   const t = useTranslations("auth.register");
   const commonT = useTranslations("auth.common");
   const [imageLoadError, setImageLoadError] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
+  const [resendSuccess, setResendSuccess] = useState(false);
   const {
     control,
     formState: { errors, isSubmitting },
@@ -61,7 +61,8 @@ export default function RegisterPage() {
       password: "",
       confirmPassword: "",
       acceptTerms: false
-    }
+    },
+    mode: "onTouched",
   });
 
   const password = useWatch({
@@ -74,6 +75,9 @@ export default function RegisterPage() {
     const { firstName, lastName } = splitFullName(data.fullName);
 
     try {
+      setSubmittedEmail(null);
+      setResendSuccess(false);
+
       const { data: payload } = await authService.register({
         email: data.email,
         password: data.password,
@@ -81,12 +85,24 @@ export default function RegisterPage() {
         lastName,
         organizationName: `${firstName || "SupportOps"} Workspace`
       });
-
-      tokenManager.setAccessToken(payload.accessToken);
-
-      router.replace(`/${locale}/dashboard`);
+      setSubmittedEmail(payload.email || data.email);
     } catch (error: unknown) {
       const message = error instanceof ApiError ? error.message : commonT("unableToRegister");
+      setError("root", { message });
+    }
+  };
+
+  const onResendVerificationEmail = async () => {
+    if (!submittedEmail) {
+      return;
+    }
+
+    setResendSuccess(false);
+    try {
+      await authService.resendVerificationEmail({ email: submittedEmail });
+      setResendSuccess(true);
+    } catch (error: unknown) {
+      const message = error instanceof ApiError ? error.message : t("resendError");
       setError("root", { message });
     }
   };
@@ -97,16 +113,6 @@ export default function RegisterPage() {
       title={t("title")}
       subtitle={t("subtitle")}
       titleSx={{ fontSize: { xs: "1.9rem", md: "1.9rem" } }}
-      illustrationPanelSx={{
-        background: "#FFFFFF",
-        backgroundColor: "#FFFFFF",
-        color: "text.primary",
-      }}
-      formPanelSx={{
-        background: "#FFFFFF",
-        backgroundColor: "#FFFFFF",
-        backgroundImage: "none",
-      }}
       illustration={
         <>
           {!imageLoadError ? (
@@ -122,7 +128,7 @@ export default function RegisterPage() {
               />
             </div>
           ) : (
-            <PersonOutlineIcon sx={{ fontSize: 120, color: "#1d4ed8", mt: 2 }} />
+            <PersonOutlineIcon sx={{ fontSize: 120, color: "primary.main", mt: 2 }} />
           )}
         </>
       }
@@ -251,22 +257,51 @@ export default function RegisterPage() {
             }
           />
           {errors.acceptTerms?.message ? <Alert severity="error">{errors.acceptTerms.message}</Alert> : null}
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            disabled={isSubmitting}
-            sx={{
-              borderRadius: 2,
-              textTransform: "none",
-              py: 1.2,
-              fontWeight: 600,
-              bgcolor: "#2563eb",
-              "&:hover": { bgcolor: "#1d4ed8" }
-            }}
-          >
-            {t("submit")}
-          </Button>
+          {submittedEmail ? (
+            <>
+              <Alert severity="success">{t("submitSuccess", { email: submittedEmail })}</Alert>
+              <Button
+                type="button"
+                variant="outlined"
+                fullWidth
+                disabled={isSubmitting}
+                onClick={onResendVerificationEmail}
+                sx={{ borderRadius: 2, textTransform: "none", py: 1.2, fontWeight: 600 }}
+              >
+                {t("resendVerificationEmail")}
+              </Button>
+              {resendSuccess ? <Alert severity="success">{t("resendSuccess")}</Alert> : null}
+              <Button
+                component={Link}
+                href={`/${locale}/login`}
+                variant="contained"
+                fullWidth
+                sx={{
+                  borderRadius: 2,
+                  textTransform: "none",
+                  py: 1.2,
+                  fontWeight: 600
+                }}
+              >
+                {t("goToLogin")}
+              </Button>
+            </>
+          ) : (
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={isSubmitting}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                py: 1.2,
+                fontWeight: 600
+              }}
+            >
+              {t("submit")}
+            </Button>
+          )}
           {errors.root?.message ? <Alert severity="error">{errors.root.message}</Alert> : null}
         </div>
       </form>

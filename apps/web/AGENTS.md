@@ -3,7 +3,7 @@
 ## Tech Stack
 - Next.js 15+ (App Router) — SSR / SSG / Hybrid Rendering
 - TypeScript 5.7+ (strict mode)
-- MUI-based design system (`shared/ui`)
+- MUI-based design system (`packages/ui`)
 - next-intl for i18n (EN + VI)
 - Zod for form validation
 - React Hook Form
@@ -45,7 +45,7 @@
 │  ├── apiClient.ts            Browser HTTP client           │
 │  └── serverApiClient.ts      Server HTTP client (RSC)      │
 ├────────────────────────────────────────────────────────────┤
-│  @supportops/contracts       (Shared Types + Schemas)      │
+│  @supportops/types       (Shared Types + Schemas)      │
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -126,7 +126,7 @@ apps/web/
 ## Key Rules
 - Default to Server Component. Add `'use client'` only when needed.
 - Never hardcode backend URL. Use env + API clients.
-- Types and endpoints must come from `@supportops/contracts`.
+- Types and endpoints must come from `@supportops/types`.
 - UI text must go through `next-intl` messages.
 - Keep page files thin; move logic to features/services/hooks.
 - Do not import `apiClient` directly inside components.

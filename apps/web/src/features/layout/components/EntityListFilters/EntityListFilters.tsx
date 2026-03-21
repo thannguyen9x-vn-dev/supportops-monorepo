@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Collapse } from "@mui/material";
 
 import styles from "./entity-list-filters.module.css";
 
@@ -22,7 +23,9 @@ export function EntityListFilters({
         <div className={styles.search}>{search}</div>
       </div>
 
-      {showFilterOptions && filterOptions ? <div className={styles.filterArea}>{filterOptions}</div> : null}
+      <Collapse in={showFilterOptions && Boolean(filterOptions)} timeout={140} unmountOnExit>
+        <div className={styles.filterArea}>{filterOptions}</div>
+      </Collapse>
     </section>
   );
 }

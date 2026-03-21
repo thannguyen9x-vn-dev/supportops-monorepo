@@ -4,7 +4,7 @@ import type {
   UserPreferences,
   UserProfile,
   UserSession
-} from "@supportops/contracts";
+} from "@supportops/types";
 
 import { ENDPOINTS, apiClient, graphqlQuery } from "@/lib/api";
 import { MeSettingsDocument, type MeSettingsQuery } from "@/graphql/generated";

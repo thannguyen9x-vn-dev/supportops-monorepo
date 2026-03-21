@@ -1,4 +1,4 @@
-import type { CreateProductRequest, Product as ContractProduct, ProductListItem, UpdateProductRequest } from "@supportops/contracts";
+import type { CreateProductRequest, Product as ContractProduct, ProductListItem, UpdateProductRequest } from "@supportops/types";
 
 import type { Product, ProductDraft, ProductStatus } from "./projects.types";
 

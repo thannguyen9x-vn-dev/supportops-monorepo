@@ -5,7 +5,7 @@ import type {
   SalesSummary,
   SessionByCountry,
   SessionByDevice
-} from "@supportops/contracts";
+} from "@supportops/types";
 
 import { ENDPOINTS, apiClient } from "@/lib/api";
 

@@ -1,6 +1,4 @@
-import { getTranslations } from "next-intl/server";
-
-import { ServiceOpsPlaceholder } from "@/features/service-ops/components/ServiceOpsPlaceholder";
+import { RequestDetailScreen } from "@/features/service-ops/requests/components/RequestDetailScreen";
 
 export default async function RequestDetailPage({
   params,
@@ -8,13 +6,5 @@ export default async function RequestDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const t = await getTranslations("pages.serviceOps");
-
-  return (
-    <ServiceOpsPlaceholder
-      title={t("requestDetail.title", { id })}
-      description={t("requestDetail.description")}
-      phase={t("phase1")}
-    />
-  );
+  return <RequestDetailScreen requestId={id} />;
 }

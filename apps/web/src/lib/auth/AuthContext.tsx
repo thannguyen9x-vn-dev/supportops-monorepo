@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuthUser, LoginRequest, RegisterRequest } from "@supportops/contracts";
+import type { AuthUser, LoginRequest, RegisterRequest } from "@supportops/types";
 import type { ReactNode } from "react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
@@ -12,15 +12,22 @@ interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  updateUser: (patch: Partial<AuthUser>) => void;
   login: (data: LoginRequest) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 interface AuthProviderProps {
   children: ReactNode;
+}
+
+function resolveLocalizedLoginPath(pathname: string): string {
+  const localeMatch = pathname.match(/^\/(en|vi)(?=\/|$)/);
+  const locale = localeMatch?.[1] ?? "en";
+  return `/${locale}/login`;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
@@ -59,24 +66,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(data.user);
   }, []);
 
-  const register = useCallback(async (payload: RegisterRequest) => {
-    const { data } = await apiClient.post<{
-      accessToken: string;
-      refreshToken?: string;
-      user: AuthUser;
-    }>(ENDPOINTS.AUTH.REGISTER, payload, { skipAuth: true });
-
-    tokenManager.setAccessToken(data.accessToken);
-    setUser(data.user);
+  const updateUser = useCallback((patch: Partial<AuthUser>) => {
+    setUser((current) => (current ? { ...current, ...patch } : current));
   }, []);
 
-  const logout = useCallback(() => {
-    void apiClient.post(ENDPOINTS.AUTH.LOGOUT).catch(() => {
-      return;
-    });
-    tokenManager.clear();
-    setUser(null);
-    window.location.href = "/login";
+  const register = useCallback(async (payload: RegisterRequest) => {
+    await apiClient.post<{
+      message: string;
+      requiresEmailVerification: boolean;
+      email: string;
+    }>(ENDPOINTS.AUTH.REGISTER, payload, { skipAuth: true });
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await apiClient.post<void>(ENDPOINTS.AUTH.LOGOUT, undefined, { timeout: 5_000 });
+    } catch {
+      // Ignore network/logout API failures and continue local sign-out.
+    } finally {
+      tokenManager.clear();
+      setUser(null);
+
+      if (typeof window !== "undefined") {
+        window.location.replace(resolveLocalizedLoginPath(window.location.pathname));
+      }
+    }
   }, []);
 
   const value = useMemo<AuthContextValue>(
@@ -84,11 +98,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       user,
       isLoading,
       isAuthenticated: user !== null,
+      updateUser,
       login,
       register,
       logout
     }),
-    [isLoading, login, logout, register, user]
+    [isLoading, login, logout, register, updateUser, user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

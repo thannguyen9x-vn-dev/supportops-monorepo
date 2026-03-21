@@ -1,4 +1,4 @@
-import type { Plan, Subscription } from "@supportops/contracts";
+import type { Plan, Subscription } from "@supportops/types";
 
 import { ENDPOINTS, apiClient } from "@/lib/api";
 

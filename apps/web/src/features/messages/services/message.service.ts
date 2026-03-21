@@ -1,4 +1,4 @@
-import type { MessageDetail, MessageListItem, SendMessageRequest, StorageUsage } from "@supportops/contracts";
+import type { MessageDetail, MessageListItem, SendMessageRequest, StorageUsage } from "@supportops/types";
 
 import { ENDPOINTS, apiClient } from "@/lib/api";
 

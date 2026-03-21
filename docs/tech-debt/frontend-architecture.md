@@ -104,7 +104,7 @@ Use it as a source of truth before creating implementation tasks.
 
 ### Current State
 
-- Virtual list primitives exist in `shared/ui`.
+- Virtual list primitives exist in `packages/ui`.
 - Not broadly applied yet in feature screens.
 
 ### Risk

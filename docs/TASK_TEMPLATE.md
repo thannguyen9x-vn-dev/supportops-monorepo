@@ -19,8 +19,8 @@ Copy file này, điền vào, rồi đưa cho AI (Claude Code / Codex) để là
 
 | Layer | Package/Module | Ghi chú |
 |---|---|---|
-| Shared UI | `shared/ui/form` | Tạo component mới |
-| Contracts | `shared/contracts` | Thêm/sửa schema nếu cần |
+| Shared UI | `packages/ui/form` | Tạo component mới |
+| Contracts | `packages/types` | Thêm/sửa schema nếu cần |
 | Frontend | `apps/web` — module `settings` | Dùng component mới |
 | Backend | `apps/api` — module `user` | Thêm validation nếu cần |
 
@@ -93,11 +93,11 @@ Copy file này, điền vào, rồi đưa cho AI (Claude Code / Codex) để là
 > Điền nếu task này cần thêm/sửa endpoint hoặc schema.
 
 - [ ] Không cần thay đổi API
-- [ ] Sửa schema: `shared/contracts/src/schemas/______.ts`
+- [ ] Sửa schema: `packages/types/src/schemas/______.ts`
 - [ ] Thêm endpoint mới: `______ [METHOD] /api/v1/______`
 - [ ] Thêm/sửa DTO backend: `______Request.java` / `______Response.java`
 
-**Lưu ý:** Cập nhật `shared/contracts` TRƯỚC, FE và BE follow theo.
+**Lưu ý:** Cập nhật `packages/types` TRƯỚC, FE và BE follow theo.
 
 ---
 
@@ -105,7 +105,7 @@ Copy file này, điền vào, rồi đưa cho AI (Claude Code / Codex) để là
 
 > Điền nếu task tạo hoặc sửa component dùng chung.
 
-- [ ] Là component mới trong `shared/ui/form` (không custom riêng tại page)
+- [ ] Là component mới trong `packages/ui/form` (không custom riêng tại page)
 - [ ] Export từ `field/index.ts`
 - [ ] Props cần có: `name`, `control`, `label`, `countryOptions`, `...`
 - [ ] Props optional: `popupWidthPx`, `disabled`, `...`
@@ -145,7 +145,7 @@ Copy file này, điền vào, rồi đưa cho AI (Claude Code / Codex) để là
 
 **Code quality:**
 - [ ] `pnpm --filter @supportops/ui-form typecheck` pass
-- [ ] `pnpm --filter @supportops/contracts typecheck` pass
+- [ ] `pnpm --filter @supportops/types typecheck` pass
 - [ ] `pnpm --filter web typecheck` pass
 - [ ] Không có `any` type mới
 - [ ] Không còn code custom phone riêng tại page (nếu đây là task shared component)

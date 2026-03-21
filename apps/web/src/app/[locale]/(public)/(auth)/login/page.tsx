@@ -3,16 +3,17 @@
 import EmailIcon from "@mui/icons-material/Email";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import WifiOutlinedIcon from "@mui/icons-material/WifiOutlined";
-import { Alert, Button, Checkbox, FormControlLabel } from "@mui/material";
+import { Alert, Box, Button, Checkbox, CircularProgress, FormControlLabel } from "@mui/material";
 import { TextInputField } from "@supportops/ui-form";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { authService } from "@/features/auth/services/auth.service";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { ApiError } from "@/lib/api";
 import { tokenManager } from "@/lib/auth/tokenManager";
 
@@ -38,9 +39,12 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { locale } = useParams<{ locale: string }>();
+  const { isAuthenticated, isLoading } = useAuth();
   const t = useTranslations("auth.login");
   const commonT = useTranslations("auth.common");
+  const supportLabel = locale.toLowerCase().startsWith("vi") ? "Hỗ trợ kỹ thuật" : "Technical support";
   const [imageLoadError, setImageLoadError] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
   const {
     control,
     formState: { errors, isSubmitting },
@@ -51,15 +55,46 @@ export default function LoginPage() {
     defaultValues: {
       email: "",
       password: "",
-      remember: true
-    }
+      remember: false
+    },
+    mode: "onTouched",
   });
+
+  useEffect(() => {
+    if (isLoading || !isAuthenticated) {
+      return;
+    }
+
+    const nextPath = searchParams.get("next");
+    if (nextPath?.startsWith("/")) {
+      router.replace(resolveNextPath(nextPath, locale));
+      return;
+    }
+
+    router.replace(`/${locale}/dashboard`);
+  }, [isAuthenticated, isLoading, locale, router, searchParams]);
+
+  if (isLoading || isAuthenticated) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100dvh",
+          display: "grid",
+          placeItems: "center"
+        }}
+      >
+        <CircularProgress size={28} />
+      </Box>
+    );
+  }
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
+      setPendingVerificationEmail(null);
       const { data: payload } = await authService.login({
         email: data.email,
-        password: data.password
+        password: data.password,
+        rememberMe: data.remember
       });
 
       tokenManager.setAccessToken(payload.accessToken);
@@ -72,6 +107,12 @@ export default function LoginPage() {
 
       router.replace(`/${locale}/dashboard`);
     } catch (error: unknown) {
+      if (error instanceof ApiError && error.code === "EMAIL_NOT_VERIFIED") {
+        setPendingVerificationEmail(data.email);
+        setError("root", { message: t("emailNotVerified") });
+        return;
+      }
+
       const message = error instanceof ApiError ? error.message : commonT("unableToSignIn");
       setError("root", { message });
     }
@@ -84,14 +125,12 @@ export default function LoginPage() {
       subtitle={t("subtitle")}
       titleSx={{ fontSize: { xs: "1.9rem", md: "1.9rem" } }}
       illustrationPanelSx={{
-        background: "#FFFFFF",
-        backgroundColor: "#FFFFFF",
+        bgcolor: "background.paper",
+        backgroundColor: "background.paper",
+        backgroundImage: "none !important",
         color: "text.primary",
-      }}
-      formPanelSx={{
-        background: "#FFFFFF",
-        backgroundColor: "#FFFFFF",
-        backgroundImage: "none",
+        borderRight: { xs: "none", md: "1px solid" },
+        borderColor: "divider",
       }}
       illustration={
         <>
@@ -108,7 +147,7 @@ export default function LoginPage() {
               />
             </div>
           ) : (
-            <WifiOutlinedIcon sx={{ fontSize: 120, color: "#2563eb", mt: 2 }} />
+            <WifiOutlinedIcon sx={{ fontSize: 120, color: "primary.main", mt: 2 }} />
           )}
         </>
       }
@@ -116,6 +155,8 @@ export default function LoginPage() {
         <>
           <span>{t("footerPrompt")}</span>
           <Link href={`/${locale}/register`}>{t("footerAction")}</Link>
+          <span aria-hidden>·</span>
+          <Link href={`/${locale}/auth-support`}>{supportLabel}</Link>
         </>
       }
     >
@@ -125,7 +166,7 @@ export default function LoginPage() {
             name="email"
             control={control}
             label={commonT("emailLabel")}
-            placeholder={commonT("emailPlaceholder")}
+            placeholder="Email"
             startIcon={<EmailIcon fontSize="small" />}
             rules={{
               required: commonT("emailRequired"),
@@ -139,7 +180,7 @@ export default function LoginPage() {
             name="password"
             control={control}
             label={commonT("passwordLabel")}
-            placeholder={commonT("passwordPlaceholder")}
+            placeholder="Password"
             type="password"
             startIcon={<LockOutlinedIcon fontSize="small" />}
             rules={{
@@ -160,13 +201,18 @@ export default function LoginPage() {
               textTransform: "none",
               py: 1.2,
               fontWeight: 600,
-              bgcolor: "#2563eb",
-              "&:hover": { bgcolor: "#1d4ed8" }
             }}
           >
             {t("submit")}
           </Button>
           {errors.root?.message ? <Alert severity="error">{errors.root.message}</Alert> : null}
+          {pendingVerificationEmail ? (
+            <Alert severity="info">
+              <Link href={`/${locale}/verify-email?email=${encodeURIComponent(pendingVerificationEmail)}`}>
+                {t("goToVerify")}
+              </Link>
+            </Alert>
+          ) : null}
         </div>
       </form>
     </AuthCard>

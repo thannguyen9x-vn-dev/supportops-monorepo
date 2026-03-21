@@ -20,14 +20,14 @@ const textSmStyle = {
 const StyledTextField = styled(TextField)(({ theme }) => {
   const controlHeight = 40;
   const borderRadius = getBorderRadiusPx(theme.shape.borderRadius) * 3;
-  const borderColor = theme.palette.grey[300];
+  const borderColor = theme.palette.divider;
 
   return {
     "& .MuiOutlinedInput-root": {
       minHeight: controlHeight,
       borderRadius,
-      backgroundColor: theme.palette.grey[50],
-      color: theme.palette.grey[700],
+      backgroundColor: theme.palette.background.paper,
+      color: theme.palette.text.primary,
       transition: theme.transitions.create(["border-color", "background-color", "box-shadow"]),
 
       "& fieldset": {
@@ -59,13 +59,13 @@ const StyledTextField = styled(TextField)(({ theme }) => {
         height: controlHeight,
         padding: "10px 16px",
         paddingLeft: 0,
-        color: theme.palette.grey[700],
+        color: theme.palette.text.primary,
         outline: "none",
-        WebkitTextFillColor: theme.palette.grey[700],
-        caretColor: theme.palette.grey[700],
+        WebkitTextFillColor: theme.palette.text.primary,
+        caretColor: theme.palette.text.primary,
 
         "&::placeholder": {
-          color: theme.palette.grey[500],
+          color: theme.palette.text.secondary,
           opacity: 1,
           fontWeight: 400,
         },
@@ -87,7 +87,7 @@ const StyledTextField = styled(TextField)(({ theme }) => {
       },
 
       "& .MuiInputAdornment-root": {
-        color: theme.palette.grey[500],
+        color: theme.palette.text.secondary,
         marginLeft: 0,
         marginRight: 6,
       },

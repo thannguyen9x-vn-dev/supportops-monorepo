@@ -1,4 +1,4 @@
-import type { PageMeta, Product } from "@supportops/contracts";
+import type { PageMeta, Product } from "@supportops/types";
 
 import { productServerService } from "@/features/products/services/product.server";
 

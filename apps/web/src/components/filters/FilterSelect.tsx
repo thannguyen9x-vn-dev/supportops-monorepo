@@ -25,13 +25,8 @@ type FilterSelectProps = {
   sx?: SxProps<Theme>;
 };
 
-function getBorderRadiusPx(value: string | number): number {
-  if (typeof value === "number") return value;
-  const parsed = Number.parseFloat(value);
-  return Number.isFinite(parsed) ? parsed : 8;
-}
-
 const CONTROL_HEIGHT = 32;
+const CONTROL_RADIUS = 8;
 
 const textSmStyle = {
   fontSize: 13,
@@ -41,13 +36,17 @@ const textSmStyle = {
 
 // Theme-aware so borderRadius exactly matches the trigger's pill radius
 const popupPaperSx = (theme: Theme) => {
-  const borderRadius = getBorderRadiusPx(theme.shape.borderRadius) * 3;
+  const varsPalette = theme.vars?.palette;
+  const divider = varsPalette?.divider ?? theme.palette.divider;
+  const textPrimary = varsPalette?.text.primary ?? theme.palette.text.primary;
+
   return {
-    border: `1px solid ${theme.palette.grey[300]}`,
-    borderRadius: `${borderRadius}px`,
+    border: `1px solid ${divider}`,
+    borderRadius: `${CONTROL_RADIUS}px`,
+    backgroundColor: varsPalette?.background.paper ?? theme.palette.background.paper,
     boxShadow: "0px 2px 8px -2px rgba(21, 21, 21, 0.08), 0px 6px 12px -2px rgba(144, 139, 164, 0.08)",
     overflow: "hidden",
-    marginTop: "8px",
+    marginTop: "4px",
     "& .MuiList-root": {
       maxHeight: 320,
       overflowY: "auto",
@@ -59,20 +58,39 @@ const popupPaperSx = (theme: Theme) => {
       lineHeight: "16px",
       minHeight: 32,
       padding: "6px 16px",
-      color: theme.palette.grey[700],
+      color: textPrimary,
+      "&:hover": {
+        backgroundColor: varsPalette?.action.hover ?? theme.palette.action.hover,
+      },
+      "&.Mui-selected": {
+        backgroundColor: varsPalette?.action.selected ?? theme.palette.action.selected,
+      },
+      "&.Mui-selected:hover": {
+        backgroundColor: varsPalette?.action.selected ?? theme.palette.action.selected,
+      },
     },
   };
 };
 
 const StyledSelect = styled(Select<string>)(({ theme }) => {
-  const borderRadius = getBorderRadiusPx(theme.shape.borderRadius) * 3;
-  const borderColor = theme.palette.grey[300];
+  const borderRadius = CONTROL_RADIUS;
+  const innerRadius = Math.max(borderRadius - 2, 0);
+  const varsPalette = theme.vars?.palette;
+  const borderColor = varsPalette?.divider ?? theme.palette.divider;
+  const backgroundPaper = varsPalette?.background.paper ?? theme.palette.background.paper;
+  const textPrimary = varsPalette?.text.primary ?? theme.palette.text.primary;
+  const textSecondary = varsPalette?.text.secondary ?? theme.palette.text.secondary;
+  const textDisabled = varsPalette?.text.disabled ?? theme.palette.text.disabled;
+  const disabledBackground =
+    varsPalette?.action.disabledBackground ?? theme.palette.action.disabledBackground;
+  const focusPrimary = varsPalette?.primary.main ?? theme.palette.primary.main;
 
   return {
     height: CONTROL_HEIGHT,
     borderRadius,
-    backgroundColor: theme.palette.grey[50],
-    color: theme.palette.grey[700],
+    overflow: "hidden",
+    backgroundColor: backgroundPaper,
+    color: textPrimary,
     transition: theme.transitions.create(["border-color", "background-color", "box-shadow"]),
 
     "& fieldset": {
@@ -86,7 +104,7 @@ const StyledSelect = styled(Select<string>)(({ theme }) => {
     },
 
     "&.Mui-focused fieldset": {
-      borderColor: `${theme.palette.primary.main} !important`,
+      borderColor: `${focusPrimary} !important`,
       borderWidth: "1px !important",
       boxShadow: "none !important",
     },
@@ -98,12 +116,45 @@ const StyledSelect = styled(Select<string>)(({ theme }) => {
     "& .MuiSelect-select": {
       ...textSmStyle,
       boxSizing: "border-box",
-      height: "100% !important",
-      minHeight: "unset !important",
-      padding: "0 36px 0 16px !important",
+      minHeight: `${CONTROL_HEIGHT - 4}px !important`,
+      height: `${CONTROL_HEIGHT - 4}px !important`,
+      width: "calc(100% - 4px)",
+      margin: "2px",
+      padding: "0 38px 0 14px !important",
       display: "flex",
       alignItems: "center",
-      color: theme.palette.grey[700],
+      lineHeight: `${CONTROL_HEIGHT - 4}px`,
+      color: textPrimary,
+      WebkitTextFillColor: textPrimary,
+      backgroundColor: `${backgroundPaper} !important`,
+      borderRadius: `${innerRadius}px`,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+      minWidth: 0,
+    },
+    "& .MuiSelect-select:focus": {
+      backgroundColor: `${backgroundPaper} !important`,
+    },
+    "& .MuiSelect-select.MuiInputBase-input.MuiOutlinedInput-input": {
+      backgroundColor: `${backgroundPaper} !important`,
+      borderRadius: `${innerRadius}px`,
+      boxShadow: "none !important",
+    },
+    "& .MuiSelect-nativeInput": {
+      inset: 0,
+      width: "100%",
+      height: "100%",
+      margin: 0,
+      padding: 0,
+      backgroundColor: "transparent !important",
+      borderRadius: 0,
+    },
+    "& .MuiSelect-select > span": {
+      display: "block",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
     },
 
     "& .MuiOutlinedInput-notchedOutline legend": {
@@ -112,18 +163,23 @@ const StyledSelect = styled(Select<string>)(({ theme }) => {
 
     "& .MuiOutlinedInput-notchedOutline": {
       top: 0,
+      borderRadius: "inherit",
     },
 
     "& .MuiSelect-icon": {
-      color: theme.palette.grey[500],
+      color: textSecondary,
       fontSize: 24,
       right: 6,
     },
 
     "&.Mui-disabled": {
-      backgroundColor: theme.palette.grey[50],
+      backgroundColor: disabledBackground,
       "& fieldset": {
-        borderColor: theme.palette.grey[200],
+        borderColor,
+      },
+      "& .MuiSelect-select": {
+        color: textDisabled,
+        WebkitTextFillColor: textDisabled,
       },
     },
   };
@@ -170,12 +226,20 @@ export function FilterSelect({
       renderValue={(selected) => {
         if (!selected) {
           return (
-            <span style={{ color: "var(--mui-palette-grey-500)", fontWeight: 400 }}>
+            <span
+              style={{
+                color: "var(--mui-palette-text-secondary)",
+                WebkitTextFillColor: "var(--mui-palette-text-secondary)",
+                fontWeight: 400,
+              }}
+            >
               {label}
             </span>
           );
         }
-        return options.find((o) => o.value === selected)?.label ?? selected;
+        return (
+          <span>{options.find((o) => o.value === selected)?.label ?? selected}</span>
+        );
       }}
       sx={{ minWidth, ...sx }}
       value={value}

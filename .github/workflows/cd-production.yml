@@ -1,0 +1,171 @@
+name: CD Production
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  WEB_IMAGE_NAME: ${{ github.repository_owner }}/supportops-web
+  API_IMAGE_NAME: ${{ github.repository_owner }}/supportops-api
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      web_image: ${{ steps.meta.outputs.web_image }}
+      api_image: ${{ steps.meta.outputs.api_image }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build metadata
+        id: meta
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          WEB_IMAGE="${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}:${TAG}"
+          API_IMAGE="${{ env.REGISTRY }}/${{ env.API_IMAGE_NAME }}:${TAG}"
+          echo "web_image=${WEB_IMAGE}" >> "${GITHUB_OUTPUT}"
+          echo "api_image=${API_IMAGE}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build and push web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.web_image }}
+            ${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}:prod-latest
+
+      - name: Build and push api image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api-nest/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.api_image }}
+            ${{ env.REGISTRY }}/${{ env.API_IMAGE_NAME }}:prod-latest
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy deploy files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          source: "docker-compose.prod.yml,deploy/nginx/templates/supportops.conf.template"
+          target: ${{ secrets.PROD_DEPLOY_PATH }}
+          strip_components: 0
+          overwrite: true
+
+      - name: Deploy to production
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          WEB_IMAGE: ${{ needs.build-and-push.outputs.web_image }}
+          API_IMAGE: ${{ needs.build-and-push.outputs.api_image }}
+          APP_DOMAIN: ${{ secrets.PROD_APP_DOMAIN }}
+          API_DOMAIN: ${{ secrets.PROD_API_DOMAIN }}
+          APP_ORIGIN: ${{ secrets.PROD_APP_ORIGIN }}
+          API_ORIGIN: ${{ secrets.PROD_API_ORIGIN }}
+          POSTGRES_DB: ${{ secrets.PROD_POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.PROD_POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.PROD_POSTGRES_PASSWORD }}
+          JWT_SECRET: ${{ secrets.PROD_JWT_SECRET }}
+          FILE_SIGNING_SECRET: ${{ secrets.PROD_FILE_SIGNING_SECRET }}
+          GHCR_USERNAME: ${{ secrets.PROD_GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.PROD_GHCR_TOKEN }}
+          MAIL_ENABLED: ${{ secrets.PROD_MAIL_ENABLED }}
+          MAIL_PROVIDER: ${{ secrets.PROD_MAIL_PROVIDER }}
+          MAIL_DAILY_LIMIT: ${{ secrets.PROD_MAIL_DAILY_LIMIT }}
+          MAIL_FROM_EMAIL: ${{ secrets.PROD_MAIL_FROM_EMAIL }}
+          MAIL_FROM_NAME: ${{ secrets.PROD_MAIL_FROM_NAME }}
+          RESEND_API_KEY: ${{ secrets.PROD_RESEND_API_KEY }}
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          envs: WEB_IMAGE,API_IMAGE,APP_DOMAIN,API_DOMAIN,APP_ORIGIN,API_ORIGIN,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,FILE_SIGNING_SECRET,GHCR_USERNAME,GHCR_TOKEN,MAIL_ENABLED,MAIL_PROVIDER,MAIL_DAILY_LIMIT,MAIL_FROM_EMAIL,MAIL_FROM_NAME,RESEND_API_KEY
+          script_stop: true
+          script: |
+            set -eu
+            DEPLOY_PATH="${{ secrets.PROD_DEPLOY_PATH }}"
+            mkdir -p "${DEPLOY_PATH}/deploy/nginx/certs" "${DEPLOY_PATH}/deploy/nginx/www"
+            cd "${DEPLOY_PATH}"
+
+            if [ -f .env.prod ]; then
+              cp .env.prod .env.prod.rollback
+            fi
+
+            cat > .env.prod <<EOF
+            APP_DOMAIN=${APP_DOMAIN}
+            API_DOMAIN=${API_DOMAIN}
+            APP_ORIGIN=${APP_ORIGIN}
+            API_ORIGIN=${API_ORIGIN}
+            POSTGRES_DB=${POSTGRES_DB}
+            POSTGRES_USER=${POSTGRES_USER}
+            POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            JWT_SECRET=${JWT_SECRET}
+            FILE_SIGNING_SECRET=${FILE_SIGNING_SECRET}
+            MAIL_ENABLED=${MAIL_ENABLED:-false}
+            MAIL_PROVIDER=${MAIL_PROVIDER:-resend}
+            MAIL_DAILY_LIMIT=${MAIL_DAILY_LIMIT:-90}
+            MAIL_FROM_EMAIL=${MAIL_FROM_EMAIL:-onboarding@resend.dev}
+            MAIL_FROM_NAME=${MAIL_FROM_NAME:-SupportOps}
+            RESEND_API_KEY=${RESEND_API_KEY:-}
+            WEB_IMAGE=${WEB_IMAGE}
+            API_IMAGE=${API_IMAGE}
+            EOF
+
+            echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
+            docker compose -f docker-compose.prod.yml --env-file .env.prod pull
+
+            docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm api pnpm --filter @supportops/api-nest exec prisma migrate deploy
+            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
+
+            if ! curl -fsS -H "Host: ${APP_DOMAIN}" "http://127.0.0.1/" >/dev/null; then
+              if [ -f .env.prod.rollback ]; then
+                cp .env.prod.rollback .env.prod
+                docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
+              fi
+              exit 1
+            fi
+
+            if ! curl -fsS -H "Host: ${API_DOMAIN}" "http://127.0.0.1/api/v1/health" >/dev/null; then
+              if [ -f .env.prod.rollback ]; then
+                cp .env.prod.rollback .env.prod
+                docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
+              fi
+              exit 1
+            fi
+
+            rm -f .env.prod.rollback

@@ -18,6 +18,7 @@ import { Avatar } from "@supportops/ui-avatar";
 import { FileUpload } from "@supportops/ui-file-upload";
 import type { RejectedFile } from "@supportops/ui-file-upload";
 
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useToast } from "@/features/common/toast/useToast";
 import { settingsService } from "@/features/settings/services/settings.service";
 import { ApiError } from "@/lib/api/apiClient";
@@ -26,15 +27,28 @@ import styles from "../settings.module.css";
 
 type ProfileCardProps = {
   avatarUrl?: string | null;
+  email?: string;
   firstName: string;
   lastName: string;
+  status?: "ACTIVE" | "INACTIVE";
   onAvatarUpdated?: (nextAvatarUrl: string | null) => void;
 };
 
-export function ProfileCard({ avatarUrl = null, firstName, lastName, onAvatarUpdated }: ProfileCardProps) {
+export function ProfileCard({ avatarUrl = null, email, firstName, lastName, status = "ACTIVE", onAvatarUpdated }: ProfileCardProps) {
   const t = useTranslations("pages.settings");
+  const tRoles = useTranslations("pages.teamAdmin.roles");
+  const { user } = useAuth();
   const toast = useToast();
   const fullName = `${firstName} ${lastName}`;
+  const roleMap: Record<string, string> = {
+    EMPLOYEE: tRoles("EMPLOYEE"),
+    OPS_COORDINATOR: tRoles("OPS_COORDINATOR"),
+    TECHNICIAN: tRoles("TECHNICIAN"),
+    TENANT_ADMIN: tRoles("TENANT_ADMIN"),
+  };
+  const roleLabel = user?.role ? roleMap[user.role] ?? user.role : t("profile.systemRoleFallback");
+  const statusLabel = status === "ACTIVE" ? t("profile.status.active") : t("profile.status.inactive");
+  const userEmail = email || user?.email || "-";
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -140,12 +154,12 @@ export function ProfileCard({ avatarUrl = null, firstName, lastName, onAvatarUpd
   }, [selectedFiles, t, validationMessage]);
 
   return (
-    <section className={styles.card}>
+    <section className={`${styles.card} ${styles.profileCard}`}>
       <div className={styles.userHeader}>
         <Box className={styles.avatarBlock}>
           <Avatar
-            dimension={132}
-            imgProps={{ style: { objectFit: "cover", objectPosition: "center" } }}
+            dimension={120}
+            imgProps={{ style: { objectFit: "contain", objectPosition: "center" } }}
             name={fullName}
             src={displayAvatarUrl ?? undefined}
             variant="rounded"
@@ -153,7 +167,11 @@ export function ProfileCard({ avatarUrl = null, firstName, lastName, onAvatarUpd
         </Box>
         <div className={styles.userInfo}>
           <h2 className={styles.userName}>{fullName}</h2>
-          <p className={styles.userRole}>{t("profile.userRole")}</p>
+          <p className={styles.userEmail}>{userEmail}</p>
+          <p className={styles.userRole}>{roleLabel}</p>
+          <span className={`${styles.userStatusBadge} ${status === "ACTIVE" ? styles.active : styles.inactive}`}>
+            {statusLabel}
+          </span>
           <Button
             onClick={() => {
               setIsDialogOpen(true);

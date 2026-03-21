@@ -4,7 +4,7 @@ import type {
   ProductImage,
   ProductListItem,
   UpdateProductRequest
-} from "@supportops/contracts";
+} from "@supportops/types";
 
 import { ENDPOINTS, apiClient } from "@/lib/api";
 

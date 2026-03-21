@@ -1,0 +1,11 @@
+{
+  "name": "@supportops/worker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "build": "echo \"TODO: implement worker build\"",
+    "lint": "eslint \"src/**/*.{js,ts}\"",
+    "typecheck": "echo \"TODO: add TypeScript worker\""
+  }
+}
