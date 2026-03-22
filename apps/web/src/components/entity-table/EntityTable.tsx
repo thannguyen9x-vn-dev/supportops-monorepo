@@ -228,6 +228,12 @@ export function EntityTable<TData extends object, TFilters extends object>({
     pageSize: _tableConfig.pageSize,
     serverSide: _tableConfig.serverSide,
     totalRows: _tableConfig.totalRows,
+    onStateChange: (state) => {
+      _tableConfig.onTableStateChange?.({
+        pageIndex: state.pagination.pageIndex,
+        pageSize: state.pagination.pageSize,
+      });
+    },
     enableSelection: true,
     pinnedColumns: _tableConfig.pinnedColumns,
     defaultColumn: _tableConfig.defaultColumn,
