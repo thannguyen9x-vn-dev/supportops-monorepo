@@ -589,6 +589,32 @@
           "selectYearAriaLabel": "Chọn năm"
         }
       },
+      "organizationAccess": {
+        "title": "Tổ chức và quyền truy cập",
+        "description": "Xem bối cảnh vận hành của bạn trong workspace này.",
+        "fields": {
+          "organization": "Tổ chức",
+          "role": "Vai trò",
+          "department": "Phòng ban",
+          "teamQueue": "Nhóm / Hàng đợi",
+          "joinedDate": "Ngày tham gia",
+          "permissionSummary": "Tóm tắt quyền"
+        },
+        "teamQueueValue": "Hàng đợi {department}",
+        "fallback": {
+          "organization": "Chưa có dữ liệu",
+          "department": "Chưa phân phòng ban",
+          "teamQueue": "Chưa gán hàng đợi",
+          "joinedDate": "Chưa có dữ liệu"
+        },
+        "permissionSummary": {
+          "EMPLOYEE": "Có thể tạo và theo dõi yêu cầu của chính mình.",
+          "OPS_COORDINATOR": "Có thể phân loại, phân công và điều phối yêu cầu liên phòng ban.",
+          "TECHNICIAN": "Có thể xử lý yêu cầu được giao và cập nhật tiến độ.",
+          "TENANT_ADMIN": "Toàn quyền quản trị workspace và cấu hình chính sách.",
+          "default": "Quyền được áp dụng theo vai trò hiện tại trong workspace."
+        }
+      },
       "password": {
         "title": "Cài đặt Email",
         "currentPassword": "Mật khẩu hiện tại",
@@ -611,50 +637,50 @@
       },
       "notifications": {
         "alertsTitle": "Cảnh báo & Thông báo",
-        "alertsDescription": "Nhận tin tức ServiceOps, thông báo và các cập nhật liên quan.",
+        "alertsDescription": "Chọn cảnh báo vận hành theo thời gian thực cho luồng xử lý yêu cầu.",
         "emailTitle": "Cài đặt email",
-        "emailDescription": "Chọn loại email ServiceOps sẽ gửi cho bạn.",
+        "emailDescription": "Chọn các email tổng hợp và thông báo cho sự kiện vận hành.",
         "items": {
           "companyNews": {
-            "title": "Tin tức công ty",
-            "description": "Nhận tin tức, thông báo và cập nhật sản phẩm từ ServiceOps."
+            "title": "Cảnh báo phân công",
+            "description": "Thông báo khi yêu cầu được giao hoặc giao lại cho bạn."
           },
           "accountActivity": {
-            "title": "Thông báo phân công",
-            "description": "Nhận thông báo khi có yêu cầu mới được giao cho bạn."
+            "title": "Cập nhật trạng thái",
+            "description": "Thông báo khi các yêu cầu bạn theo dõi đổi trạng thái."
           },
           "meetupsNearYou": {
             "title": "Cảnh báo rủi ro SLA",
-            "description": "Nhận cảnh báo khi yêu cầu có nguy cơ vi phạm SLA."
+            "description": "Thông báo khi yêu cầu có nguy cơ hoặc đã vi phạm SLA."
           },
           "newMessages": {
             "title": "Cảnh báo leo thang",
-            "description": "Nhận thông báo khi yêu cầu bị leo thang."
+            "description": "Thông báo khi yêu cầu bị leo thang đến nhóm hoặc vai trò của bạn."
           },
           "ratingReminders": {
-            "title": "Nhắc đánh giá",
-            "description": "Gửi email nhắc tôi đánh giá một mục sau một tuần."
+            "title": "Nhắc xác nhận xử lý",
+            "description": "Gửi email nhắc xác nhận các yêu cầu chờ đóng."
           },
           "itemUpdateNotifications": {
-            "title": "Thông báo cập nhật mục",
-            "description": "Gửi email khi mục tôi đã mua được cập nhật."
+            "title": "Tổng hợp cập nhật yêu cầu",
+            "description": "Gửi email tổng hợp định kỳ cho các yêu cầu bạn theo dõi."
           },
           "itemCommentNotifications": {
-            "title": "Thông báo bình luận mục",
-            "description": "Gửi email cho tôi khi có người bình luận vào một trong các mục của tôi."
+            "title": "Thông báo bình luận",
+            "description": "Gửi email khi có người bình luận vào yêu cầu bạn theo dõi."
           },
           "buyerReviewNotifications": {
-            "title": "Thông báo đánh giá người mua",
-            "description": "Gửi email cho tôi khi có người để lại đánh giá kèm xếp hạng"
+            "title": "Thông báo nhắc tên",
+            "description": "Gửi email khi bạn được nhắc tên trong hoạt động của yêu cầu."
           }
         }
       },
       "tabs": {
         "ariaLabel": "Các nhóm cài đặt hồ sơ",
         "introLabel": "Không gian cài đặt",
-        "introTitle": "Quản lý cài đặt tài khoản",
-        "generalDescription": "Cập nhật thông tin hồ sơ cá nhân mà đồng nghiệp có thể nhìn thấy.",
-        "notificationsDescription": "Chọn các cảnh báo và email cập nhật bạn muốn nhận.",
+        "introTitle": "Quản lý hồ sơ vận hành của bạn",
+        "generalDescription": "Cập nhật hồ sơ và xem bối cảnh tổ chức/quyền truy cập.",
+        "notificationsDescription": "Quản lý cảnh báo phân công, SLA, leo thang, bình luận và nhắc tên.",
         "securityDescription": "Giữ tài khoản an toàn bằng cách cập nhật mật khẩu định kỳ.",
         "sessionsDescription": "Kiểm tra các thiết bị đang đăng nhập và đăng xuất phiên không còn sử dụng.",
         "general": "Chung",

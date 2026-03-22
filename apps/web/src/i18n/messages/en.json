@@ -589,6 +589,32 @@
           "selectYearAriaLabel": "Select year"
         }
       },
+      "organizationAccess": {
+        "title": "Organization and access",
+        "description": "View your operational context in this workspace.",
+        "fields": {
+          "organization": "Organization",
+          "role": "Role",
+          "department": "Department",
+          "teamQueue": "Team / Queue",
+          "joinedDate": "Joined date",
+          "permissionSummary": "Permission summary"
+        },
+        "teamQueueValue": "{department} queue",
+        "fallback": {
+          "organization": "Not available",
+          "department": "Unassigned",
+          "teamQueue": "No queue assigned",
+          "joinedDate": "Not available"
+        },
+        "permissionSummary": {
+          "EMPLOYEE": "Can create and track own requests.",
+          "OPS_COORDINATOR": "Can triage, assign, and coordinate cross-team requests.",
+          "TECHNICIAN": "Can execute assigned work and update progress.",
+          "TENANT_ADMIN": "Full workspace administration and policy configuration.",
+          "default": "Permissions follow your current role in this workspace."
+        }
+      },
       "password": {
         "title": "Email Settings",
         "currentPassword": "Current password",
@@ -611,50 +637,50 @@
       },
       "notifications": {
         "alertsTitle": "Alerts & Notifications",
-        "alertsDescription": "Get ServiceOps news, announcements and related updates.",
+        "alertsDescription": "Choose real-time operational alerts for your request workflow.",
         "emailTitle": "Email Settings",
-        "emailDescription": "Choose which emails ServiceOps should send you.",
+        "emailDescription": "Choose digest and email notifications for operational events.",
         "items": {
           "companyNews": {
-            "title": "Company News",
-            "description": "Get ServiceOps news, announcements, and product updates."
+            "title": "Assignment alerts",
+            "description": "Notify when requests are assigned or reassigned to you."
           },
           "accountActivity": {
-            "title": "Assignment Notifications",
-            "description": "Get notifications when new requests are assigned to you."
+            "title": "Status change updates",
+            "description": "Notify when tracked requests change status."
           },
           "meetupsNearYou": {
             "title": "SLA Risk Alerts",
-            "description": "Get alerts when requests are at risk of SLA breach."
+            "description": "Notify when requests are at risk or breached against SLA."
           },
           "newMessages": {
             "title": "Escalation Alerts",
-            "description": "Get notified when requests are escalated."
+            "description": "Notify when requests are escalated to your team or role."
           },
           "ratingReminders": {
-            "title": "Rating reminders",
-            "description": "Send an email reminding me to rate an item after a week."
+            "title": "Resolution reminders",
+            "description": "Send reminders for pending resolution confirmations."
           },
           "itemUpdateNotifications": {
-            "title": "Item update notifications",
-            "description": "Send an email when an item I have purchased is updated."
+            "title": "Request update digest",
+            "description": "Send periodic digests for updates on watched requests."
           },
           "itemCommentNotifications": {
-            "title": "Item comment notifications",
-            "description": "Send me an email when someone comments on one of my items."
+            "title": "Comment notifications",
+            "description": "Send an email when someone comments on requests you follow."
           },
           "buyerReviewNotifications": {
-            "title": "Buyer review notifications",
-            "description": "Send me an email when someone leaves a review with their rating"
+            "title": "Mention notifications",
+            "description": "Send an email when you are mentioned in request activity."
           }
         }
       },
       "tabs": {
         "ariaLabel": "Profile settings sections",
         "introLabel": "Settings Workspace",
-        "introTitle": "Manage your account settings",
-        "generalDescription": "Update your personal profile details that teammates can see.",
-        "notificationsDescription": "Choose which alerts and email updates you want to receive.",
+        "introTitle": "Manage your operations profile",
+        "generalDescription": "Update your profile and review organization access context.",
+        "notificationsDescription": "Control assignment, SLA, escalation, comment, and mention alerts.",
         "securityDescription": "Keep your account safe by updating your password regularly.",
         "sessionsDescription": "Review your active devices and sign out sessions you no longer use.",
         "general": "General",
