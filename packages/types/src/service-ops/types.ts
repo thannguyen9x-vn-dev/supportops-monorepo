@@ -19,6 +19,7 @@ export interface ServiceRequest {
   requesterId: string;
   assigneeId?: string | null;
   dueAt?: string | null;
+  queueLabel?: string | null;
   submittedAt?: string | null;
   assignedAt?: string | null;
   startedAt?: string | null;
@@ -107,6 +108,7 @@ export interface RequestAssignee {
   email: string;
   fullName: string;
   roleCode: string | null;
+  avatarUrl?: string | null;
 }
 
 export interface SlaPolicy {
@@ -115,4 +117,123 @@ export interface SlaPolicy {
   responseMinutes: number;
   resolutionMinutes: number;
   escalationAfterMinutes: number;
+}
+
+export interface AssignmentHistoryEntry {
+  id: string;
+  tenantId: string;
+  requestId: string;
+  fromAssigneeId: string | null;
+  toAssigneeId: string | null;
+  changedById: string;
+  reason: string | null;
+  changedAt: string;
+}
+
+export interface SlaViolation {
+  id: string;
+  tenantId: string;
+  requestId: string;
+  requestCode: string | null;
+  requestTitle: string | null;
+  requestStatus: string | null;
+  type: "ASSIGNMENT" | "RESOLUTION";
+  health: "ON_TRACK" | "AT_RISK" | "BREACHED";
+  targetAt: string;
+  breachedAt: string | null;
+  isBreached: boolean;
+  lastCalculatedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EscalationRule {
+  id: string;
+  serviceTypeCode: string;
+  whenMinutesOverdue: number;
+  targetStatus: string;
+  notifyRoleCode: string;
+}
+
+export interface EscalationEvent {
+  id: string;
+  tenantId: string;
+  requestId: string;
+  action: string;
+  actorId: string | null;
+  isAuto: boolean;
+  reason: string | null;
+  createdAt: string;
+}
+
+export interface TriggerEscalationInput {
+  reason?: string;
+}
+
+export interface RequestSlaRecord {
+  id: string;
+  tenantId: string;
+  requestId: string;
+  type: "ASSIGNMENT" | "RESOLUTION";
+  health: "ON_TRACK" | "AT_RISK" | "BREACHED";
+  targetAt: string;
+  breachedAt: string | null;
+  isBreached: boolean;
+  lastCalculatedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RequestWorkflowDetail {
+  request: ServiceRequest;
+  comments: RequestComment[];
+  workLogs: RequestWorkLog[];
+  assignmentHistory: AssignmentHistoryEntry[];
+  slaRecords: RequestSlaRecord[];
+  activities: RequestWorkflowActivity[];
+  attachments: RequestWorkflowAttachment[];
+  actors: RequestWorkflowActor[];
+  queueLabel: string | null;
+  tags: string[];
+  escalationRules: string[];
+}
+
+export interface RequestWorkflowActivity {
+  id: string;
+  tenantId: string;
+  requestId: string;
+  type:
+    | "REQUEST_CREATED"
+    | "STATUS_CHANGED"
+    | "ASSIGNED"
+    | "REASSIGNED"
+    | "COMMENT_ADDED"
+    | "INTERNAL_NOTE_ADDED"
+    | "SLA_WARNING"
+    | "SLA_BREACHED"
+    | "RESOLUTION_SUBMITTED";
+  title: string;
+  description: string | null;
+  actorId: string | null;
+  createdAt: string;
+}
+
+export interface RequestWorkflowAttachment {
+  id: string;
+  tenantId: string;
+  requestId: string;
+  uploadedFileId: string;
+  fileName: string;
+  fileUrl: string;
+  mimeType: string;
+  sizeBytes: number;
+  uploadedById: string;
+  createdAt: string;
+}
+
+export interface RequestWorkflowActor {
+  id: string;
+  fullName: string;
+  email: string;
+  avatarUrl: string | null;
 }

@@ -153,7 +153,7 @@ function resolveAssigneeProfile(
     assigneeProfile: {
       name,
       email: assignee?.email,
-      avatarUrl: null,
+      avatarUrl: assignee?.avatarUrl ?? null,
     },
   };
 }
@@ -376,7 +376,8 @@ export function RequestListScreen() {
 
         if (
           row.assignee === resolvedAssignee.assignee &&
-          row.assigneeProfile?.email === resolvedAssignee.assigneeProfile?.email
+          row.assigneeProfile?.email === resolvedAssignee.assigneeProfile?.email &&
+          row.assigneeProfile?.avatarUrl === resolvedAssignee.assigneeProfile?.avatarUrl
         ) {
           return row;
         }
@@ -511,6 +512,7 @@ export function RequestListScreen() {
               avatarSize={28}
               email={row.original.assigneeProfile.email}
               name={row.original.assigneeProfile.name}
+              avatarUrl={row.original.assigneeProfile.avatarUrl}
               variant="full"
             />
           ) : (
@@ -952,7 +954,7 @@ export function RequestListScreen() {
                       mr: 0,
                     },
                     ...(isEnglishLocale && {
-                      "& .MuiTab-root:nth-of-type(1)": { width: 132 },
+                      "& .MuiTab-root:nth-of-type(1)": { width: 142 },
                       "& .MuiTab-root:nth-of-type(2)": { width: 168 },
                       "& .MuiTab-root:nth-of-type(3)": { width: 130 },
                       "& .MuiTab-root:nth-of-type(4)": { width: 106 },

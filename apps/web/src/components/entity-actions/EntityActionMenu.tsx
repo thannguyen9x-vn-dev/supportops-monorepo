@@ -72,6 +72,9 @@ export function EntityActionMenu({ actions, icon, size = "medium", tooltip, disa
               overflow: "hidden",
             },
           },
+          list: {
+            sx: { p: 1 },
+          },
         }}
         transformOrigin={{ horizontal: "right", vertical: "top" }}
       >
@@ -84,12 +87,26 @@ export function EntityActionMenu({ actions, icon, size = "medium", tooltip, disa
               disabled={action.disabled}
               key={action.key}
               onClick={() => handleAction(action)}
-              sx={isError ? { color: "error.main" } : undefined}
+              sx={{
+                borderRadius: 1,
+                minHeight: 40,
+                ...(isError ? { color: "error.main" } : {}),
+              }}
             >
               {action.icon ? (
-                <ListItemIcon sx={isError ? { color: "error.main" } : undefined}>{action.icon}</ListItemIcon>
+                <ListItemIcon
+                  sx={{
+                    minWidth: 32,
+                    ...(isError ? { color: "error.main" } : {}),
+                  }}
+                >
+                  {action.icon}
+                </ListItemIcon>
               ) : null}
-              <ListItemText>{action.label}</ListItemText>
+              <ListItemText
+                primary={action.label}
+                primaryTypographyProps={{ fontSize: 14, fontWeight: 600, lineHeight: "20px" }}
+              />
             </MenuItem>,
           ];
         })}

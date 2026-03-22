@@ -36,7 +36,7 @@
 .languageButton {
   height: 32px;
   min-width: 58px;
-  border-radius: 999px;
+  border-radius: 6px !important;
   border: 1px solid var(--mui-palette-divider);
   padding: 0 8px;
   display: inline-flex;
@@ -58,7 +58,7 @@
 .themeButton {
   height: 32px;
   width: 32px;
-  border-radius: 999px;
+  border-radius: 6px !important;
   border: 1px solid var(--mui-palette-divider);
   color: var(--mui-palette-text-primary);
   overflow: hidden;
@@ -70,7 +70,7 @@
 .notificationButton {
   height: 38px;
   width: 38px;
-  border-radius: 10px;
+  border-radius: 6px !important;
   border: 1px solid var(--mui-palette-divider) !important;
   color: var(--mui-palette-text-primary) !important;
   overflow: hidden;
@@ -98,7 +98,7 @@
 .userButton {
   height: 38px;
   width: 38px;
-  border-radius: 999px;
+  border-radius: 999px !important;
   border: 1px solid var(--mui-palette-divider);
   padding: 2px;
   display: inline-flex;

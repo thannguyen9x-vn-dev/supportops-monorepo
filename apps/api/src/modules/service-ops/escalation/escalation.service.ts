@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, RequestActivityType, RequestStatus } from '@prisma/client';
 import { PageMeta, pageMetaOf } from '../../../common/dto/page-meta.dto';
+import { NotFoundException } from '../../../common/exceptions/not-found.exception';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { RequestResponseDto } from '../request/dto/request-response.dto';
 import { RequestService } from '../request/request.service';
@@ -34,6 +35,36 @@ export class EscalationService {
       targetStatus: RequestStatus.WAITING_EXTERNAL_VENDOR,
       notifyRoleCode: 'OPS_COORDINATOR',
     }));
+  }
+
+  async detailRule(tenantId: string, id: string): Promise<EscalationRuleResponseDto> {
+    const serviceTypeCode = id.replace(/^escalation-rule-/i, '').trim().toUpperCase();
+    if (!serviceTypeCode) {
+      throw new NotFoundException('EscalationRule', id);
+    }
+
+    const serviceType = await this.prisma.serviceType.findFirst({
+      where: {
+        tenantId,
+        code: serviceTypeCode,
+        isActive: true,
+      },
+      select: { code: true },
+    });
+
+    if (!serviceType && serviceTypeCode !== 'GENERAL') {
+      throw new NotFoundException('EscalationRule', id);
+    }
+
+    const code = serviceType?.code ?? 'GENERAL';
+
+    return {
+      id: `escalation-rule-${code.toLowerCase()}`,
+      serviceTypeCode: code,
+      whenMinutesOverdue: EscalationService.DEFAULT_ESCALATION_MINUTES,
+      targetStatus: RequestStatus.WAITING_EXTERNAL_VENDOR,
+      notifyRoleCode: 'OPS_COORDINATOR',
+    };
   }
 
   async listEvents(

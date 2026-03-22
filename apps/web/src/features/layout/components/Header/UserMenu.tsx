@@ -55,12 +55,12 @@ export function UserMenu() {
 
   const handleOpenProfile = () => {
     handleClose();
-    router.push(`/${locale}/settings?tab=general`);
+    router.push(`/${locale}/account/profile?tab=general`);
   };
 
   const handleOpenSettings = () => {
     handleClose();
-    router.push(`/${locale}/settings?tab=security`);
+    router.push(`/${locale}/account/profile?tab=security`);
   };
 
   const displayName = user ? `${user.firstName} ${user.lastName}`.trim() : mockUser.name;

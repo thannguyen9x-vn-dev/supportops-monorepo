@@ -21,8 +21,10 @@ import { CreateRequestCommentDto } from './dto/create-request-comment.dto';
 import { CreateRequestWorkLogDto } from './dto/create-request-work-log.dto';
 import { RequestAssigneeResponseDto } from './dto/request-assignee-response.dto';
 import { RequestCommentResponseDto } from './dto/request-comment-response.dto';
+import { RequestCommentQueryDto } from './dto/request-comment-query.dto';
 import { RequestQueryDto } from './dto/request-query.dto';
 import { RequestResponseDto } from './dto/request-response.dto';
+import { RequestWorkflowDetailResponseDto } from './dto/request-workflow-detail-response.dto';
 import { RequestWorkLogResponseDto } from './dto/request-work-log-response.dto';
 import { UpdateRequestStatusDto } from './dto/update-request-status.dto';
 import { RequestService } from './request.service';
@@ -74,6 +76,18 @@ export class RequestController {
     @Param('id', ParseUUIDPipe) requestId: string,
   ): Promise<RequestResponseDto> {
     return this.requestService.detail(tenantId, requesterId, permissions, requestId);
+  }
+
+  @Get(':id/workflow')
+  @Permissions({ any: ['request.read.all', 'request.read.own'] })
+  @ApiOperation({ summary: 'Get request workflow aggregate for detail screen' })
+  workflowDetail(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser('sub') requesterId: string,
+    @CurrentPermissions() permissions: string[],
+    @Param('id', ParseUUIDPipe) requestId: string,
+  ): Promise<RequestWorkflowDetailResponseDto> {
+    return this.requestService.detailWorkflow(tenantId, requesterId, permissions, requestId);
   }
 
   @Patch(':id/status')
@@ -138,6 +152,19 @@ export class RequestController {
     return this.requestService.addComment(tenantId, authorId, permissions, requestId, dto);
   }
 
+  @Get(':id/comments')
+  @Permissions({ any: ['request.read.all', 'request.read.own', 'request.start_work', 'comment.read.internal'] })
+  @ApiOperation({ summary: 'List comments of a request' })
+  listComments(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser('sub') actorId: string,
+    @CurrentPermissions() permissions: string[],
+    @Param('id', ParseUUIDPipe) requestId: string,
+    @Query() query: RequestCommentQueryDto,
+  ) {
+    return this.requestService.listComments(tenantId, actorId, permissions, requestId, query);
+  }
+
   @Post(':id/work-log')
   @Permissions({ all: ['request.start_work'] })
   @HttpCode(HttpStatus.CREATED)
@@ -163,5 +190,17 @@ export class RequestController {
     @Body() dto: AssignRequestDto,
   ): Promise<RequestResponseDto> {
     return this.requestService.assign(tenantId, actorId, permissions, requestId, dto);
+  }
+
+  @Patch(':id/unassign')
+  @Permissions({ any: ['request.assign', 'request.reassign'] })
+  @ApiOperation({ summary: 'Unassign current assignee from request' })
+  unassign(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser('sub') actorId: string,
+    @CurrentPermissions() permissions: string[],
+    @Param('id', ParseUUIDPipe) requestId: string,
+  ): Promise<RequestResponseDto> {
+    return this.requestService.unassign(tenantId, actorId, permissions, requestId);
   }
 }

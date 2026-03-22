@@ -157,6 +157,7 @@ model Tenant {
   requestWorkLogs            WorkLog[]
   requestSlaRecords          SlaRecord[]
   requestAssignmentHistories AssignmentHistory[]
+  requestQueues              RequestQueue[]
   auditLogs                  AuditLog[]
   requestSequences           RequestSequence[]
 
@@ -618,6 +619,21 @@ model ServiceType {
   @@index([tenantId, isActive])
 }
 
+model RequestQueue {
+  tenantId    String
+  id          String
+  name        String
+  description String?
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  requests    ServiceRequest[]
+
+  @@id([tenantId, id])
+  @@index([tenantId, isActive])
+}
+
 model ServiceRequest {
   id                String              @id @default(uuid())
   tenantId          String
@@ -647,6 +663,7 @@ model ServiceRequest {
   serviceType       ServiceType         @relation(fields: [serviceTypeId], references: [id], onDelete: Restrict)
   requester         User                @relation("ServiceRequestRequester", fields: [requesterId], references: [id], onDelete: Restrict)
   assignee          User?               @relation("ServiceRequestAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  queue             RequestQueue?       @relation(fields: [tenantId, queueId], references: [tenantId, id], onDelete: Restrict)
   activities        RequestActivity[]
   comments          RequestComment[]
   attachments       RequestAttachment[]
@@ -662,6 +679,7 @@ model ServiceRequest {
   @@index([tenantId, updatedAt])
   @@index([tenantId, serviceTypeId])
   @@index([tenantId, requesterId])
+  @@index([tenantId, queueId])
 }
 
 model RequestActivity {

@@ -14,6 +14,9 @@ type RequestModelWithServiceType = RequestModel & {
     code: string;
     name: string;
   } | null;
+  queue?: {
+    name: string;
+  } | null;
 };
 
 export class RequestResponseDto {
@@ -68,6 +71,9 @@ export class RequestResponseDto {
   @ApiProperty({ nullable: true })
   queueId!: string | null;
 
+  @ApiProperty({ nullable: true })
+  queueLabel!: string | null;
+
   @ApiProperty({ enum: SourceChannel })
   sourceChannel!: SourceChannel;
 
@@ -114,6 +120,7 @@ export class RequestResponseDto {
       requesterId: request.requesterId,
       assigneeId: request.assigneeId,
       queueId: request.queueId,
+      queueLabel: request.queue?.name ?? null,
       sourceChannel: request.sourceChannel,
       isInternalOnly: request.isInternalOnly,
       submittedAt: request.submittedAt?.toISOString() ?? null,

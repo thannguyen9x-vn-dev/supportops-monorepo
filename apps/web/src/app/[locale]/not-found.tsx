@@ -33,7 +33,7 @@ export default function LocaleNotFoundPage() {
           </Link>
           <Link href={`/${locale}/admin/user`}>Users</Link>
           <Link href={`/${locale}/requests/list`}>Requests</Link>
-          <Link href={`/${locale}/settings`}>Settings</Link>
+          <Link href={`/${locale}/account/profile`}>Settings</Link>
         </nav>
 
         <Link className={styles.ctaLink} href={`/${locale}/login`}>

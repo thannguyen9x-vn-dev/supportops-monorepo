@@ -1,7 +1,7 @@
-import Link from "next/link";
 import BlockIcon from "@mui/icons-material/Block";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Box, Button, Container, Paper, Typography } from "@mui/material";
+import { getTranslations } from "next-intl/server";
 
 export default async function AccessDeniedPage({
   params,
@@ -9,6 +9,7 @@ export default async function AccessDeniedPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const t = await getTranslations("pages.accessDenied");
 
   return (
     <Container maxWidth="md" sx={{ py: { xs: 8, md: 12 } }}>
@@ -37,20 +38,14 @@ export default async function AccessDeniedPage({
         </Box>
 
         <Typography variant="h4" component="h1" fontWeight={700} gutterBottom>
-          Access denied
+          {t("title")}
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-          You do not have permission to access this page.
+          {t("description")}
         </Typography>
 
-        <Button
-          component={Link}
-          href={`/${locale}/dashboard`}
-          variant="contained"
-          size="large"
-          startIcon={<ArrowBackIcon />}
-        >
-          Go to dashboard
+        <Button href={`/${locale}/dashboard`} size="large" startIcon={<ArrowBackIcon />} variant="contained">
+          {t("goToDashboard")}
         </Button>
       </Paper>
     </Container>

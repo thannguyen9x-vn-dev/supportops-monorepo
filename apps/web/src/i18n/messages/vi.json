@@ -249,6 +249,11 @@
     "reportsComingSoon": "Báo cáo - sắp ra mắt",
     "reportsOverviewComingSoon": "Tổng quan báo cáo - sắp ra mắt",
     "reportsPerformanceComingSoon": "Hiệu suất báo cáo - sắp ra mắt",
+    "accessDenied": {
+      "title": "Không có quyền truy cập",
+      "description": "Bạn không có quyền truy cập trang này.",
+      "goToDashboard": "Quay về bảng điều khiển"
+    },
     "projects": {
       "state": {
         "loading": "Đang tải sản phẩm...",
@@ -426,6 +431,13 @@
           "backToList": "Quay lại danh sách yêu cầu",
           "title": "Máy lạnh văn phòng rò rỉ ở tầng 5 - Phòng họp C",
           "subtitle": "Cập nhật lần cuối {updatedAgo} · Người yêu cầu {requester} ({role})",
+          "requestedBy": "Người yêu cầu {requester} ({role})",
+          "requestedByLabel": "Người yêu cầu",
+          "lastUpdated": "Cập nhật lần cuối {updatedAgo}",
+          "lastUpdatedLabel": "Cập nhật lần cuối",
+          "copyCodeAriaLabel": "Sao chép mã yêu cầu",
+          "copyCodeSuccess": "Đã copy mã yêu cầu",
+          "copyCodeError": "Không thể copy mã yêu cầu",
           "updatedMinutesAgo": "{minutes} phút trước",
           "breadcrumbs": {
             "requests": "Yêu cầu"
@@ -433,6 +445,15 @@
           "meta": {
             "inProgress": "Đang xử lý"
           }
+        },
+        "overview": {
+          "title": "Tổng quan yêu cầu",
+          "serviceType": "Loại dịch vụ",
+          "category": "Danh mục",
+          "location": "Địa điểm",
+          "asset": "Tài sản",
+          "createdAt": "Tạo lúc",
+          "description": "Mô tả"
         },
         "statusLabels": {
           "DRAFT": "Nháp",

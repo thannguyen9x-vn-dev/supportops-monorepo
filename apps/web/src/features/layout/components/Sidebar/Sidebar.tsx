@@ -70,7 +70,7 @@ export function Sidebar() {
   const { user } = useAuth();
   const t = useTranslations();
   const roleLabel = user?.role.replace("_", " ") ?? "";
-  const profileHref = `/${locale}/settings`;
+  const profileHref = `/${locale}/account/profile`;
   const isProfileActive = pathname === profileHref;
   const filteredNavigation = filterNavigationByRole(navigationConfig, user?.role);
 
@@ -142,26 +142,28 @@ export function Sidebar() {
           ))}
         </nav>
 
-        {!isCollapsed ? (
-          <Link
-            href={profileHref}
-            className={[styles.footer, isProfileActive ? styles.footerActive : ""].join(" ")}
-            aria-label={t("header.profile")}
-            title={t("header.profile")}
-          >
-            <Avatar
-              dimension={36}
-              name={`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || undefined}
-              ring
-              ringVariant="neutral"
-              src={user?.avatarUrl ?? undefined}
-            />
-            <div className={styles.userInfo}>
-              <p className={styles.userName}>{`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "-"}</p>
-              <p className={styles.userRole}>{roleLabel}</p>
-            </div>
-          </Link>
-        ) : null}
+        <Link
+          href={profileHref}
+          className={[
+            styles.footer,
+            isCollapsed ? styles.footerCollapsed : "",
+            isProfileActive ? styles.footerActive : "",
+          ].join(" ")}
+          aria-label={t("header.profile")}
+          title={t("header.profile")}
+        >
+          <Avatar
+            dimension={36}
+            name={`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || undefined}
+            ring
+            ringVariant="neutral"
+            src={user?.avatarUrl ?? undefined}
+          />
+          <div className={styles.userInfo}>
+            <p className={styles.userName}>{`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "-"}</p>
+            <p className={styles.userRole}>{roleLabel}</p>
+          </div>
+        </Link>
       </aside>
     </>
   );

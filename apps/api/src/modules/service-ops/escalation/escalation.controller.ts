@@ -1,4 +1,14 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentPermissions } from '../../../common/decorators/current-permissions.decorator';
 import { CurrentTenant } from '../../../common/decorators/current-tenant.decorator';
@@ -21,6 +31,13 @@ export class EscalationController {
   @ApiOperation({ summary: 'List escalation rule snapshots' })
   listRules(@CurrentTenant() tenantId: string): Promise<EscalationRuleResponseDto[]> {
     return this.escalationService.listRules(tenantId);
+  }
+
+  @Get('rules/:id')
+  @Permissions({ any: ['request.escalate', 'request.read.all', 'sla.manage'] })
+  @ApiOperation({ summary: 'Get escalation rule snapshot by id' })
+  detailRule(@CurrentTenant() tenantId: string, @Param('id') id: string): Promise<EscalationRuleResponseDto> {
+    return this.escalationService.detailRule(tenantId, id);
   }
 
   @Get('events')

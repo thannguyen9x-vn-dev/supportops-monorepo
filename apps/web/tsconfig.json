@@ -14,7 +14,13 @@
       "@supportops/ui-file-upload": ["../../packages/ui/file-upload/dist"]
     }
   },
-  "include": ["next-env.d.ts", "src", "../../packages/types/src/**/*", "../../packages/ui/src/**/*"],
+  "include": [
+    "next-env.d.ts",
+    "src",
+    "../../packages/types/src/**/*",
+    "../../packages/ui/src/**/*",
+    "../../packages/ui/theme/src/types/theme.d.ts"
+  ],
   "exclude": [
     "../../packages/ui/src/**/__tests__/**/*",
     "../../packages/ui/src/**/*.test.ts",

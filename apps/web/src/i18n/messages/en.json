@@ -249,6 +249,11 @@
     "reportsComingSoon": "Reports - coming soon",
     "reportsOverviewComingSoon": "Reports overview - coming soon",
     "reportsPerformanceComingSoon": "Reports performance - coming soon",
+    "accessDenied": {
+      "title": "Access denied",
+      "description": "You do not have permission to access this page.",
+      "goToDashboard": "Go to dashboard"
+    },
     "projects": {
       "state": {
         "loading": "Loading products...",
@@ -426,6 +431,13 @@
           "backToList": "Back to requests",
           "title": "Office AC leaking at Floor 5 - Meeting Room C",
           "subtitle": "Last updated {updatedAgo} · Requested by {requester} ({role})",
+          "requestedBy": "Requested by {requester} ({role})",
+          "requestedByLabel": "Requested by",
+          "lastUpdated": "Last updated {updatedAgo}",
+          "lastUpdatedLabel": "Last updated",
+          "copyCodeAriaLabel": "Copy request code",
+          "copyCodeSuccess": "Copied request code",
+          "copyCodeError": "Unable to copy request code",
           "updatedMinutesAgo": "{minutes} min ago",
           "breadcrumbs": {
             "requests": "Requests"
@@ -433,6 +445,15 @@
           "meta": {
             "inProgress": "In progress"
           }
+        },
+        "overview": {
+          "title": "Request overview",
+          "serviceType": "Service type",
+          "category": "Category",
+          "location": "Location",
+          "asset": "Asset",
+          "createdAt": "Created at",
+          "description": "Description"
         },
         "statusLabels": {
           "DRAFT": "Draft",

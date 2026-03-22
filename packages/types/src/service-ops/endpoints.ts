@@ -3,6 +3,7 @@ export const SERVICE_OPS_ENDPOINTS = {
     LIST: "/requests",
     ASSIGNEES: "/requests/assignees",
     DETAIL: (id: string) => `/requests/${id}`,
+    WORKFLOW: (id: string) => `/requests/${id}/workflow`,
     CREATE: "/requests",
     UPDATE: (id: string) => `/requests/${id}`,
     STATUS: (id: string) => `/requests/${id}/status`,
@@ -24,6 +25,7 @@ export const SERVICE_OPS_ENDPOINTS = {
     RULES: "/escalations/rules",
     RULE: (id: string) => `/escalations/rules/${id}`,
     EVENTS: "/escalations/events",
+    TRIGGER: (requestId: string) => `/escalations/events/trigger/${requestId}`,
   },
   ASSETS: {
     LIST: "/assets",
