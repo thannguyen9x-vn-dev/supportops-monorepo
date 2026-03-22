@@ -29,37 +29,28 @@ Use it as a source of truth before creating implementation tasks.
 
 ## FA-01: Auth Token Hardening (HttpOnly Refresh Cookie)
 
-- Status: `planned`
+- Status: `done`
 - Priority: `P0`
 - Area: Security / Auth
 
 ### Current State
 
 - `accessToken` stored in `sessionStorage`.
-- Legacy refresh token handling existed in JS storage/cookie path.
-- FE is moving toward cookie-based refresh flow.
-
-### Risk
-
-- Any JS-readable refresh token increases XSS blast radius.
-
-### Target
-
-- Refresh token only in HttpOnly cookie (`supportops_refresh_token`).
+- Refresh token stored only in `HttpOnly` cookie (`supportops_refresh_token`).
 - FE never reads refresh token directly.
-- API calls use `credentials: "include"`.
+- All API calls send `credentials: "include"`.
 
 ### Apply When
 
 - Login/register/refresh/logout flow changes.
 - Middleware/session behavior changes.
 
-### Definition Of Done
+### Definition Of Done ✅
 
-- Login response does not require `refreshToken` in FE contract.
+- Login response does not include `refreshToken` in body.
 - `/auth/refresh` works with cookie-only request.
 - CORS allows credentials with strict allowed origins.
-- FE typecheck and auth integration tests pass.
+- Auth integration tests pass.
 
 ---
 

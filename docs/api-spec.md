@@ -45,10 +45,10 @@ Revoke refresh token and clear cookie.
 Revoke all refresh sessions for the current user.
 
 ### POST `/auth/forgot-password` [PUBLIC]
-Send password reset email.
+Send password reset OTP email.
 
 ### POST `/auth/reset-password` [PUBLIC]
-Reset password using token from email.
+Reset password using OTP from email.
 
 ### POST `/auth/invite/accept` [PUBLIC]
 Accept an invite and set password for the new account.
@@ -61,7 +61,7 @@ Accept an invite and set password for the new account.
 Get current user profile.
 
 ### PUT `/users/me`
-Update profile (name, phone, etc.).
+Update profile (name, phone, birthday, country, department, etc.).
 
 ### PUT `/users/me/password`
 Change password (requires current password).
@@ -95,6 +95,9 @@ Invite a user by email with a given role.
 ### PATCH `/users/:id/role`
 Change the role of a tenant member.
 
+### PATCH `/users/:id/department`
+Change the department of a tenant member.
+
 ### PATCH `/users/:id/deactivate`
 Deactivate a tenant member (blocks login for this tenant).
 
@@ -112,6 +115,10 @@ Query params:
 - `page` (default: 1)
 - `size` (default: 20)
 - `status` — filter by `RequestStatus` enum
+- `serviceTypeId` — filter by service type
+- `assigneeId` — filter by assignee
+- `slaHealth` — filter by `ON_TRACK | AT_RISK | BREACHED`
+- `unassigned` — boolean
 
 Access rules:
 - `request.read.all` → sees all tenant requests
@@ -126,18 +133,101 @@ Body:
   "mode": "draft | submit",
   "title": "string",
   "description": "string (optional)",
-  "serviceTypeId": "uuid (optional)",
+  "serviceTypeId": "uuid",
+  "location": "string",
   "priority": "LOW | MEDIUM | HIGH | CRITICAL",
-  "urgency": "LOW | MEDIUM | HIGH | CRITICAL",
-  "impact": "LOW | MEDIUM | HIGH | CRITICAL",
+  "urgency": "LOW | MEDIUM | HIGH | CRITICAL (optional)",
+  "impactLevel": "LOW | MEDIUM | HIGH | CRITICAL (optional)",
   "attachmentIds": ["uuid"]
 }
 ```
 
 Requires: `request.create` permission.
 
-On `submit` mode: status moves to `OPEN`, SLA record is created automatically.
+On `submit` mode: status moves to `SUBMITTED`, SLA record is created automatically.
 On `draft` mode: status stays `DRAFT`.
+
+### GET `/requests/:id/workflow`
+Get full request workflow detail including overview, comments, activity timeline, SLA record, assignment history.
+
+Returns: `RequestWorkflowDetail`
+
+### PATCH `/requests/:id/status`
+Transition request status. Role-based rules enforced — returns 403 if role not allowed.
+
+Body: `{ "status": "RequestStatus" }`
+
+### POST `/requests/:id/assign`
+Assign or reassign request to a user.
+
+Body: `{ "assigneeId": "uuid" }`
+
+### POST `/requests/:id/comments`
+Add a comment to a request.
+
+Body: `{ "body": "string", "visibility": "PUBLIC | INTERNAL" }`
+
+### POST `/requests/:id/work-logs`
+Log work time on a request.
+
+Body: `{ "content": "string", "minutesSpent": number }`
+
+### GET `/requests/assignees`
+List active users available for assignment (within tenant).
+
+---
+
+## Service Types
+
+### GET `/service-types`
+List service types for the tenant.
+
+### POST `/service-types`
+Create a service type. Requires `TENANT_ADMIN`.
+
+Body: `{ "code": "string", "name": "string", "description": "string", "isActive": true }`
+
+### PATCH `/service-types/:id`
+Update a service type. Requires `TENANT_ADMIN`.
+
+### DELETE `/service-types/:id`
+Delete a service type. Fails if linked requests exist. Requires `TENANT_ADMIN`.
+
+---
+
+## SLA Policies
+
+### GET `/sla-policies`
+List SLA policies for the tenant.
+
+### POST `/sla-policies`
+Create an SLA policy. Requires `TENANT_ADMIN`.
+
+Body: `{ "serviceTypeCode": "string", "responseMinutes": number, "resolutionMinutes": number, "escalationAfterMinutes": number }`
+
+### PATCH `/sla-policies/:id`
+Update an SLA policy. Requires `TENANT_ADMIN`.
+
+### DELETE `/sla-policies/:id`
+Delete an SLA policy. Requires `TENANT_ADMIN`.
+
+---
+
+## Workflow Transitions
+
+### GET `/workflow-transitions`
+List workflow transition rules for the tenant.
+
+### POST `/workflow-transitions`
+Create a transition rule. Requires `TENANT_ADMIN`.
+
+Body: `{ "serviceTypeCode": "string", "fromStatus": "RequestStatus", "toStatus": "RequestStatus", "allowedRoles": ["RoleCode"] }`
+
+### PATCH `/workflow-transitions/:id`
+Update a transition rule. Requires `TENANT_ADMIN`.
+
+### DELETE `/workflow-transitions/:id`
+Delete a transition rule. Requires `TENANT_ADMIN`.
 
 ---
 
@@ -152,38 +242,22 @@ Get a temporary signed read URL for a MinIO object.
 
 ---
 
-## Planned Endpoints (not yet implemented)
+## Dashboard
 
-### GET `/requests/:id`
-Get full request detail including comments, activity timeline, SLA record.
+### GET `/dashboard/summary`
+Returns KPI aggregates for the tenant: open requests, unassigned, SLA breached, resolved today, avg resolution time, my assigned count.
 
-### PATCH `/requests/:id/status`
-Transition request status.
-
-### POST `/requests/:id/comments`
-Add a comment to a request.
-
-### POST `/requests/:id/work-log`
-Log work time on a request.
-
-### GET `/service-types`
-List service types for the tenant.
-
-### POST `/service-types`
-Create a service type.
-
-### GET `/sla-policies`
-List SLA policies.
+### GET `/dashboard/recent-activity`
+Returns last N activity events across all requests in the tenant.
 
 ---
 
-## Legacy Modules (to be retired)
+## Legacy Modules (⛔ Being Retired — Do Not Use)
 
-The following modules are still active in the backend but are NOT part of the v1 scope.
-They will be removed after ServiceOps reaches feature parity:
+The following modules exist in the backend but are **not part of v1 scope** and will be removed:
 
-- `/products` — product catalog
-- `/boards`, `/tasks` — Kanban
-- `/messages` — internal messaging
-- `/plans`, `/subscriptions` — subscription management
-- `/billing`, `/invoices` — commerce
+- `/products` — product catalog (template demo)
+- `/boards`, `/tasks` — Kanban (template demo)
+- `/messages` — internal messaging (template demo)
+- `/plans`, `/subscriptions` — subscription management (retiring)
+- `/billing`, `/invoices` — commerce (retiring)
