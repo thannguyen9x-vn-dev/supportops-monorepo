@@ -1,5 +1,9 @@
 # AGENTS.md — SupportOps Platform
 
+## Repository Naming
+- This repository is a monorepo containing frontend (`apps/web`), backend (`apps/api`), and worker (`apps/worker`).
+- Use a neutral repository name (for example `supportops-admin`, `supportops-platform`, or `supportops-monorepo`) to avoid the impression that it is frontend-only.
+
 ## Project Overview
 SupportOps is a multi-tenant internal operations platform for managing service requests — think IT helpdesk / internal ticketing where teams submit, assign, track, and resolve requests.
 
