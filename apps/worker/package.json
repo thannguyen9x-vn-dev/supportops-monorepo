@@ -3,9 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node --watch src/index.js",
-    "build": "echo \"TODO: implement worker build\"",
+    "dev": "ts-node src/main.ts",
+    "build": "tsc --project tsconfig.json",
     "lint": "eslint \"src/**/*.{js,ts}\"",
-    "typecheck": "echo \"TODO: add TypeScript worker\""
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.2",
+    "bullmq": "^5.63.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

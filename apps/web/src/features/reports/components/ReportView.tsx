@@ -81,7 +81,7 @@ export function ReportView({ period, titleKey }: ReportViewProps) {
       </section>
 
       <section className={styles.card}>
-        <h2 className={styles.title}>{t("transactions.title")}</h2>
+        <h2 className={styles.title}>{t("activity.title")}</h2>
         <div className={styles.rowList}>
           {data.transactions.map((transaction) => (
             <div className={styles.row} key={transaction.id}>
@@ -95,7 +95,7 @@ export function ReportView({ period, titleKey }: ReportViewProps) {
                 <p className={styles.value}>{format.number(transaction.amount)}</p>
                 <Chip
                   color={getStatusColor(transaction.status)}
-                  label={t(`transactions.status.${transaction.status}`)}
+                  label={t(`activity.status.${transaction.status}`)}
                   size="small"
                 />
               </div>

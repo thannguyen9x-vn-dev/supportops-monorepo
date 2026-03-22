@@ -4,6 +4,7 @@ import {
   RequestPriority,
   RequestStatus,
   RequestUrgency,
+  SlaHealth,
   ServiceRequest,
   SourceChannel,
 } from '@prisma/client';
@@ -17,6 +18,10 @@ type RequestModelWithServiceType = RequestModel & {
   queue?: {
     name: string;
   } | null;
+  slaRecords?: Array<{
+    health: SlaHealth;
+    targetAt: Date;
+  }>;
 };
 
 export class RequestResponseDto {
@@ -101,7 +106,27 @@ export class RequestResponseDto {
   @ApiProperty()
   updatedAt!: string;
 
+  @ApiProperty({ enum: SlaHealth, nullable: true })
+  slaHealth!: SlaHealth | null;
+
+  @ApiProperty({ nullable: true })
+  slaDueAt!: string | null;
+
   static from(request: RequestModelWithServiceType): RequestResponseDto {
+    const slaHealth = request.slaRecords?.some((item) => item.health === 'BREACHED')
+      ? 'BREACHED'
+      : request.slaRecords?.some((item) => item.health === 'AT_RISK')
+        ? 'AT_RISK'
+        : request.slaRecords?.some((item) => item.health === 'ON_TRACK')
+          ? 'ON_TRACK'
+          : null;
+
+    const earliestTargetAt = request.slaRecords?.length
+      ? request.slaRecords
+          .map((item) => item.targetAt.getTime())
+          .reduce((min, current) => Math.min(min, current), Number.POSITIVE_INFINITY)
+      : null;
+
     return {
       id: request.id,
       tenantId: request.tenantId,
@@ -130,6 +155,8 @@ export class RequestResponseDto {
       closedAt: request.closedAt?.toISOString() ?? null,
       createdAt: request.createdAt.toISOString(),
       updatedAt: request.updatedAt.toISOString(),
+      slaHealth,
+      slaDueAt: earliestTargetAt !== null ? new Date(earliestTargetAt).toISOString() : null,
     };
   }
 }

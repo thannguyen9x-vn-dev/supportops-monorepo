@@ -8,25 +8,76 @@ import type {
   RequestAssignee,
   RequestWorkflowDetail,
   RequestWorkLog,
+  RequestTabCounts,
+  RequestListTabKey,
   ServiceRequest,
   UpdateRequestStatusInput,
 } from "@supportops/types";
 
 import { ENDPOINTS, apiClient } from "@/lib/api";
 
+type RequestServiceType = {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  isActive?: boolean;
+};
+
 export const requestService = {
-  list: (params?: { page?: number; size?: number; search?: string; status?: string }) =>
+  list: (params?: {
+    page?: number;
+    size?: number;
+    search?: string;
+    status?: ServiceRequest["status"];
+    serviceTypeCode?: string;
+    assigneeId?: string;
+    locationId?: string;
+    slaHealth?: "ON_TRACK" | "AT_RISK" | "BREACHED";
+    updatedToday?: boolean;
+    tab?: RequestListTabKey;
+  }) =>
     apiClient.get<ServiceRequest[]>(ENDPOINTS.REQUESTS.LIST, {
       params: {
         page: params?.page ?? 1,
         size: params?.size ?? 20,
         search: params?.search,
         status: params?.status,
+        serviceTypeCode: params?.serviceTypeCode,
+        assigneeId: params?.assigneeId,
+        locationId: params?.locationId,
+        slaHealth: params?.slaHealth,
+        updatedToday: params?.updatedToday,
+        tab: params?.tab,
+      },
+    }),
+
+  listTabCounts: (params?: {
+    search?: string;
+    status?: ServiceRequest["status"];
+    serviceTypeCode?: string;
+    assigneeId?: string;
+    locationId?: string;
+    slaHealth?: "ON_TRACK" | "AT_RISK" | "BREACHED";
+    updatedToday?: boolean;
+  }) =>
+    apiClient.get<RequestTabCounts>(ENDPOINTS.REQUESTS.TAB_COUNTS, {
+      params: {
+        search: params?.search,
+        status: params?.status,
+        serviceTypeCode: params?.serviceTypeCode,
+        assigneeId: params?.assigneeId,
+        locationId: params?.locationId,
+        slaHealth: params?.slaHealth,
+        updatedToday: params?.updatedToday,
       },
     }),
 
   create: (payload: CreateServiceRequestInput) =>
     apiClient.post<ServiceRequest>(ENDPOINTS.REQUESTS.CREATE, payload),
+
+  listServiceTypes: () =>
+    apiClient.get<RequestServiceType[]>(ENDPOINTS.SERVICE_TYPES.LIST, { cache: "no-store" }),
 
   detail: (id: string) =>
     apiClient.get<ServiceRequest>(ENDPOINTS.REQUESTS.DETAIL(id)),

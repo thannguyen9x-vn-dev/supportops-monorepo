@@ -18,14 +18,14 @@ export const MOCK_SETTINGS_DATA: SettingsData = {
     department: "Marketing",
   },
   notifications: [
-    { key: "companyNews", group: "alerts", enabled: false },
-    { key: "accountActivity", group: "alerts", enabled: true },
-    { key: "meetupsNearYou", group: "alerts", enabled: true },
-    { key: "newMessages", group: "alerts", enabled: false },
-    { key: "ratingReminders", group: "email", enabled: true },
-    { key: "itemUpdateNotifications", group: "email", enabled: true },
-    { key: "itemCommentNotifications", group: "email", enabled: true },
-    { key: "buyerReviewNotifications", group: "email", enabled: false },
+    { key: "assignmentAlerts", group: "alerts", enabled: false },
+    { key: "statusUpdateAlerts", group: "alerts", enabled: true },
+    { key: "slaRiskAlerts", group: "alerts", enabled: true },
+    { key: "escalationAlerts", group: "alerts", enabled: false },
+    { key: "resolutionReminders", group: "email", enabled: true },
+    { key: "requestUpdateDigest", group: "email", enabled: true },
+    { key: "commentNotifications", group: "email", enabled: true },
+    { key: "mentionNotifications", group: "email", enabled: false },
   ],
 };
 

@@ -1,12 +1,12 @@
 query MeSettings {
   meSettings {
-    companyNews
-    accountActivity
-    meetupsNearYou
-    newMessages
-    ratingReminders
-    itemUpdateNotif
-    itemCommentNotif
-    buyerReviewNotif
+    assignmentAlerts
+    statusUpdateAlerts
+    slaRiskAlerts
+    escalationAlerts
+    resolutionReminders
+    requestUpdateDigest
+    commentNotifications
+    mentionNotifications
   }
 }

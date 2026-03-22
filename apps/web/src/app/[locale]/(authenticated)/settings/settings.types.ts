@@ -25,14 +25,14 @@ export type PasswordFormValues = {
 };
 
 export type NotificationItemKey =
-  | "companyNews"
-  | "accountActivity"
-  | "meetupsNearYou"
-  | "newMessages"
-  | "ratingReminders"
-  | "itemUpdateNotifications"
-  | "itemCommentNotifications"
-  | "buyerReviewNotifications";
+  | "assignmentAlerts"
+  | "statusUpdateAlerts"
+  | "slaRiskAlerts"
+  | "escalationAlerts"
+  | "resolutionReminders"
+  | "requestUpdateDigest"
+  | "commentNotifications"
+  | "mentionNotifications";
 
 export type NotificationGroupKey = "alerts" | "email";
 

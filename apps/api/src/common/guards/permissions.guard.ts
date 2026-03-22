@@ -95,11 +95,6 @@ export class PermissionsGuard implements CanActivate {
       'comment.create.internal',
       'comment.read.internal',
       'audit.read',
-      'product.manage',
-      'billing.manage',
-      'invoice.manage',
-      'subscription.manage',
-      'kanban.manage',
     ];
     const technician = [
       'request.create',

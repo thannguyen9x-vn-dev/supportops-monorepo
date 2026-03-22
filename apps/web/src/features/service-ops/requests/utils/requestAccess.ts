@@ -2,7 +2,7 @@ import type { UserRole } from "@supportops/types";
 
 import type { CommentVisibility, MetadataAccessLevel, RequestStatus, SectionVisibility } from "../types";
 
-const INTERNAL_ROLES: ReadonlySet<UserRole> = new Set(["OPS_COORDINATOR", "TECHNICIAN", "TENANT_ADMIN"]);
+const INTERNAL_ROLES: ReadonlySet<UserRole> = new Set(["OPS_COORDINATOR", "TENANT_ADMIN"]);
 const REOPENABLE_STATUSES: ReadonlySet<RequestStatus> = new Set(["RESOLVED", "CLOSED"]);
 
 export function isInternalRole(role: UserRole): boolean {

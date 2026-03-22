@@ -22,20 +22,20 @@ export type Query = {
 
 export type UserPreferences = {
   __typename?: 'UserPreferences';
-  accountActivity: Scalars['Boolean']['output'];
-  buyerReviewNotif: Scalars['Boolean']['output'];
-  companyNews: Scalars['Boolean']['output'];
-  itemCommentNotif: Scalars['Boolean']['output'];
-  itemUpdateNotif: Scalars['Boolean']['output'];
-  meetupsNearYou: Scalars['Boolean']['output'];
-  newMessages: Scalars['Boolean']['output'];
-  ratingReminders: Scalars['Boolean']['output'];
+  statusUpdateAlerts: Scalars['Boolean']['output'];
+  mentionNotifications: Scalars['Boolean']['output'];
+  assignmentAlerts: Scalars['Boolean']['output'];
+  commentNotifications: Scalars['Boolean']['output'];
+  requestUpdateDigest: Scalars['Boolean']['output'];
+  slaRiskAlerts: Scalars['Boolean']['output'];
+  escalationAlerts: Scalars['Boolean']['output'];
+  resolutionReminders: Scalars['Boolean']['output'];
 };
 
 export type MeSettingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeSettingsQuery = { __typename?: 'Query', meSettings: { __typename?: 'UserPreferences', companyNews: boolean, accountActivity: boolean, meetupsNearYou: boolean, newMessages: boolean, ratingReminders: boolean, itemUpdateNotif: boolean, itemCommentNotif: boolean, buyerReviewNotif: boolean } };
+export type MeSettingsQuery = { __typename?: 'Query', meSettings: { __typename?: 'UserPreferences', assignmentAlerts: boolean, statusUpdateAlerts: boolean, slaRiskAlerts: boolean, escalationAlerts: boolean, resolutionReminders: boolean, requestUpdateDigest: boolean, commentNotifications: boolean, mentionNotifications: boolean } };
 
 
-export const MeSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"MeSettings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"meSettings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"companyNews"}},{"kind":"Field","name":{"kind":"Name","value":"accountActivity"}},{"kind":"Field","name":{"kind":"Name","value":"meetupsNearYou"}},{"kind":"Field","name":{"kind":"Name","value":"newMessages"}},{"kind":"Field","name":{"kind":"Name","value":"ratingReminders"}},{"kind":"Field","name":{"kind":"Name","value":"itemUpdateNotif"}},{"kind":"Field","name":{"kind":"Name","value":"itemCommentNotif"}},{"kind":"Field","name":{"kind":"Name","value":"buyerReviewNotif"}}]}}]}}]} as unknown as DocumentNode<MeSettingsQuery, MeSettingsQueryVariables>;
+export const MeSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"MeSettings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"meSettings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"assignmentAlerts"}},{"kind":"Field","name":{"kind":"Name","value":"statusUpdateAlerts"}},{"kind":"Field","name":{"kind":"Name","value":"slaRiskAlerts"}},{"kind":"Field","name":{"kind":"Name","value":"escalationAlerts"}},{"kind":"Field","name":{"kind":"Name","value":"resolutionReminders"}},{"kind":"Field","name":{"kind":"Name","value":"requestUpdateDigest"}},{"kind":"Field","name":{"kind":"Name","value":"commentNotifications"}},{"kind":"Field","name":{"kind":"Name","value":"mentionNotifications"}}]}}]}}]} as unknown as DocumentNode<MeSettingsQuery, MeSettingsQueryVariables>;

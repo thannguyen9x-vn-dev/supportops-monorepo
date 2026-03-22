@@ -1,37 +1,45 @@
 # ServiceOps Restructure (TeamOps Core + ServiceOps Layer)
 
-## Target Architecture
+> **Status: Completed.** The restructure described below has been implemented.
+> Legacy modules are still present in the codebase and will be removed in Phase 3 (Task 3.4).
+
+## Target Architecture (Implemented)
 
 ### Backend (`apps/api/src/modules`)
-- `core/*`: auth, tenant, user, role, permission, work-item, workflow, comment, notification, audit
+- `core/*`: auth, tenant, user, role, permission, workflow, comment, notification, audit
 - `service-ops/*`: request, assignment, sla, escalation, asset, work-log, resolution
-- legacy modules stay active during migration and will be removed phase-by-phase
+- Legacy modules remain active and will be removed phase-by-phase (see `docs/AGENT_TASKS.md` Task 3.4)
 
 ### Frontend (`apps/web/src`)
-- route group renamed from `(admin)` to `(authenticated)`
-- new primary routes:
+- Route group: `(authenticated)` for all protected routes
+- Primary routes implemented:
   - `/requests/list`
   - `/requests/[id]`
   - `/requests/create`
   - `/settings/workflow`
   - `/settings/sla`
   - `/settings/service-types`
-- new feature roots:
+  - `/team`
+  - `/settings/profile` (4 tabs)
+- Feature roots:
   - `features/core/*`
   - `features/service-ops/*`
 
 ### Contracts (`packages/types/src`)
 - `core/endpoints.ts`, `core/types.ts`
 - `service-ops/endpoints.ts`, `service-ops/types.ts`
-- `endpoints.ts` now merges new + legacy for backward compatibility
+- `endpoints.ts` merges new + legacy for backward compatibility during transition
 
 ## Migration Order
-1. Introduce skeleton modules/routes/contracts (done)
-2. Implement Request domain end-to-end (API + UI)
-3. Move workflow logic from Kanban into workflow/request transitions
-4. Introduce SLA jobs + escalation
-5. Retire legacy modules (product/message/kanban/billing/subscription/invoice)
+
+1. ✅ Introduce skeleton modules/routes/contracts
+2. ✅ Auth, User Profile, Team Management end-to-end
+3. 🔶 Request domain end-to-end (API + UI) — in progress
+4. ⬜ Workflow transitions + SLA jobs + escalation
+5. ⬜ Retire legacy modules (product/message/kanban/billing/subscription/invoice)
 
 ## Notes
-- Current commit intentionally keeps legacy modules imported so existing flows do not hard break.
-- Next commits should move logic gradually and remove legacy imports only after feature parity.
+
+- Legacy modules are still imported so existing flows do not hard break.
+- Do not extend or add features to legacy modules — they are being retired.
+- See `docs/AGENT_TASKS.md` for full task breakdown.

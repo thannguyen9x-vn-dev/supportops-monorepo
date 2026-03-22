@@ -50,7 +50,7 @@ root/
 └──────────────────┴───────────────────────┴──────────────────────┘
 ```
 
-**Legacy modules** (still in codebase, being phased out):
+**Legacy modules removed (Phase 3.4 completed):**
 `product`, `kanban`, `message`, `billing`, `subscription`, `invoice`
 
 ## Key Architectural Principles
@@ -142,15 +142,14 @@ Tenant
 - Auth full flow: register, login, logout, refresh (HttpOnly cookie), verify-email, forgot/reset password, invite/accept-invite
 - User profile: get, update, avatar upload, change password, sessions
 - Team management: list members, invite, deactivate, reactivate, change role
-- Service requests: list (paginated, filtered by status), create (draft or submit mode)
-- Request detail screen (UI)
-- Settings routes: workflow, SLA, service-types (UI scaffold)
+- Service requests: list (paginated, tab-aware, filtered by status/serviceType/assignee/location/SLA), create (draft or submit mode)
+- Request detail: workflow endpoint, status transitions, assign/reassign, comments, work logs
+- Settings: service types, SLA policies, workflow transitions CRUD
 - Admin: user management (UI)
 - File upload via MinIO
 - RBAC: permission-based guards on all endpoints
 
 ### In Progress / Planned
-- Request detail: full backend (get by ID, update status, add comment, work log)
 - SLA background jobs (assignment SLA + resolution SLA monitoring)
 - Escalation automation
 - Background worker (BullMQ + Redis)

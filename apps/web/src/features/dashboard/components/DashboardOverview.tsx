@@ -1,114 +1,273 @@
 "use client";
 
 import { useFormatter, useTranslations } from "next-intl";
-import { Alert, Button, Chip, CircularProgress } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Divider,
+  Grid,
+  Stack,
+  Typography,
+} from "@mui/material";
+import type { DashboardRecentActivityItem, DashboardSummary } from "@supportops/types";
 
 import { useDashboardOverview } from "@/features/dashboard/hooks/useDashboardOverview";
 
-import styles from "./dashboard-overview.module.css";
+function KpiCard({
+  label,
+  value,
+  helper,
+}: {
+  label: string;
+  value: string;
+  helper?: string;
+}) {
+  return (
+    <Card variant="outlined">
+      <CardContent>
+        <Stack spacing={1}>
+          <Typography color="text.secondary" variant="body2">
+            {label}
+          </Typography>
+          <Typography sx={{ fontSize: 32, fontWeight: 700, lineHeight: 1.1 }} variant="h4">
+            {value}
+          </Typography>
+          {helper ? (
+            <Typography color="text.secondary" variant="body2">
+              {helper}
+            </Typography>
+          ) : null}
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
 
-function getStatusColor(status: "COMPLETED" | "IN_PROGRESS" | "CANCELLED") {
-  if (status === "COMPLETED") {
-    return "success";
-  }
+function PriorityChip({ priority, count }: { priority: string; count: number }) {
+  const t = useTranslations("pages.dashboard");
+  const color =
+    priority === "URGENT"
+      ? "error"
+      : priority === "HIGH"
+        ? "warning"
+        : priority === "MEDIUM"
+          ? "info"
+          : "success";
 
-  if (status === "IN_PROGRESS") {
-    return "warning";
-  }
+  return <Chip color={color} label={`${t(`priority.${priority}`)}: ${count}`} variant="outlined" />;
+}
 
-  return "default";
+function SlaChip({ label, count, color }: { label: string; count: number; color: "success" | "warning" | "error" }) {
+  return <Chip color={color} label={`${label}: ${count}`} variant="outlined" />;
+}
+
+function StatusRow({ label, count }: { label: string; count: number }) {
+  return (
+    <Stack alignItems="center" direction="row" justifyContent="space-between" spacing={2}>
+      <Typography variant="body2">{label}</Typography>
+      <Typography fontWeight={700} variant="body2">
+        {count}
+      </Typography>
+    </Stack>
+  );
+}
+
+function ActivityRow({ item }: { item: DashboardRecentActivityItem }) {
+  const format = useFormatter();
+
+  return (
+    <Stack spacing={0.5}>
+      <Stack
+        alignItems={{ xs: "flex-start", sm: "center" }}
+        direction={{ xs: "column", sm: "row" }}
+        justifyContent="space-between"
+        spacing={1}
+      >
+        <Typography fontWeight={700} variant="body2">
+          {item.requestCode ?? item.requestId}
+        </Typography>
+        <Typography color="text.secondary" variant="caption">
+          {format.dateTime(new Date(item.createdAt), {
+            dateStyle: "medium",
+            timeStyle: "short",
+          })}
+        </Typography>
+      </Stack>
+      <Typography variant="body2">{item.title}</Typography>
+      {item.description ? (
+        <Typography color="text.secondary" variant="body2">
+          {item.description}
+        </Typography>
+      ) : null}
+      <Typography color="text.secondary" variant="caption">
+        {[item.requestTitle, item.actorName].filter(Boolean).join(" · ")}
+      </Typography>
+    </Stack>
+  );
+}
+
+function DashboardContent({ summary, recentActivity }: { summary: DashboardSummary; recentActivity: DashboardRecentActivityItem[] }) {
+  const t = useTranslations("pages.dashboard");
+  const requestListT = useTranslations("pages.requests.list");
+  const format = useFormatter();
+
+  const scopeLabel = summary.scope === "TEAM" ? t("scope.team") : t("scope.personal");
+
+  return (
+    <Stack spacing={3}>
+      <Stack
+        alignItems={{ xs: "flex-start", md: "center" }}
+        direction={{ xs: "column", md: "row" }}
+        justifyContent="space-between"
+        spacing={2}
+      >
+        <Stack spacing={0.5}>
+          <Typography variant="h4">{t("title")}</Typography>
+          <Typography color="text.secondary" variant="body2">
+            {t("subtitle")}
+          </Typography>
+        </Stack>
+        <Chip color={summary.scope === "TEAM" ? "primary" : "default"} label={scopeLabel} variant="outlined" />
+      </Stack>
+
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+          <KpiCard label={t("kpi.openRequests")} value={format.number(summary.kpis.openRequests)} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+          <KpiCard label={t("kpi.unassigned")} value={format.number(summary.kpis.unassigned)} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+          <KpiCard label={t("kpi.slaBreached")} value={format.number(summary.kpis.slaBreached)} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+          <KpiCard label={t("kpi.resolvedToday")} value={format.number(summary.kpis.resolvedToday)} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+          <KpiCard
+            helper={t("kpi.avgResolutionTimeHelper")}
+            label={t("kpi.avgResolutionTime")}
+            value={format.number(summary.kpis.avgResolutionTimeHours, { maximumFractionDigits: 1 })}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+          <KpiCard label={t("kpi.myAssigned")} value={format.number(summary.kpis.myAssigned)} />
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, lg: 4 }}>
+          <Card variant="outlined">
+            <CardContent>
+              <Stack spacing={1.5}>
+                <Typography variant="h6">{t("sections.byStatus")}</Typography>
+                {summary.requestsByStatus.map((item) => (
+                  <StatusRow
+                    count={item.count}
+                    key={item.status}
+                    label={requestListT(`statusApi.${item.status}`)}
+                  />
+                ))}
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid size={{ xs: 12, lg: 4 }}>
+          <Card variant="outlined">
+            <CardContent>
+              <Stack spacing={1.5}>
+                <Typography variant="h6">{t("sections.byPriority")}</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                  {summary.requestsByPriority.map((item) => (
+                    <PriorityChip count={item.count} key={item.priority} priority={item.priority} />
+                  ))}
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid size={{ xs: 12, lg: 4 }}>
+          <Card variant="outlined">
+            <CardContent>
+              <Stack spacing={1.5}>
+                <Typography variant="h6">{t("sections.slaOverview")}</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                  <SlaChip color="success" count={summary.slaOverview.onTrack} label={t("sla.onTrack")} />
+                  <SlaChip color="warning" count={summary.slaOverview.atRisk} label={t("sla.atRisk")} />
+                  <SlaChip color="error" count={summary.slaOverview.breached} label={t("sla.breached")} />
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      <Card variant="outlined">
+        <CardContent>
+          <Stack spacing={1.5}>
+            <Typography variant="h6">{t("sections.recentActivity")}</Typography>
+            {recentActivity.length === 0 ? (
+              <Typography color="text.secondary" variant="body2">
+                {t("state.empty")}
+              </Typography>
+            ) : (
+              recentActivity.map((item, index) => (
+                <Box key={item.id}>
+                  <ActivityRow item={item} />
+                  {index < recentActivity.length - 1 ? <Divider sx={{ mt: 1.5 }} /> : null}
+                </Box>
+              ))
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
+    </Stack>
+  );
 }
 
 export function DashboardOverview() {
   const t = useTranslations("pages.dashboard");
-  const format = useFormatter();
   const { data, loadState, reload } = useDashboardOverview();
 
   if (loadState === "loading") {
     return (
-      <div className={styles.centeredState}>
+      <Stack alignItems="center" justifyContent="center" spacing={1.5} sx={{ minHeight: 320 }}>
         <CircularProgress size={28} />
-        <p>{t("state.loading")}</p>
-      </div>
+        <Typography color="text.secondary" variant="body2">
+          {t("state.loading")}
+        </Typography>
+      </Stack>
     );
   }
 
   if (loadState === "error") {
     return (
-      <div className={styles.centeredState}>
+      <Stack spacing={2} sx={{ maxWidth: 520 }}>
         <Alert severity="error">{t("state.error")}</Alert>
-        <Button onClick={() => void reload()} variant="contained">
-          {t("action.retry")}
-        </Button>
-      </div>
+        <Box>
+          <Button onClick={() => void reload()} variant="contained">
+            {t("action.retry")}
+          </Button>
+        </Box>
+      </Stack>
     );
   }
 
-  const kpi = data.kpi;
-
   return (
-    <div className={styles.page}>
-      <div className={styles.headerRow}>
-        <h1 className={styles.title}>{t("title")}</h1>
+    <Stack spacing={3}>
+      <Box>
         <Button onClick={() => void reload()} size="small" variant="outlined">
           {t("action.refresh")}
         </Button>
-      </div>
-
-      {kpi ? (
-        <div className={styles.kpiGrid}>
-          <div className={styles.kpiCard}>
-            <p className={styles.kpiLabel}>{t("kpi.todaySales")}</p>
-            <p className={styles.kpiValue}>{format.number(kpi.todaySales.value)}</p>
-            <p className={styles.kpiChange}>{t("kpi.change", { value: kpi.todaySales.changePercent })}</p>
-          </div>
-          <div className={styles.kpiCard}>
-            <p className={styles.kpiLabel}>{t("kpi.todayVisitors")}</p>
-            <p className={styles.kpiValue}>{format.number(kpi.todayVisitors.value)}</p>
-            <p className={styles.kpiChange}>{t("kpi.change", { value: kpi.todayVisitors.changePercent })}</p>
-          </div>
-          <div className={styles.kpiCard}>
-            <p className={styles.kpiLabel}>{t("kpi.weekVisitors")}</p>
-            <p className={styles.kpiValue}>{format.number(kpi.weekVisitors.value)}</p>
-            <p className={styles.kpiChange}>{t("kpi.change", { value: kpi.weekVisitors.changePercent })}</p>
-          </div>
-        </div>
-      ) : null}
-
-      <div className={styles.sectionGrid}>
-        <section className={styles.sectionCard}>
-          <h2 className={styles.sectionTitle}>{t("latestCustomers.title")}</h2>
-          <div className={styles.rowList}>
-            {data.latestCustomers.map((customer) => (
-              <div className={styles.rowItem} key={customer.id}>
-                <div>
-                  <p className={styles.name}>{customer.name}</p>
-                  <p className={styles.meta}>{customer.email}</p>
-                </div>
-                <span className={styles.amount}>{format.number(customer.amount)}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className={styles.sectionCard}>
-          <h2 className={styles.sectionTitle}>{t("transactions.title")}</h2>
-          <div className={styles.rowList}>
-            {data.transactions.map((transaction) => (
-              <div className={styles.rowItem} key={transaction.id}>
-                <div>
-                  <p className={styles.name}>{transaction.description}</p>
-                  <p className={styles.meta}>{format.dateTime(new Date(transaction.dateTime), { dateStyle: "medium" })}</p>
-                </div>
-                <div>
-                  <p className={styles.amount}>{format.number(transaction.amount)}</p>
-                  <Chip color={getStatusColor(transaction.status)} label={t(`transactions.status.${transaction.status}`)} size="small" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-    </div>
+      </Box>
+      <DashboardContent recentActivity={data.recentActivity} summary={data.summary} />
+    </Stack>
   );
 }

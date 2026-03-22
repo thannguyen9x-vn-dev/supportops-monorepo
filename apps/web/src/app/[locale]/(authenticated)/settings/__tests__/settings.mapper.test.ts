@@ -56,14 +56,14 @@ function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
 
 function makePreferences(overrides: Partial<UserPreferences> = {}): UserPreferences {
   return {
-    companyNews: false,
-    accountActivity: false,
-    meetupsNearYou: false,
-    newMessages: false,
-    ratingReminders: false,
-    itemUpdateNotif: false,
-    itemCommentNotif: false,
-    buyerReviewNotif: false,
+    assignmentAlerts: false,
+    statusUpdateAlerts: false,
+    slaRiskAlerts: false,
+    escalationAlerts: false,
+    resolutionReminders: false,
+    requestUpdateDigest: false,
+    commentNotifications: false,
+    mentionNotifications: false,
     ...overrides
   };
 }
@@ -255,20 +255,20 @@ describe("toNotificationPreferences", () => {
   });
 
   it("maps alert-group items with group = 'alerts'", () => {
-    const result = toNotificationPreferences(makePreferences({ companyNews: true }));
+    const result = toNotificationPreferences(makePreferences({ assignmentAlerts: true }));
 
-    expect(result.find((p) => p.key === "companyNews")).toEqual({
-      key: "companyNews",
+    expect(result.find((p) => p.key === "assignmentAlerts")).toEqual({
+      key: "assignmentAlerts",
       group: "alerts",
       enabled: true
     });
     // Kiểm tra tất cả alerts items đều có group đúng
     const alertItems = result.filter((p) => p.group === "alerts");
     expect(alertItems.map((p) => p.key)).toEqual([
-      "companyNews",
-      "accountActivity",
-      "meetupsNearYou",
-      "newMessages"
+      "assignmentAlerts",
+      "statusUpdateAlerts",
+      "slaRiskAlerts",
+      "escalationAlerts"
     ]);
   });
 
@@ -278,39 +278,35 @@ describe("toNotificationPreferences", () => {
     );
 
     expect(emailItems.map((p) => p.key)).toEqual([
-      "ratingReminders",
-      "itemUpdateNotifications",
-      "itemCommentNotifications",
-      "buyerReviewNotifications"
+      "resolutionReminders",
+      "requestUpdateDigest",
+      "commentNotifications",
+      "mentionNotifications"
     ]);
   });
 
-  it("renames API field 'itemUpdateNotif' to UI key 'itemUpdateNotifications'", () => {
-    // Quan trọng: API dùng tên ngắn, UI dùng tên dài hơn
-    // Đây là logic rename cần phải test rõ ràng
-    const result = toNotificationPreferences(makePreferences({ itemUpdateNotif: true }));
-    const item = result.find((p) => p.key === "itemUpdateNotifications");
+  it("maps requestUpdateDigest directly without key remapping", () => {
+    const result = toNotificationPreferences(makePreferences({ requestUpdateDigest: true }));
+    const item = result.find((p) => p.key === "requestUpdateDigest");
 
     expect(item).toBeDefined();
     expect(item?.enabled).toBe(true);
-    // Đảm bảo không có key với tên cũ
-    expect(result.find((p) => p.key === "itemUpdateNotif" as string)).toBeUndefined();
   });
 
   it("preserves the enabled boolean values from UserPreferences", () => {
     const prefs = makePreferences({
-      companyNews: true,
-      accountActivity: false,
-      ratingReminders: true,
-      buyerReviewNotif: false
+      assignmentAlerts: true,
+      statusUpdateAlerts: false,
+      resolutionReminders: true,
+      mentionNotifications: false
     });
 
     const result = toNotificationPreferences(prefs);
 
-    expect(result.find((p) => p.key === "companyNews")?.enabled).toBe(true);
-    expect(result.find((p) => p.key === "accountActivity")?.enabled).toBe(false);
-    expect(result.find((p) => p.key === "ratingReminders")?.enabled).toBe(true);
-    expect(result.find((p) => p.key === "buyerReviewNotifications")?.enabled).toBe(false);
+    expect(result.find((p) => p.key === "assignmentAlerts")?.enabled).toBe(true);
+    expect(result.find((p) => p.key === "statusUpdateAlerts")?.enabled).toBe(false);
+    expect(result.find((p) => p.key === "resolutionReminders")?.enabled).toBe(true);
+    expect(result.find((p) => p.key === "mentionNotifications")?.enabled).toBe(false);
   });
 });
 
@@ -319,14 +315,14 @@ describe("toNotificationPreferences", () => {
 describe("toUserPreferences", () => {
   // Danh sách đủ 8 items
   const allPreferences: NotificationPreference[] = [
-    { key: "companyNews", group: "alerts", enabled: true },
-    { key: "accountActivity", group: "alerts", enabled: false },
-    { key: "meetupsNearYou", group: "alerts", enabled: true },
-    { key: "newMessages", group: "alerts", enabled: false },
-    { key: "ratingReminders", group: "email", enabled: true },
-    { key: "itemUpdateNotifications", group: "email", enabled: true },
-    { key: "itemCommentNotifications", group: "email", enabled: false },
-    { key: "buyerReviewNotifications", group: "email", enabled: true }
+    { key: "assignmentAlerts", group: "alerts", enabled: true },
+    { key: "statusUpdateAlerts", group: "alerts", enabled: false },
+    { key: "slaRiskAlerts", group: "alerts", enabled: true },
+    { key: "escalationAlerts", group: "alerts", enabled: false },
+    { key: "resolutionReminders", group: "email", enabled: true },
+    { key: "requestUpdateDigest", group: "email", enabled: true },
+    { key: "commentNotifications", group: "email", enabled: false },
+    { key: "mentionNotifications", group: "email", enabled: true }
   ];
 
   it("maps NotificationPreference[] back to the UserPreferences API shape", () => {
@@ -334,14 +330,14 @@ describe("toUserPreferences", () => {
 
     // toEqual: so sánh deep equality (kiểm tra toàn bộ object)
     expect(result).toEqual({
-      companyNews: true,
-      accountActivity: false,
-      meetupsNearYou: true,
-      newMessages: false,
-      ratingReminders: true,
-      itemUpdateNotif: true, // UI "itemUpdateNotifications" → API "itemUpdateNotif"
-      itemCommentNotif: false, // UI "itemCommentNotifications" → API "itemCommentNotif"
-      buyerReviewNotif: true // UI "buyerReviewNotifications" → API "buyerReviewNotif"
+      assignmentAlerts: true,
+      statusUpdateAlerts: false,
+      slaRiskAlerts: true,
+      escalationAlerts: false,
+      resolutionReminders: true,
+      requestUpdateDigest: true, // UI "requestUpdateDigest" → API "requestUpdateDigest"
+      commentNotifications: false, // UI "commentNotifications" → API "commentNotifications"
+      mentionNotifications: true // UI "mentionNotifications" → API "mentionNotifications"
     });
   });
 
@@ -349,17 +345,17 @@ describe("toUserPreferences", () => {
     // Nếu preferences rỗng → tất cả về false (tránh undefined)
     const result = toUserPreferences([]);
 
-    expect(result.companyNews).toBe(false);
-    expect(result.itemUpdateNotif).toBe(false);
-    expect(result.buyerReviewNotif).toBe(false);
+    expect(result.assignmentAlerts).toBe(false);
+    expect(result.requestUpdateDigest).toBe(false);
+    expect(result.mentionNotifications).toBe(false);
   });
 
   it("is the inverse of toNotificationPreferences (round-trip)", () => {
     // Tính chất quan trọng: convert đi rồi convert lại phải ra data gốc
     const original = makePreferences({
-      companyNews: true,
-      ratingReminders: true,
-      itemUpdateNotif: true
+      assignmentAlerts: true,
+      resolutionReminders: true,
+      requestUpdateDigest: true
     });
 
     const roundTripped = toUserPreferences(toNotificationPreferences(original));

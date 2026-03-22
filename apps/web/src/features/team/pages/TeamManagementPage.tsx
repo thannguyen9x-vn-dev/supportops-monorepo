@@ -130,7 +130,7 @@ export default function AdminUserPage() {
     }
   };
 
-  const handleRoleChange = async (userId: string, nextRole: TeamRoleCode) => {
+  const handleRoleChange = useCallback(async (userId: string, nextRole: TeamRoleCode) => {
     const previousUsers = users;
     setUsers((current) =>
       current.map((user) =>
@@ -150,9 +150,9 @@ export default function AdminUserPage() {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [t, toast, users, loadUsers]);
 
-  const handleDepartmentChange = async (userId: string, nextDepartment: string) => {
+  const handleDepartmentChange = useCallback(async (userId: string, nextDepartment: string) => {
     const previousUsers = users;
     const normalizedDepartment = nextDepartment.trim();
     const nextValue = normalizedDepartment ? normalizedDepartment : null;
@@ -175,9 +175,9 @@ export default function AdminUserPage() {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [t, toast, users, loadUsers]);
 
-  const handleDeactivate = async (userId: string) => {
+  const handleDeactivate = useCallback(async (userId: string) => {
     const previousUsers = users;
     setUsers((current) =>
       current.map((user) =>
@@ -197,9 +197,9 @@ export default function AdminUserPage() {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [t, toast, users, loadUsers]);
 
-  const handleReactivate = async (userId: string) => {
+  const handleReactivate = useCallback(async (userId: string) => {
     const previousUsers = users;
     setUsers((current) =>
       current.map((user) =>
@@ -219,7 +219,7 @@ export default function AdminUserPage() {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [t, toast, users, loadUsers]);
 
   const userColumns = useMemo<EntityColumnDef<TeamUser>[]>(
     () => [

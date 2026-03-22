@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import appConfig from './config/app.config';
@@ -27,21 +28,16 @@ import { TenantCoreModule } from './modules/core/tenant/tenant-core.module';
 import { UserCoreModule } from './modules/core/user/user-core.module';
 import { WorkItemCoreModule } from './modules/core/work-item/work-item-core.module';
 import { WorkflowCoreModule } from './modules/core/workflow/workflow-core.module';
-import { BillingModule } from './modules/billing/billing.module';
-import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { FileModule } from './modules/file/file.module';
-import { InvoiceModule } from './modules/invoice/invoice.module';
-import { KanbanModule } from './modules/kanban/kanban.module';
-import { MessageModule } from './modules/message/message.module';
-import { ProductModule } from './modules/product/product.module';
 import { AssetModule } from './modules/service-ops/asset/asset.module';
 import { AssignmentModule } from './modules/service-ops/assignment/assignment.module';
+import { DashboardModule } from './modules/service-ops/dashboard/dashboard.module';
 import { EscalationModule } from './modules/service-ops/escalation/escalation.module';
 import { RequestModule } from './modules/service-ops/request/request.module';
 import { ResolutionModule } from './modules/service-ops/resolution/resolution.module';
 import { SlaModule } from './modules/service-ops/sla/sla.module';
+import { SettingsModule } from './modules/service-ops/settings/settings.module';
 import { WorkLogModule } from './modules/service-ops/work-log/work-log.module';
-import { SubscriptionModule } from './modules/subscription/subscription.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -51,6 +47,7 @@ import { PrismaModule } from './prisma/prisma.module';
       isGlobal: true,
       load: [appConfig, authConfig, databaseConfig, fileConfig, jwtConfig, mailConfig],
     }),
+    EventEmitterModule.forRoot(),
     PrismaModule,
     // TeamOps core layer
     TenantCoreModule,
@@ -67,19 +64,13 @@ import { PrismaModule } from './prisma/prisma.module';
     RequestModule,
     AssignmentModule,
     SlaModule,
+    SettingsModule,
     EscalationModule,
     AssetModule,
     WorkLogModule,
     ResolutionModule,
-    // Legacy modules (to be removed phase-by-phase)
-    ProductModule,
-    KanbanModule,
-    MessageModule,
-    DashboardModule,
-    SubscriptionModule,
-    BillingModule,
-    InvoiceModule,
     FileModule,
+    DashboardModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

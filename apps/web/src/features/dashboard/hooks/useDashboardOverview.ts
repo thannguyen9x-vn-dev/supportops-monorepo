@@ -2,40 +2,48 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import type { DashboardKpi, DashboardTransaction, LatestCustomer } from "@supportops/types";
+import type { DashboardData } from "@supportops/types";
 
 import { dashboardService } from "@/features/dashboard/services/dashboard.service";
 
-type DashboardOverviewState = {
-  kpi: DashboardKpi | null;
-  latestCustomers: LatestCustomer[];
-  transactions: DashboardTransaction[];
-};
-
 type DashboardLoadState = "loading" | "ready" | "error";
 
-const INITIAL_STATE: DashboardOverviewState = {
-  kpi: null,
-  latestCustomers: [],
-  transactions: []
+const INITIAL_STATE: DashboardData = {
+  summary: {
+    scope: "PERSONAL",
+    kpis: {
+      openRequests: 0,
+      unassigned: 0,
+      slaBreached: 0,
+      resolvedToday: 0,
+      avgResolutionTimeHours: 0,
+      myAssigned: 0,
+    },
+    requestsByStatus: [],
+    requestsByPriority: [],
+    slaOverview: {
+      onTrack: 0,
+      atRisk: 0,
+      breached: 0,
+    },
+  },
+  recentActivity: [],
 };
 
 export function useDashboardOverview() {
-  const [data, setData] = useState<DashboardOverviewState>(INITIAL_STATE);
+  const [data, setData] = useState<DashboardData>(INITIAL_STATE);
   const [loadState, setLoadState] = useState<DashboardLoadState>("loading");
 
   const fetchOverview = useCallback(async () => {
     try {
-      const [{ data: kpi }, { data: latestCustomers }, { data: transactions }] = await Promise.all([
-        dashboardService.getKpi(),
-        dashboardService.getLatestCustomers(6),
-        dashboardService.getTransactions(1, 8)
+      const [{ data: summary }, { data: recentActivity }] = await Promise.all([
+        dashboardService.getSummary(),
+        dashboardService.getRecentActivity(),
       ]);
 
       setData({
-        kpi,
-        latestCustomers,
-        transactions
+        summary,
+        recentActivity,
       });
       setLoadState("ready");
     } catch {
@@ -49,18 +57,18 @@ export function useDashboardOverview() {
   }, [fetchOverview]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       void fetchOverview();
     }, 0);
 
     return () => {
-      clearTimeout(timer);
+      window.clearTimeout(timer);
     };
   }, [fetchOverview]);
 
   return {
     data,
     loadState,
-    reload
+    reload,
   };
 }

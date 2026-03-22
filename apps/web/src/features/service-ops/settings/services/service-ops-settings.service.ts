@@ -1,5 +1,3 @@
-import type { SlaPolicy } from "@supportops/types";
-
 import { ENDPOINTS, apiClient, ApiError } from "@/lib/api";
 
 import type {
@@ -54,145 +52,172 @@ function writeLocalJson<T>(key: string, value: T): void {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
-function upsertById<T extends { id: string }>(items: T[], next: T): T[] {
-  const existing = items.some((item) => item.id === next.id);
-  if (existing) {
-    return items.map((item) => (item.id === next.id ? next : item));
-  }
-  return [next, ...items];
-}
-
-function mapSlaPolicy(policy: SlaPolicy): SlaPolicySetting {
+function mapServiceType(item: {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  isActive?: boolean;
+}): ServiceTypeSetting {
   return {
-    id: policy.id,
-    serviceTypeCode: policy.serviceTypeCode,
-    responseMinutes: policy.responseMinutes,
-    resolutionMinutes: policy.resolutionMinutes,
-    escalationAfterMinutes: policy.escalationAfterMinutes,
+    id: item.id,
+    code: item.code,
+    name: item.name,
+    isActive: item.isActive ?? true,
+    workflowName: undefined,
+    slaPolicyId: undefined,
   };
 }
 
-function ensureId(prefix: string, id?: string): string {
-  return id?.trim() ? id.trim() : `${prefix}-${crypto.randomUUID()}`;
+function mapSlaPolicy(item: {
+  id: string;
+  serviceTypeCode: string;
+  responseMinutes: number;
+  resolutionMinutes: number;
+  escalationAfterMinutes: number;
+}): SlaPolicySetting {
+  return {
+    id: item.id,
+    serviceTypeCode: item.serviceTypeCode,
+    responseMinutes: item.responseMinutes,
+    resolutionMinutes: item.resolutionMinutes,
+    escalationAfterMinutes: item.escalationAfterMinutes,
+  };
+}
+
+function mapWorkflowTransition(item: {
+  id: string;
+  serviceTypeCode: string;
+  fromStatus: string;
+  toStatus: string;
+  allowedRoles: string[];
+}): WorkflowTransitionSetting {
+  return {
+    id: item.id,
+    serviceTypeCode: item.serviceTypeCode,
+    fromStatus: item.fromStatus,
+    toStatus: item.toStatus,
+    allowedRoles: item.allowedRoles,
+  };
 }
 
 export const serviceOpsSettingsService = {
   async listSlaPolicies(): Promise<SlaPolicySetting[]> {
     try {
-      const { data } = await apiClient.get<SlaPolicy[]>(ENDPOINTS.SLA.POLICIES, { cache: "no-store" });
-      if (data.length > 0) {
-        const mapped = data.map(mapSlaPolicy);
-        writeLocalJson(STORAGE_KEYS.slaPolicies, mapped);
-        return mapped;
-      }
+      const { data } = await apiClient.get<Array<{
+        id: string;
+        serviceTypeCode: string;
+        responseMinutes: number;
+        resolutionMinutes: number;
+        escalationAfterMinutes: number;
+      }>>(ENDPOINTS.SLA_POLICIES.LIST, { cache: "no-store" });
+      const mapped = data.map(mapSlaPolicy);
+      writeLocalJson(STORAGE_KEYS.slaPolicies, mapped);
+      return mapped;
     } catch (error) {
       if (error instanceof ApiError && error.status === 403) {
         throw error;
       }
+      return readLocalJson<SlaPolicySetting[]>(STORAGE_KEYS.slaPolicies, DEFAULT_SLA_POLICIES);
     }
-
-    return readLocalJson<SlaPolicySetting[]>(STORAGE_KEYS.slaPolicies, DEFAULT_SLA_POLICIES);
   },
 
   async saveSlaPolicy(input: Omit<SlaPolicySetting, "id"> & { id?: string }): Promise<SlaPolicySetting> {
-    const policy: SlaPolicySetting = {
-      id: ensureId("policy", input.id),
+    const payload = {
       serviceTypeCode: input.serviceTypeCode.trim().toUpperCase(),
       responseMinutes: input.responseMinutes,
       resolutionMinutes: input.resolutionMinutes,
       escalationAfterMinutes: input.escalationAfterMinutes,
     };
-
-    const current = readLocalJson<SlaPolicySetting[]>(STORAGE_KEYS.slaPolicies, DEFAULT_SLA_POLICIES);
-    const next = upsertById(current, policy);
-    writeLocalJson(STORAGE_KEYS.slaPolicies, next);
-    return policy;
+    const endpoint = input.id ? ENDPOINTS.SLA_POLICIES.DETAIL(input.id) : ENDPOINTS.SLA_POLICIES.LIST;
+    const method = input.id ? "patch" : "post";
+    const response = await (method === "patch"
+      ? apiClient.patch<SlaPolicySetting>(endpoint, payload)
+      : apiClient.post<SlaPolicySetting>(endpoint, payload));
+    return mapSlaPolicy(response.data);
   },
 
   async deleteSlaPolicy(id: string): Promise<void> {
-    const current = readLocalJson<SlaPolicySetting[]>(STORAGE_KEYS.slaPolicies, DEFAULT_SLA_POLICIES);
-    writeLocalJson(
-      STORAGE_KEYS.slaPolicies,
-      current.filter((item) => item.id !== id),
-    );
+    await apiClient.delete<void>(ENDPOINTS.SLA_POLICIES.DETAIL(id));
   },
 
   async listServiceTypes(): Promise<ServiceTypeSetting[]> {
     try {
-      const { data } = await apiClient.get<Array<{ id: string; code: string; name: string; isActive?: boolean }>>(
+      const { data } = await apiClient.get<Array<{ id: string; code: string; name: string; description?: string | null; isActive?: boolean }>>(
         ENDPOINTS.SERVICE_TYPES.LIST,
         { cache: "no-store" },
       );
-      if (data.length > 0) {
-        const mapped: ServiceTypeSetting[] = data.map((item) => ({
-          id: item.id,
-          code: item.code,
-          name: item.name,
-          isActive: item.isActive ?? true,
-        }));
-        writeLocalJson(STORAGE_KEYS.serviceTypes, mapped);
-        return mapped;
-      }
+      const mapped = data.map(mapServiceType);
+      writeLocalJson(STORAGE_KEYS.serviceTypes, mapped);
+      return mapped;
     } catch (error) {
       if (error instanceof ApiError && error.status === 403) {
         throw error;
       }
+      return readLocalJson<ServiceTypeSetting[]>(STORAGE_KEYS.serviceTypes, DEFAULT_SERVICE_TYPES);
     }
-
-    return readLocalJson<ServiceTypeSetting[]>(STORAGE_KEYS.serviceTypes, DEFAULT_SERVICE_TYPES);
   },
 
   async saveServiceType(input: Omit<ServiceTypeSetting, "id"> & { id?: string }): Promise<ServiceTypeSetting> {
-    const serviceType: ServiceTypeSetting = {
-      id: ensureId("service-type", input.id),
+    const payload = {
       code: input.code.trim().toUpperCase(),
       name: input.name.trim(),
+      description: undefined as string | undefined,
       isActive: input.isActive,
-      workflowName: input.workflowName?.trim() || undefined,
-      slaPolicyId: input.slaPolicyId?.trim() || undefined,
     };
-
-    const current = readLocalJson<ServiceTypeSetting[]>(STORAGE_KEYS.serviceTypes, DEFAULT_SERVICE_TYPES);
-    const next = upsertById(current, serviceType);
-    writeLocalJson(STORAGE_KEYS.serviceTypes, next);
-    return serviceType;
+    const endpoint = input.id ? ENDPOINTS.SERVICE_TYPES.DETAIL(input.id) : ENDPOINTS.SERVICE_TYPES.LIST;
+    const method = input.id ? "patch" : "post";
+    const response = await (method === "patch"
+      ? apiClient.patch<ServiceTypeSetting>(endpoint, payload)
+      : apiClient.post<ServiceTypeSetting>(endpoint, payload));
+    return mapServiceType(response.data);
   },
 
   async deleteServiceType(id: string): Promise<void> {
-    const current = readLocalJson<ServiceTypeSetting[]>(STORAGE_KEYS.serviceTypes, DEFAULT_SERVICE_TYPES);
-    writeLocalJson(
-      STORAGE_KEYS.serviceTypes,
-      current.filter((item) => item.id !== id),
-    );
+    await apiClient.delete<void>(ENDPOINTS.SERVICE_TYPES.DETAIL(id));
   },
 
   async listWorkflowTransitions(): Promise<WorkflowTransitionSetting[]> {
-    return readLocalJson<WorkflowTransitionSetting[]>(STORAGE_KEYS.workflows, DEFAULT_WORKFLOWS);
+    try {
+      const { data } = await apiClient.get<Array<{
+        id: string;
+        serviceTypeCode: string;
+        fromStatus: string;
+        toStatus: string;
+        allowedRoles: string[];
+      }>>(ENDPOINTS.WORKFLOW_TRANSITIONS.LIST, { cache: "no-store" });
+      const mapped = data.map(mapWorkflowTransition);
+      writeLocalJson(STORAGE_KEYS.workflows, mapped);
+      return mapped;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 403) {
+        throw error;
+      }
+      return readLocalJson<WorkflowTransitionSetting[]>(STORAGE_KEYS.workflows, DEFAULT_WORKFLOWS);
+    }
   },
 
   async saveWorkflowTransition(
     input: Omit<WorkflowTransitionSetting, "id"> & { id?: string },
   ): Promise<WorkflowTransitionSetting> {
-    const transition: WorkflowTransitionSetting = {
-      id: ensureId("workflow-transition", input.id),
+    const payload = {
       serviceTypeCode: input.serviceTypeCode.trim().toUpperCase(),
       fromStatus: input.fromStatus.trim().toUpperCase(),
       toStatus: input.toStatus.trim().toUpperCase(),
       allowedRoles: input.allowedRoles.map((role) => role.trim().toUpperCase()).filter(Boolean),
+      isActive: true,
     };
-
-    const current = readLocalJson<WorkflowTransitionSetting[]>(STORAGE_KEYS.workflows, DEFAULT_WORKFLOWS);
-    const next = upsertById(current, transition);
-    writeLocalJson(STORAGE_KEYS.workflows, next);
-    return transition;
+    const endpoint = input.id
+      ? ENDPOINTS.WORKFLOW_TRANSITIONS.DETAIL(input.id)
+      : ENDPOINTS.WORKFLOW_TRANSITIONS.LIST;
+    const method = input.id ? "patch" : "post";
+    const response = await (method === "patch"
+      ? apiClient.patch<WorkflowTransitionSetting>(endpoint, payload)
+      : apiClient.post<WorkflowTransitionSetting>(endpoint, payload));
+    return mapWorkflowTransition(response.data);
   },
 
   async deleteWorkflowTransition(id: string): Promise<void> {
-    const current = readLocalJson<WorkflowTransitionSetting[]>(STORAGE_KEYS.workflows, DEFAULT_WORKFLOWS);
-    writeLocalJson(
-      STORAGE_KEYS.workflows,
-      current.filter((item) => item.id !== id),
-    );
+    await apiClient.delete<void>(ENDPOINTS.WORKFLOW_TRANSITIONS.DETAIL(id));
   },
 };
-

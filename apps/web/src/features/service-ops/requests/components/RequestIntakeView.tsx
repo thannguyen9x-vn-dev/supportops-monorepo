@@ -22,7 +22,7 @@ import { SelectOptionField, TextAreaField, TextInputField } from "@supportops/ui
 import { FileUploadField, type UploadedFileInfo } from "@supportops/ui-file-upload";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch, type Control } from "react-hook-form";
 
 import styles from "./request-intake-screen.module.css";
@@ -66,6 +66,19 @@ const DEFAULT_VALUES: RequestIntakeFormValues = {
   urgency: "",
   preferredContact: "",
 };
+
+const DEFAULT_SERVICE_TYPE_OPTIONS = [
+  { label: "HVAC / Climate Control", value: "HVAC" },
+  { label: "Lighting", value: "LIGHTING" },
+  { label: "Water Leakage", value: "WATER" },
+  { label: "Access Card", value: "ACCESS" },
+];
+
+const LOCATION_OPTIONS = [
+  { label: "Headquarters - Floor 2 - Server Room B", value: "HQ-FLOOR-2-SERVER-ROOM-B" },
+  { label: "Headquarters - Floor 5 - Meeting Room C", value: "HQ-FLOOR-5-MEETING-ROOM-C" },
+  { label: "Branch Office - Ops Room", value: "BRANCH-OPS-ROOM" },
+];
 
 
 function RequestSummaryCard({ control }: { control: Control<RequestIntakeFormValues> }) {
@@ -132,6 +145,7 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [serviceTypeOptions, setServiceTypeOptions] = useState(DEFAULT_SERVICE_TYPE_OPTIONS);
 
   const {
     control,
@@ -141,6 +155,34 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
     defaultValues: DEFAULT_VALUES,
     mode: "onTouched",
   });
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadServiceTypeOptions = async () => {
+      try {
+        const { data } = await requestService.listServiceTypes();
+        const options = data
+          .filter((item) => item.isActive ?? true)
+          .map((item) => ({
+            label: item.name,
+            value: item.code,
+          }));
+
+        if (isMounted && options.length > 0) {
+          setServiceTypeOptions(options);
+        }
+      } catch {
+        // Keep stable fallback options for intake flow.
+      }
+    };
+
+    void loadServiceTypeOptions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const priorityOptions = useMemo(
     () => [
@@ -236,12 +278,7 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
         disableClearable
         label={t("fields.serviceType")}
         name="serviceType"
-        options={[
-          { label: "HVAC / Climate Control", value: "HVAC" },
-          { label: "Lighting", value: "LIGHTING" },
-          { label: "Water Leakage", value: "WATER" },
-          { label: "Access Card", value: "ACCESS" },
-        ]}
+        options={serviceTypeOptions}
         placeholder={t("placeholders.select")}
         rules={{ required: t("validation.required") }}
       />
@@ -284,11 +321,7 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
         disableClearable
         label={t("fields.location")}
         name="location"
-        options={[
-          { label: "Headquarters - Floor 2 - Server Room B", value: "HQ-FLOOR-2-SERVER-ROOM-B" },
-          { label: "Headquarters - Floor 5 - Meeting Room C", value: "HQ-FLOOR-5-MEETING-ROOM-C" },
-          { label: "Branch Office - Ops Room", value: "BRANCH-OPS-ROOM" },
-        ]}
+        options={LOCATION_OPTIONS}
         placeholder={t("placeholders.select")}
         rules={{ required: t("validation.required") }}
       />

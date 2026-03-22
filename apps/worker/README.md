@@ -1,22 +1,25 @@
-# Worker (Planned)
+# Worker (Phase 1)
 
-This app is a placeholder for background jobs/queue processing.
-Detailed plan: `docs/worker-roadmap.md`.
+Worker app for ServiceOps background jobs.
 
-## Planned scope
-- Email delivery and retry queue
-- Billing/subscription reconciliation jobs
-- Scheduled cleanup/retention jobs
-- File processing (thumbnails/virus-scan hooks)
+## Implemented in Phase 1
+- BullMQ queue + Redis connection
+- `sla-check` recurring job (default every 5 minutes)
+- `escalation-check` recurring job (default every 15 minutes)
+- Prisma-backed updates for SLA health and auto-escalation
+- Structured JSON logs for start/completion/failure
 
-## Suggested stack
-- NestJS standalone app or BullMQ worker
-- Redis as queue backend
-- Shared DTO/contracts from `@supportops/types`
+## Scope note
+- Focused only on ServiceOps SLA monitoring/escalation.
+- Billing/subscription legacy jobs are out of scope.
 
-## Definition of done (phase 1)
-1. `bullmq` queue setup with Redis connection
-2. One production job (`send-email`) with retry/backoff
-3. Worker health endpoint/heartbeat metric
-4. Structured logs + dead-letter handling
-5. Basic integration test for processor
+## Run
+```bash
+pnpm --filter @supportops/worker dev
+```
+
+## Environment variables
+- `REDIS_URL` (default: `redis://localhost:6379`)
+- `WORKER_QUEUE_NAME` (default: `supportops-sla-monitor`)
+- `WORKER_SLA_CHECK_EVERY_MS` (default: `300000`)
+- `WORKER_ESCALATION_CHECK_EVERY_MS` (default: `900000`)

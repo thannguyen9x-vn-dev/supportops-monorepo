@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   CommentVisibility,
   MembershipStatus,
   Prisma,
-  RequestActivityType,
   RequestImpactLevel,
   RequestPriority,
   RequestStatus,
@@ -27,6 +27,7 @@ import { RequestCommentQueryDto } from './dto/request-comment-query.dto';
 import { RequestAssigneeResponseDto } from './dto/request-assignee-response.dto';
 import { RequestQueryDto } from './dto/request-query.dto';
 import { RequestResponseDto } from './dto/request-response.dto';
+import { RequestTabCountsResponseDto } from './dto/request-tab-counts-response.dto';
 import {
   RequestWorkflowActivityDto,
   RequestWorkflowActorDto,
@@ -37,6 +38,15 @@ import {
 } from './dto/request-workflow-detail-response.dto';
 import { RequestWorkLogResponseDto } from './dto/request-work-log-response.dto';
 import { UpdateRequestStatusDto } from './dto/update-request-status.dto';
+import { REQUEST_EVENTS } from './events/request-events.constants';
+import {
+  RequestAssignedEvent,
+  RequestCommentAddedEvent,
+  RequestCreatedEvent,
+  RequestStatusChangedEvent,
+  RequestWorkLogAddedEvent,
+} from './events/request.events';
+import type { RequestTabKey } from './dto/request-query.dto';
 
 type RequestWithServiceType = Prisma.ServiceRequestGetPayload<{
   include: {
@@ -44,6 +54,12 @@ type RequestWithServiceType = Prisma.ServiceRequestGetPayload<{
       select: {
         code: true;
         name: true;
+      };
+    };
+    slaRecords: {
+      select: {
+        health: true;
+        targetAt: true;
       };
     };
     queue: {
@@ -54,6 +70,8 @@ type RequestWithServiceType = Prisma.ServiceRequestGetPayload<{
   };
 }>;
 
+type SystemRoleCode = 'EMPLOYEE' | 'OPS_COORDINATOR' | 'TECHNICIAN' | 'TENANT_ADMIN';
+
 @Injectable()
 export class RequestService {
   private static readonly ASSIGNMENT_SLA_MINUTES = 30;
@@ -61,7 +79,10 @@ export class RequestService {
   private static readonly ESCALATION_AFTER_MINUTES = 60;
   private static readonly ASSIGNABLE_ROLE_CODES = ['TECHNICIAN', 'OPS_COORDINATOR'] as const;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async list(
     tenantId: string,
@@ -72,30 +93,32 @@ export class RequestService {
     const page = query.page ?? 1;
     const size = query.size ?? 20;
     const skip = (page - 1) * size;
-
-    const where: Prisma.ServiceRequestWhereInput = {
-      tenantId,
-      ...this.readScopeWhere(requesterId, permissions),
-      ...(query.status ? { status: query.status } : {}),
-      ...(query.search
+    const where = this.buildListWhere(tenantId, requesterId, permissions, query);
+    const tabWhere = this.buildTabWhere(query.tab);
+    const finalWhere: Prisma.ServiceRequestWhereInput =
+      Object.keys(tabWhere).length > 0
         ? {
-            OR: [
-              { requestCode: { contains: query.search, mode: 'insensitive' } },
-              { title: { contains: query.search, mode: 'insensitive' } },
-              { description: { contains: query.search, mode: 'insensitive' } },
-            ],
+            AND: [where, tabWhere],
           }
-        : {}),
-    };
+        : where;
 
     const [items, total] = await this.prisma.$transaction([
       this.prisma.serviceRequest.findMany({
-        where,
+        where: finalWhere,
         include: {
           serviceType: {
             select: {
               code: true,
               name: true,
+            },
+          },
+          slaRecords: {
+            select: {
+              health: true,
+              targetAt: true,
+            },
+            orderBy: {
+              targetAt: 'asc',
             },
           },
           queue: {
@@ -108,12 +131,71 @@ export class RequestService {
         skip,
         take: size,
       }),
-      this.prisma.serviceRequest.count({ where }),
+      this.prisma.serviceRequest.count({ where: finalWhere }),
     ]);
 
     return {
       data: items.map((item) => RequestResponseDto.from(item)),
       meta: pageMetaOf({ page, size, total }),
+    };
+  }
+
+  async listTabCounts(
+    tenantId: string,
+    requesterId: string,
+    permissions: string[],
+    query: RequestQueryDto,
+  ): Promise<RequestTabCountsResponseDto> {
+    const where = this.buildListWhere(tenantId, requesterId, permissions, {
+      ...query,
+      tab: undefined,
+    });
+
+    const [allRequests, submittedTriage, unassigned, slaRisk, escalated, closed] = await this.prisma.$transaction([
+      this.prisma.serviceRequest.count({ where }),
+      this.prisma.serviceRequest.count({
+        where: {
+          ...where,
+          status: { in: [RequestStatus.SUBMITTED, RequestStatus.TRIAGE] },
+        },
+      }),
+      this.prisma.serviceRequest.count({
+        where: {
+          ...where,
+          assigneeId: null,
+        },
+      }),
+      this.prisma.serviceRequest.count({
+        where: {
+          ...where,
+          slaRecords: {
+            some: {
+              health: { in: [SlaHealth.AT_RISK, SlaHealth.BREACHED] },
+            },
+          },
+        },
+      }),
+      this.prisma.serviceRequest.count({
+        where: {
+          ...where,
+          status: RequestStatus.WAITING_EXTERNAL_VENDOR,
+        },
+      }),
+      this.prisma.serviceRequest.count({
+        where: {
+          ...where,
+          status: RequestStatus.CLOSED,
+        },
+      }),
+    ]);
+
+    return {
+      allRequests,
+      submittedTriage,
+      unassigned,
+      slaRisk,
+      escalated,
+      closed,
     };
   }
 
@@ -167,33 +249,7 @@ export class RequestService {
         },
       });
 
-      await tx.requestActivity.create({
-        data: {
-          tenantId,
-          requestId: createdRequest.id,
-          type: RequestActivityType.REQUEST_CREATED,
-          title: 'Request created',
-          description: shouldSubmit ? 'Request created and submitted' : 'Request saved as draft',
-          actorId: requesterId,
-        },
-      });
-
       if (shouldSubmit) {
-        await tx.requestActivity.create({
-          data: {
-            tenantId,
-            requestId: createdRequest.id,
-            type: RequestActivityType.STATUS_CHANGED,
-            title: 'Status changed: Draft -> Submitted',
-            description: 'Requester submitted the request',
-            actorId: requesterId,
-            metadata: {
-              from: RequestStatus.DRAFT,
-              to: RequestStatus.SUBMITTED,
-            },
-          },
-        });
-
         await tx.slaRecord.createMany({
           data: [
             {
@@ -248,7 +304,59 @@ export class RequestService {
       return createdRequest;
     });
 
-    return RequestResponseDto.from(created);
+    await this.eventEmitter.emitAsync(
+      REQUEST_EVENTS.CREATED,
+      new RequestCreatedEvent(tenantId, created.id, requesterId, shouldSubmit),
+    );
+
+    if (shouldSubmit) {
+      await this.eventEmitter.emitAsync(
+        REQUEST_EVENTS.STATUS_CHANGED,
+        new RequestStatusChangedEvent(
+          tenantId,
+          created.id,
+          RequestStatus.DRAFT,
+          RequestStatus.SUBMITTED,
+          requesterId,
+          'Requester submitted the request',
+        ),
+      );
+    }
+
+    const hydratedRequest = await this.prisma.serviceRequest.findFirst({
+      where: {
+        tenantId,
+        id: created.id,
+      },
+      include: {
+        serviceType: {
+          select: {
+            code: true,
+            name: true,
+          },
+        },
+        slaRecords: {
+          select: {
+            health: true,
+            targetAt: true,
+          },
+          orderBy: {
+            targetAt: 'asc',
+          },
+        },
+        queue: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!hydratedRequest) {
+      throw new NotFoundException('ServiceRequest', created.id);
+    }
+
+    return RequestResponseDto.from(hydratedRequest);
   }
 
   async detail(
@@ -269,6 +377,7 @@ export class RequestService {
   ): Promise<RequestWorkflowDetailResponseDto> {
     const request = await this.findRequestById(tenantId, requesterId, permissions, requestId);
     const canReadInternal = permissions.includes('comment.read.internal');
+    const canViewInternalEvents = await this.canViewInternalEvents(tenantId, requesterId);
 
     const commentWhere: Prisma.RequestCommentWhereInput = canReadInternal
       ? { tenantId, requestId }
@@ -365,6 +474,10 @@ export class RequestService {
     const escalationRules = [
       `If overdue > ${RequestService.ESCALATION_AFTER_MINUTES} min, move to WAITING_EXTERNAL_VENDOR and notify OPS_COORDINATOR (${serviceTypeCode}).`,
     ];
+    const mappedActivities = activities.map((item) => RequestWorkflowActivityDto.from(item));
+    const visibleActivities = canViewInternalEvents
+      ? mappedActivities
+      : mappedActivities.filter((item) => item.visibility === CommentVisibility.PUBLIC);
 
     return {
       request: RequestResponseDto.from(request),
@@ -372,7 +485,7 @@ export class RequestService {
       workLogs: workLogs.map((item) => RequestWorkLogResponseDto.from(item)),
       assignmentHistory: assignmentHistory.map((item) => RequestWorkflowAssignmentHistoryDto.from(item)),
       slaRecords: slaRecords.map((item) => RequestWorkflowSlaRecordDto.from(item)),
-      activities: activities.map((item) => RequestWorkflowActivityDto.from(item)),
+      activities: visibleActivities,
       attachments: attachments.map((item) => RequestWorkflowAttachmentDto.from(item)),
       actors: actors.map((item) => RequestWorkflowActorDto.from(item)),
       queueLabel,
@@ -434,6 +547,21 @@ export class RequestService {
     dto: UpdateRequestStatusDto,
   ): Promise<RequestResponseDto> {
     const request = await this.findRequestById(tenantId, actorId, permissions, requestId);
+    const actorMembership = await this.prisma.membership.findFirst({
+      where: {
+        tenantId,
+        userId: actorId,
+        status: MembershipStatus.ACTIVE,
+      },
+      select: {
+        roleCode: true,
+      },
+    });
+
+    const actorRoleCode = this.normalizeSystemRoleCode(actorMembership?.roleCode);
+    if (!actorRoleCode) {
+      throw new ForbiddenException('Unable to resolve active role for status transition');
+    }
 
     if (request.status === dto.status) {
       throw new ConflictException('INVALID_STATUS_TRANSITION', 'Request is already in the target status');
@@ -446,7 +574,7 @@ export class RequestService {
       );
     }
 
-    if (!this.canTransitionStatus(permissions, actorId, request, dto.status)) {
+    if (!this.canTransitionStatus(permissions, actorId, request, dto.status, actorRoleCode)) {
       throw new ForbiddenException('You do not have permission to perform this status transition');
     }
 
@@ -499,21 +627,6 @@ export class RequestService {
         },
       });
 
-      await tx.requestActivity.create({
-        data: {
-          tenantId,
-          requestId: request.id,
-          type: RequestActivityType.STATUS_CHANGED,
-          title: `Status changed: ${request.status} -> ${dto.status}`,
-          description: 'Request status was updated',
-          actorId,
-          metadata: {
-            from: request.status,
-            to: dto.status,
-          },
-        },
-      });
-
       await tx.auditLog.create({
         data: {
           tenantId,
@@ -543,6 +656,18 @@ export class RequestService {
 
       return updatedRequest;
     });
+
+    await this.eventEmitter.emitAsync(
+      REQUEST_EVENTS.STATUS_CHANGED,
+      new RequestStatusChangedEvent(
+        tenantId,
+        request.id,
+        request.status,
+        dto.status,
+        actorId,
+        'Request status was updated',
+      ),
+    );
 
     return RequestResponseDto.from(updated);
   }
@@ -582,24 +707,6 @@ export class RequestService {
         },
       });
 
-      await tx.requestActivity.create({
-        data: {
-          tenantId,
-          requestId,
-          type:
-            visibility === CommentVisibility.INTERNAL
-              ? RequestActivityType.INTERNAL_NOTE_ADDED
-              : RequestActivityType.COMMENT_ADDED,
-          title: visibility === CommentVisibility.INTERNAL ? 'Internal note added' : 'Comment added',
-          description: body,
-          actorId: authorId,
-          metadata: {
-            commentId: comment.id,
-            visibility,
-          },
-        },
-      });
-
       await tx.auditLog.create({
         data: {
           tenantId,
@@ -618,6 +725,18 @@ export class RequestService {
 
       return comment;
     });
+
+    await this.eventEmitter.emitAsync(
+      REQUEST_EVENTS.COMMENT_ADDED,
+      new RequestCommentAddedEvent(
+        tenantId,
+        requestId,
+        authorId,
+        body,
+        visibility,
+        created.id,
+      ),
+    );
 
     return RequestCommentResponseDto.from(created);
   }
@@ -704,21 +823,6 @@ export class RequestService {
         },
       });
 
-      await tx.requestActivity.create({
-        data: {
-          tenantId,
-          requestId,
-          type: RequestActivityType.COMMENT_ADDED,
-          title: 'Work log added',
-          description: content,
-          actorId: authorId,
-          metadata: {
-            workLogId: workLog.id,
-            minutesSpent: workLog.minutesSpent,
-          },
-        },
-      });
-
       await tx.auditLog.create({
         data: {
           tenantId,
@@ -739,6 +843,18 @@ export class RequestService {
 
       return workLog;
     });
+
+    await this.eventEmitter.emitAsync(
+      REQUEST_EVENTS.WORK_LOG_ADDED,
+      new RequestWorkLogAddedEvent(
+        tenantId,
+        requestId,
+        authorId,
+        content,
+        created.id,
+        created.minutesSpent,
+      ),
+    );
 
     return RequestWorkLogResponseDto.from(created);
   }
@@ -800,9 +916,9 @@ export class RequestService {
     }
 
     const now = new Date();
+    const nextStatus = this.resolveStatusOnAssign(request.status);
 
     const updated = await this.prisma.$transaction(async (tx) => {
-      const nextStatus = this.resolveStatusOnAssign(request.status);
       const updatedRequest = await tx.serviceRequest.update({
         where: { id: request.id },
         data: {
@@ -830,40 +946,6 @@ export class RequestService {
         },
       });
 
-      await tx.requestActivity.create({
-        data: {
-          tenantId,
-          requestId: request.id,
-          type: request.assigneeId ? RequestActivityType.REASSIGNED : RequestActivityType.ASSIGNED,
-          title: request.assigneeId ? 'Request reassigned' : 'Request assigned',
-          description: request.assigneeId
-            ? `Assignee updated from ${request.assigneeId} to ${dto.assigneeId}`
-            : `Assigned to ${dto.assigneeId}`,
-          actorId,
-          metadata: {
-            fromAssigneeId: request.assigneeId,
-            toAssigneeId: dto.assigneeId,
-          },
-        },
-      });
-
-      if (nextStatus && nextStatus !== request.status) {
-        await tx.requestActivity.create({
-          data: {
-            tenantId,
-            requestId: request.id,
-            type: RequestActivityType.STATUS_CHANGED,
-            title: `Status changed: ${request.status} -> ${nextStatus}`,
-            description: 'Status moved to ASSIGNED after assignment',
-            actorId,
-            metadata: {
-              from: request.status,
-              to: nextStatus,
-            },
-          },
-        });
-      }
-
       await tx.auditLog.create({
         data: {
           tenantId,
@@ -885,6 +967,25 @@ export class RequestService {
 
       return updatedRequest;
     });
+
+    await this.eventEmitter.emitAsync(
+      REQUEST_EVENTS.ASSIGNED,
+      new RequestAssignedEvent(tenantId, request.id, dto.assigneeId, actorId, request.assigneeId),
+    );
+
+    if (nextStatus && nextStatus !== request.status) {
+      await this.eventEmitter.emitAsync(
+        REQUEST_EVENTS.STATUS_CHANGED,
+        new RequestStatusChangedEvent(
+          tenantId,
+          request.id,
+          request.status,
+          nextStatus,
+          actorId,
+          'Status moved to ASSIGNED after assignment',
+        ),
+      );
+    }
 
     return RequestResponseDto.from(updated);
   }
@@ -934,38 +1035,6 @@ export class RequestService {
         },
       });
 
-      await tx.requestActivity.create({
-        data: {
-          tenantId,
-          requestId: request.id,
-          type: RequestActivityType.REASSIGNED,
-          title: 'Request unassigned',
-          description: `Assignee removed from ${request.assigneeId}`,
-          actorId,
-          metadata: {
-            fromAssigneeId: request.assigneeId,
-            toAssigneeId: null,
-          },
-        },
-      });
-
-      if (nextStatus && nextStatus !== request.status) {
-        await tx.requestActivity.create({
-          data: {
-            tenantId,
-            requestId: request.id,
-            type: RequestActivityType.STATUS_CHANGED,
-            title: `Status changed: ${request.status} -> ${nextStatus}`,
-            description: 'Status moved after unassignment',
-            actorId,
-            metadata: {
-              from: request.status,
-              to: nextStatus,
-            },
-          },
-        });
-      }
-
       await tx.auditLog.create({
         data: {
           tenantId,
@@ -988,6 +1057,25 @@ export class RequestService {
       return updatedRequest;
     });
 
+    await this.eventEmitter.emitAsync(
+      REQUEST_EVENTS.ASSIGNED,
+      new RequestAssignedEvent(tenantId, request.id, null, actorId, request.assigneeId),
+    );
+
+    if (nextStatus && nextStatus !== request.status) {
+      await this.eventEmitter.emitAsync(
+        REQUEST_EVENTS.STATUS_CHANGED,
+        new RequestStatusChangedEvent(
+          tenantId,
+          request.id,
+          request.status,
+          nextStatus,
+          actorId,
+          'Status moved after unassignment',
+        ),
+      );
+    }
+
     return RequestResponseDto.from(updated);
   }
 
@@ -1008,6 +1096,15 @@ export class RequestService {
           select: {
             code: true,
             name: true,
+          },
+        },
+        slaRecords: {
+          select: {
+            health: true,
+            targetAt: true,
+          },
+          orderBy: {
+            targetAt: 'asc',
           },
         },
         queue: {
@@ -1042,6 +1139,59 @@ export class RequestService {
     return { requesterId };
   }
 
+  private buildListWhere(
+    tenantId: string,
+    requesterId: string,
+    permissions: string[],
+    query: RequestQueryDto,
+  ): Prisma.ServiceRequestWhereInput {
+    const startOfTodayUtc = new Date();
+    startOfTodayUtc.setUTCHours(0, 0, 0, 0);
+
+    const serviceTypeCode = query.serviceTypeCode?.trim().toUpperCase();
+    const locationId = query.locationId?.trim();
+
+    return {
+      tenantId,
+      ...this.readScopeWhere(requesterId, permissions),
+      ...(query.status ? { status: query.status } : {}),
+      ...(serviceTypeCode ? { serviceType: { code: serviceTypeCode } } : {}),
+      ...(query.assigneeId ? { assigneeId: query.assigneeId } : {}),
+      ...(locationId ? { locationId } : {}),
+      ...(query.slaHealth ? { slaRecords: { some: { health: query.slaHealth } } } : {}),
+      ...(query.updatedToday ? { updatedAt: { gte: startOfTodayUtc } } : {}),
+      ...(query.search
+        ? {
+            OR: [
+              { requestCode: { contains: query.search, mode: 'insensitive' } },
+              { title: { contains: query.search, mode: 'insensitive' } },
+              { description: { contains: query.search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
+  }
+
+  private buildTabWhere(tab?: RequestTabKey): Prisma.ServiceRequestWhereInput {
+    if (tab === 'submittedTriage') {
+      return { status: { in: [RequestStatus.SUBMITTED, RequestStatus.TRIAGE] } };
+    }
+    if (tab === 'unassigned') {
+      return { assigneeId: null };
+    }
+    if (tab === 'slaRisk') {
+      return { slaRecords: { some: { health: { in: [SlaHealth.AT_RISK, SlaHealth.BREACHED] } } } };
+    }
+    if (tab === 'escalated') {
+      return { status: RequestStatus.WAITING_EXTERNAL_VENDOR };
+    }
+    if (tab === 'closed') {
+      return { status: RequestStatus.CLOSED };
+    }
+
+    return {};
+  }
+
   private isStatusTransitionAllowed(from: RequestStatus, to: RequestStatus): boolean {
     const allowed: Record<RequestStatus, RequestStatus[]> = {
       [RequestStatus.DRAFT]: [RequestStatus.SUBMITTED, RequestStatus.CANCELLED],
@@ -1073,44 +1223,73 @@ export class RequestService {
     actorId: string,
     request: RequestWithServiceType,
     target: RequestStatus,
+    actorRoleCode: SystemRoleCode,
   ): boolean {
     const canReadAll = permissions.includes('request.read.all');
     const isRequester = request.requesterId === actorId;
     const isAssignee = request.assigneeId === actorId;
+    const isTenantAdmin = actorRoleCode === 'TENANT_ADMIN';
+    const isOpsCoordinator = actorRoleCode === 'OPS_COORDINATOR';
+    const isTechnician = actorRoleCode === 'TECHNICIAN';
+    const isEmployee = actorRoleCode === 'EMPLOYEE';
 
     if (target === RequestStatus.SUBMITTED) {
-      return isRequester;
+      return (isEmployee || isTenantAdmin) && isRequester;
     }
 
     if (target === RequestStatus.ASSIGNED || target === RequestStatus.TRIAGE) {
-      return permissions.includes('request.assign') || permissions.includes('request.reassign');
+      return (isOpsCoordinator || isTenantAdmin) &&
+        (permissions.includes('request.assign') || permissions.includes('request.reassign'));
     }
 
     if (target === RequestStatus.IN_PROGRESS) {
-      return permissions.includes('request.start_work') && (canReadAll || isAssignee);
+      return (isTechnician || isTenantAdmin) && permissions.includes('request.start_work') && (canReadAll || isAssignee);
     }
 
     if (target === RequestStatus.RESOLVED) {
-      return permissions.includes('request.resolve') && (canReadAll || isAssignee);
+      return (isTechnician || isTenantAdmin) && permissions.includes('request.resolve') && (canReadAll || isAssignee);
     }
 
     if (target === RequestStatus.CLOSED) {
+      if (!(isEmployee || isOpsCoordinator || isTenantAdmin)) {
+        return false;
+      }
       return permissions.includes('request.close') && (canReadAll || isRequester);
     }
 
     if (target === RequestStatus.REOPENED) {
+      if (!(isEmployee || isOpsCoordinator || isTenantAdmin)) {
+        return false;
+      }
       return permissions.includes('request.reopen') && (canReadAll || isRequester);
     }
 
     if (target === RequestStatus.WAITING_EXTERNAL_VENDOR) {
-      return permissions.includes('request.escalate') || permissions.includes('request.resolve');
+      return (isOpsCoordinator || isTenantAdmin) &&
+        (permissions.includes('request.escalate') || permissions.includes('request.resolve'));
     }
 
     if (target === RequestStatus.CANCELLED) {
-      return canReadAll || isRequester;
+      if (isTenantAdmin) {
+        return true;
+      }
+      return isEmployee && isRequester;
     }
 
     return false;
+  }
+
+  private normalizeSystemRoleCode(roleCode: string | null | undefined): SystemRoleCode | null {
+    if (
+      roleCode === 'EMPLOYEE' ||
+      roleCode === 'OPS_COORDINATOR' ||
+      roleCode === 'TECHNICIAN' ||
+      roleCode === 'TENANT_ADMIN'
+    ) {
+      return roleCode;
+    }
+
+    return null;
   }
 
   private resolveStatusOnAssign(status: RequestStatus): RequestStatus | null {
@@ -1153,6 +1332,22 @@ export class RequestService {
     return RequestService.ASSIGNABLE_ROLE_CODES.includes(
       roleCode as (typeof RequestService.ASSIGNABLE_ROLE_CODES)[number],
     );
+  }
+
+  private async canViewInternalEvents(tenantId: string, userId: string): Promise<boolean> {
+    const membership = await this.prisma.membership.findFirst({
+      where: {
+        tenantId,
+        userId,
+        status: MembershipStatus.ACTIVE,
+      },
+      select: {
+        roleCode: true,
+      },
+    });
+
+    const roleCode = this.normalizeSystemRoleCode(membership?.roleCode);
+    return roleCode === 'OPS_COORDINATOR' || roleCode === 'TENANT_ADMIN';
   }
 
   private async nextRequestCode(tx: Prisma.TransactionClient, tenantId: string, now: Date): Promise<string> {

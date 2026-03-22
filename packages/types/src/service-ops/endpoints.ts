@@ -1,6 +1,7 @@
 export const SERVICE_OPS_ENDPOINTS = {
   REQUESTS: {
     LIST: "/requests",
+    TAB_COUNTS: "/requests/tab-counts",
     ASSIGNEES: "/requests/assignees",
     DETAIL: (id: string) => `/requests/${id}`,
     WORKFLOW: (id: string) => `/requests/${id}/workflow`,
@@ -42,5 +43,13 @@ export const SERVICE_OPS_ENDPOINTS = {
   SERVICE_TYPES: {
     LIST: "/service-types",
     DETAIL: (id: string) => `/service-types/${id}`,
+  },
+  SLA_POLICIES: {
+    LIST: "/sla-policies",
+    DETAIL: (id: string) => `/sla-policies/${id}`,
+  },
+  WORKFLOW_TRANSITIONS: {
+    LIST: "/workflow-transitions",
+    DETAIL: (id: string) => `/workflow-transitions/${id}`,
   },
 } as const;

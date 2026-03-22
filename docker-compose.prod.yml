@@ -82,7 +82,7 @@ services:
       BACKEND_INTERNAL_URL: http://api:8081/api/v1
       API_INTERNAL_URL: http://api:8081/api/v1
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000 || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10

@@ -37,25 +37,31 @@ function formatBytes(sizeBytes: number): string {
   return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function mapActivityType(type: RequestWorkflowActivity["type"]): RequestDetail["timeline"][number]["type"] {
-  switch (type) {
+function mapActivityType(eventType: RequestWorkflowActivity["eventType"]): RequestDetail["timeline"][number]["type"] {
+  switch (eventType) {
     case "REQUEST_CREATED":
       return "REQUEST_CREATED";
     case "STATUS_CHANGED":
       return "STATUS_CHANGED";
-    case "ASSIGNED":
+    case "REQUEST_ASSIGNED":
       return "ASSIGNED";
-    case "REASSIGNED":
+    case "REQUEST_REASSIGNED":
       return "REASSIGNED";
     case "COMMENT_ADDED":
       return "PUBLIC_COMMENT";
-    case "INTERNAL_NOTE_ADDED":
+    case "WORK_LOG_ADDED":
       return "INTERNAL_NOTE";
-    case "SLA_WARNING":
+    case "SLA_AT_RISK":
     case "SLA_BREACHED":
       return "SLA_WARNING";
-    case "RESOLUTION_SUBMITTED":
+    case "REQUEST_RESOLVED":
       return "RESOLUTION_SUBMITTED";
+    case "REQUEST_CLOSED":
+      return "REQUEST_CLOSED";
+    case "REQUEST_REOPENED":
+      return "REQUEST_REOPENED";
+    case "REQUEST_ESCALATED":
+      return "ESCALATED";
     default:
       return "SYSTEM_RULE_TRIGGERED";
   }
@@ -234,12 +240,12 @@ export function useRequestDetail(requestId: string) {
 
     const activityTimeline = activities.map((item) => ({
       id: item.id,
-      type: mapActivityType(item.type),
+      type: mapActivityType(item.eventType),
       title: item.title,
       description: item.description ?? undefined,
       actorName: resolveActorName(item.actorId),
-      actorType: item.actorId ? ("USER" as const) : ("SYSTEM" as const),
-      visibility: item.type === "INTERNAL_NOTE_ADDED" ? ("INTERNAL" as const) : ("PUBLIC" as const),
+      actorType: item.actorType,
+      visibility: item.visibility,
       createdAt: new Date(item.createdAt).toLocaleString(),
     }));
 
@@ -342,12 +348,12 @@ export function useRequestDetail(requestId: string) {
     };
   }, [actors, assignmentHistory, attachments, comments, requestId, serviceRequest, slaRecords, t, user, activities, queueLabel, workflowTags, escalationRules]);
 
-  const extractError = (error: unknown, fallback: string): string => {
+  const extractError = useCallback((error: unknown, fallback: string): string => {
     if (error instanceof ApiError) return error.error.message;
     return fallback;
-  };
+  }, []);
 
-  const executeMutation = async (runner: () => Promise<void>, successMessage: string) => {
+  const executeMutation = useCallback(async (runner: () => Promise<void>, successMessage: string) => {
     setIsSubmitting(true);
     setMutationError(null);
     setMutationSuccess(null);
@@ -359,7 +365,7 @@ export function useRequestDetail(requestId: string) {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [extractError, t]);
 
   const handleAssign = useCallback(async (reassign: boolean) => {
     if (!serviceRequest) return;
@@ -376,7 +382,7 @@ export function useRequestDetail(requestId: string) {
     } finally {
       setIsLoadingUsers(false);
     }
-  }, [assignDialog, serviceRequest, t]);
+  }, [assignDialog, extractError, serviceRequest, t]);
 
   const handleAssignToMe = useCallback(async () => {
     if (!serviceRequest || !user?.id) return;
@@ -386,7 +392,7 @@ export function useRequestDetail(requestId: string) {
       setServiceRequest(data);
       await refreshDetail();
     }, t("feedback.assignedToYou"));
-  }, [refreshDetail, serviceRequest, t, user?.id]);
+  }, [executeMutation, refreshDetail, serviceRequest, t, user?.id]);
 
   const handleCommentSubmit = useCallback(async (payload: CommentPayload) => {
     if (!serviceRequest) return;
@@ -396,7 +402,7 @@ export function useRequestDetail(requestId: string) {
       setComments((current) => [...current, data]);
       await refreshDetail();
     }, t("feedback.commentAdded"));
-  }, [refreshDetail, serviceRequest, t]);
+  }, [executeMutation, refreshDetail, serviceRequest, t]);
 
   const handleWorkLogSubmit = useCallback(async (payload: WorkLogPayload) => {
     if (!serviceRequest) return;
@@ -406,7 +412,7 @@ export function useRequestDetail(requestId: string) {
       setWorkLogs((current) => [...current, data]);
       await refreshDetail();
     }, t("feedback.workLogAdded"));
-  }, [refreshDetail, serviceRequest, t]);
+  }, [executeMutation, refreshDetail, serviceRequest, t]);
 
   const handleAssignConfirm = useCallback(async (assigneeId: string) => {
     if (!serviceRequest || !assigneeId) return;
@@ -417,7 +423,7 @@ export function useRequestDetail(requestId: string) {
       assignDialog.close();
       await refreshDetail();
     }, reassignMode ? t("feedback.requestReassigned") : t("feedback.requestAssigned"));
-  }, [assignDialog, reassignMode, refreshDetail, serviceRequest, t]);
+  }, [assignDialog, executeMutation, reassignMode, refreshDetail, serviceRequest, t]);
 
   const handleHeaderAction = useCallback((action: HeaderAction) => {
     if (!serviceRequest) return;
@@ -456,7 +462,7 @@ export function useRequestDetail(requestId: string) {
       setServiceRequest(data);
       await refreshDetail();
     }, t("feedback.statusUpdated"));
-  }, [handleAssign, handleAssignToMe, refreshDetail, serviceRequest, t]);
+  }, [executeMutation, handleAssign, handleAssignToMe, refreshDetail, serviceRequest, t]);
 
   return {
     request,

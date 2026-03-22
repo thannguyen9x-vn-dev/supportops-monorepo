@@ -155,14 +155,14 @@ export function toUpdateProfileRequest(
 
 export function toNotificationPreferences(preferences: UserPreferences): NotificationPreference[] {
   return [
-    { key: "companyNews", group: "alerts", enabled: preferences.companyNews },
-    { key: "accountActivity", group: "alerts", enabled: preferences.accountActivity },
-    { key: "meetupsNearYou", group: "alerts", enabled: preferences.meetupsNearYou },
-    { key: "newMessages", group: "alerts", enabled: preferences.newMessages },
-    { key: "ratingReminders", group: "email", enabled: preferences.ratingReminders },
-    { key: "itemUpdateNotifications", group: "email", enabled: preferences.itemUpdateNotif },
-    { key: "itemCommentNotifications", group: "email", enabled: preferences.itemCommentNotif },
-    { key: "buyerReviewNotifications", group: "email", enabled: preferences.buyerReviewNotif }
+    { key: "assignmentAlerts", group: "alerts", enabled: preferences.assignmentAlerts },
+    { key: "statusUpdateAlerts", group: "alerts", enabled: preferences.statusUpdateAlerts },
+    { key: "slaRiskAlerts", group: "alerts", enabled: preferences.slaRiskAlerts },
+    { key: "escalationAlerts", group: "alerts", enabled: preferences.escalationAlerts },
+    { key: "resolutionReminders", group: "email", enabled: preferences.resolutionReminders },
+    { key: "requestUpdateDigest", group: "email", enabled: preferences.requestUpdateDigest },
+    { key: "commentNotifications", group: "email", enabled: preferences.commentNotifications },
+    { key: "mentionNotifications", group: "email", enabled: preferences.mentionNotifications }
   ];
 }
 
@@ -171,13 +171,13 @@ export function toUserPreferences(preferences: NotificationPreference[]): UserPr
     preferences.find((item) => item.key === key)?.enabled ?? false;
 
   return {
-    companyNews: find("companyNews"),
-    accountActivity: find("accountActivity"),
-    meetupsNearYou: find("meetupsNearYou"),
-    newMessages: find("newMessages"),
-    ratingReminders: find("ratingReminders"),
-    itemUpdateNotif: find("itemUpdateNotifications"),
-    itemCommentNotif: find("itemCommentNotifications"),
-    buyerReviewNotif: find("buyerReviewNotifications")
+    assignmentAlerts: find("assignmentAlerts"),
+    statusUpdateAlerts: find("statusUpdateAlerts"),
+    slaRiskAlerts: find("slaRiskAlerts"),
+    escalationAlerts: find("escalationAlerts"),
+    resolutionReminders: find("resolutionReminders"),
+    requestUpdateDigest: find("requestUpdateDigest"),
+    commentNotifications: find("commentNotifications"),
+    mentionNotifications: find("mentionNotifications")
   };
 }
