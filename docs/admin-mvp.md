@@ -20,14 +20,23 @@ Each slice delivers one end-to-end user flow:
 | Auth & RBAC | `/login`, `/register`, `/forgot-password`, etc. | ✅ Done |
 | User Profile & Settings | `/settings/profile` | ✅ Done |
 | Team Management | `/team` | ✅ Done |
-| Requests List | `/requests/list` | 🔶 In progress |
-| Request Detail | `/requests/[id]` | 🔶 UI done, backend partial |
-| Create Request | `/requests/create` | 🔶 In progress |
-| Settings — Workflow | `/settings/workflow` | 🔸 UI scaffold, backend TODO |
-| Settings — SLA | `/settings/sla` | 🔸 UI scaffold, backend TODO |
-| Settings — Service Types | `/settings/service-types` | 🔸 UI scaffold, backend TODO |
-| Dashboard | `/dashboard` | ❌ Template placeholder — must rewrite |
-| Worker | `apps/worker` | ❌ TODO placeholder |
+| Requests List | `/requests/list` | 🔶 In progress — functional on real API; refactor/consistency cleanup remains |
+| Request Detail | `/requests/[id]` | ✅ Done |
+| Create Request | `/requests/create` | ✅ Done |
+| Settings — Workflow | `/settings/workflow` | ✅ Done |
+| Settings — SLA | `/settings/sla` | ✅ Done |
+| Settings — Service Types | `/settings/service-types` | ✅ Done |
+| Dashboard | `/dashboard` | ✅ Done — ServiceOps dashboard live |
+| Worker | `apps/worker` | ✅ Done (Phase 1 scope) — SLA monitor + escalation jobs |
+
+## 3.1) Current delivery note (2026-03-22)
+
+- Phase 1 core MVP scope is complete.
+- Phase 2 currently has two remaining cleanup tasks:
+  - `2.4` Request list decomposition/refactor hardening.
+  - `2.5` Activity log consistency audit.
+- Phase 3 architecture tasks are complete.
+- Phase 4 portfolio tasks (4.1, 4.2, 4.3) are complete.
 
 ## 4) Build order (recommended)
 

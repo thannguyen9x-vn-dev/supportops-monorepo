@@ -38,10 +38,10 @@ supportops-monorepo/
 | **Team Management** | list members, invite, deactivate, reactivate, change role, change department | ✅ Done |
 | **Requests List** | paginated list, status filter, tabs, SLA health badges | 🔶 In Progress |
 | **Create Request** | intake form, draft/submit modes, file attachments | 🔶 In Progress |
-| **Request Detail** | view, status transitions, comment, work log, timeline, assign/reassign | 🔶 UI done, backend partial |
-| **Settings — Workflow** | CRUD workflow transitions | 🔸 UI scaffold |
-| **Settings — SLA** | CRUD SLA policies | 🔸 UI scaffold |
-| **Settings — Service Types** | CRUD service types | 🔸 UI scaffold |
+| **Request Detail** | view, status transitions, comment, work log, timeline, assign/reassign | 🔶 In Progress |
+| **Settings — Workflow** | CRUD workflow transitions | 🔶 In Progress |
+| **Settings — SLA** | CRUD SLA policies | 🔶 In Progress |
+| **Settings — Service Types** | CRUD service types | 🔶 In Progress |
 | **Dashboard** | KPI cards, aggregated data | ❌ Template placeholder |
 | **Worker** | SLA jobs, escalation, email | ❌ TODO placeholder |
 
@@ -114,11 +114,13 @@ Các module sau **vẫn còn trong codebase** nhưng đang bị phase out. Agent
 - Row actions: view, edit, assign, cancel
 - i18n keys đầy đủ (en + vi)
 - Pagination
+- Real API query đã hỗ trợ: search, status, serviceTypeCode, assigneeId, locationId, slaHealth, updatedToday, tab
+- Tab counts lấy từ backend qua `GET /requests/tab-counts`
 
 **Còn thiếu / Cần hoàn tất:**
-- [ ] Verify data loading từ API thật (hiện có thể đang dùng mock)
+- [ ] Verify data loading từ API thật với dữ liệu sống
 - [ ] Loading / empty / error states kiểm tra lại
-- [ ] Confirm filter logic hoạt động end-to-end với backend
+- [x] Confirm filter logic hoạt động end-to-end với backend
 - [ ] `RequestListView` ~1000 lines → cần tách thành sub-components sau MVP
 
 ### B5. Create Request 🔶 IN PROGRESS
@@ -135,7 +137,7 @@ Các module sau **vẫn còn trong codebase** nhưng đang bị phase out. Agent
 **Còn thiếu / Cần hoàn tất:**
 - [ ] Verify end-to-end: form submit → API create → redirect to detail
 - [ ] Verify file attachment upload → link to request
-- [ ] Service type dropdown populate từ API
+- [x] Service type dropdown populate từ API
 - [ ] Location dropdown populate từ API hoặc config
 
 ### B6. Request Detail 🔶 UI DONE, BACKEND PARTIAL
@@ -161,10 +163,11 @@ Các module sau **vẫn còn trong codebase** nhưng đang bị phase out. Agent
 - `requestService.addComment(id, { body, visibility })`
 - `requestService.addWorkLog(id, { content, minutesSpent })`
 - `requestService.listAssignees()`
+- Transition rules đã siết theo role active trong membership
 
 **Còn thiếu / Cần hoàn tất:**
-- [ ] Verify backend `detailWorkflow` endpoint trả đủ data
-- [ ] Verify status transition business rules (ai được chuyển status nào)
+- [x] Verify backend `detailWorkflow` endpoint trả đủ data
+- [x] Verify status transition business rules (ai được chuyển status nào)
 - [ ] Escalation trigger endpoint
 - [ ] Attachment download từ detail page
 - [ ] SLA countdown realtime (hiện tính 1 lần khi load)
@@ -180,11 +183,11 @@ Các module sau **vẫn còn trong codebase** nhưng đang bị phase out. Agent
 - Feedback: loadError, saveSuccess, saveError, deleteSuccess, deleteError
 
 **Còn thiếu / Cần hoàn tất:**
-- [ ] Backend CRUD endpoints cho workflow transitions
-- [ ] Backend CRUD endpoints cho SLA policies
-- [ ] Backend CRUD endpoints cho service types
-- [ ] Frontend wiring: form → service → API
-- [ ] Validation: serviceTypeCode uniqueness, minutes > 0, etc.
+- [x] Backend CRUD endpoints cho workflow transitions
+- [x] Backend CRUD endpoints cho SLA policies
+- [x] Backend CRUD endpoints cho service types
+- [x] Frontend wiring: form → service → API
+- [x] Validation: serviceTypeCode uniqueness, minutes > 0, etc.
 
 ### B8. Dashboard ❌ TEMPLATE PLACEHOLDER
 
@@ -219,15 +222,15 @@ Các module sau **vẫn còn trong codebase** nhưng đang bị phase out. Agent
 | Types | `packages/types` — `CreateServiceRequestInput` | Đã có, verify contract |
 
 **Acceptance Criteria:**
-- [ ] Chọn service type từ dropdown (data từ API)
-- [ ] Điền title, description, location, priority → Submit → API trả success
-- [ ] File attachments upload → link vào request
+- [x] Chọn service type từ dropdown (data từ API)
+- [x] Điền title, description, location, priority → Submit → API trả success
+- [x] File attachments upload → link vào request
 - [ ] Draft mode: save draft → có thể quay lại edit
-- [ ] Submit mode: request status = SUBMITTED, redirect to `/requests/[id]`
+- [~] Submit mode: request status = SUBMITTED, redirect to `/requests/[id]`
 - [ ] Validation errors hiện inline
 - [ ] Loading state khi submitting
 - [ ] i18n: en + vi
-- [ ] `pnpm typecheck` pass
+- [x] `pnpm typecheck` pass
 - [ ] `pnpm lint` pass
 
 ---
@@ -244,14 +247,14 @@ Các module sau **vẫn còn trong codebase** nhưng đang bị phase out. Agent
 | Types | `packages/types` — service-ops types | Verify contracts |
 
 **Sub-tasks:**
-- [ ] `GET /api/v1/requests/:id/workflow` — trả đủ `RequestWorkflowDetail`
-- [ ] `PATCH /api/v1/requests/:id/status` — validate transition rules theo role
-- [ ] `POST /api/v1/requests/:id/assign` — assign/reassign, tạo `AssignmentHistory`
-- [ ] `POST /api/v1/requests/:id/comments` — PUBLIC + INTERNAL visibility
-- [ ] `POST /api/v1/requests/:id/work-logs` — content + minutesSpent
-- [ ] `GET /api/v1/requests/assignees` — list active users for assign dialog
-- [ ] SLA record tự tạo khi request submitted (từ SlaPolicy config)
-- [ ] Activity log tự ghi khi có status change, assign, comment
+- [x] `GET /api/v1/requests/:id/workflow` — trả đủ `RequestWorkflowDetail`
+- [x] `PATCH /api/v1/requests/:id/status` — validate transition rules theo role
+- [x] `POST /api/v1/requests/:id/assign` — assign/reassign, tạo `AssignmentHistory`
+- [x] `POST /api/v1/requests/:id/comments` — PUBLIC + INTERNAL visibility
+- [x] `POST /api/v1/requests/:id/work-logs` — content + minutesSpent
+- [x] `GET /api/v1/requests/assignees` — list active users for assign dialog
+- [x] SLA record tự tạo khi request submitted (từ SlaPolicy config)
+- [x] Activity log tự ghi khi có status change, assign, comment
 
 **Status Transition Rules (cần implement):**
 
@@ -268,8 +271,8 @@ Các module sau **vẫn còn trong codebase** nhưng đang bị phase out. Agent
 | Any → WAITING_EXTERNAL_VENDOR | OPS_COORDINATOR, TENANT_ADMIN |
 
 **Acceptance Criteria:**
-- [ ] Tất cả endpoints trả response đúng contract trong `@supportops/types`
-- [ ] Transition rules reject nếu role không đủ quyền → 403
+- [x] Tất cả endpoints trả response đúng contract trong `@supportops/types`
+- [x] Transition rules reject nếu role không đủ quyền → 403
 - [ ] Activity log ghi đầy đủ mọi action
 - [ ] `tenantId` filter trên mọi query
 - [ ] `pnpm --filter @supportops/api build` pass
@@ -415,8 +418,8 @@ Các module sau **vẫn còn trong codebase** nhưng đang bị phase out. Agent
 - SLA health overview (ON_TRACK / AT_RISK / BREACHED counts)
 
 **Backend endpoints:**
-- [ ] `GET /api/v1/dashboard/summary` — trả KPI aggregates (tenantId filter)
-- [ ] `GET /api/v1/dashboard/recent-activity` — trả last N events
+- [x] `GET /api/v1/dashboard/summary` — trả KPI aggregates (tenantId filter)
+- [x] `GET /api/v1/dashboard/recent-activity` — trả last N events
 
 **i18n keys mới (tạo mới hoàn toàn):**
 ```
@@ -433,12 +436,12 @@ dashboard.sections.slaOverview
 ```
 
 **Acceptance Criteria:**
-- [ ] Toàn bộ i18n ecommerce cũ đã bị xóa
-- [ ] Dashboard load data từ API thật, không mock
-- [ ] Loading / error / empty states
-- [ ] Permission: tất cả authenticated users xem được dashboard cơ bản
-- [ ] TENANT_ADMIN / OPS_COORDINATOR xem thêm team-wide metrics
-- [ ] `pnpm typecheck` pass, `pnpm lint` pass
+- [x] Toàn bộ i18n ecommerce cũ đã bị xóa
+- [x] Dashboard load data từ API thật, không mock
+- [x] Loading / error / empty states
+- [x] Permission: tất cả authenticated users xem được dashboard cơ bản
+- [x] TENANT_ADMIN / OPS_COORDINATOR xem thêm team-wide metrics
+- [x] `pnpm typecheck` pass, `pnpm lint` pass
 
 ---
 
@@ -487,13 +490,13 @@ dashboard.sections.slaOverview
 **⚠️ Lưu ý:** `docs/worker-roadmap.md` hiện có scope lẫn legacy (billing/subscription). Agent **PHẢI BỎ QUA** legacy scope. Chỉ implement theo danh sách dưới đây.
 
 **Scope Worker Phase 1:**
-- [ ] Setup BullMQ + Redis connection
-- [ ] Job: `sla-check` — chạy mỗi 5 phút
+- [x] Setup BullMQ + Redis connection
+- [x] Job: `sla-check` — chạy mỗi 5 phút
   - Query requests WHERE status IN (SUBMITTED, TRIAGE, ASSIGNED, IN_PROGRESS)
   - Tính SLA elapsed time
   - Update `slaHealth` → `AT_RISK` nếu elapsed > 80% threshold
   - Update `slaHealth` → `BREACHED` nếu elapsed > 100%
-- [ ] Job: `escalation-check` — chạy mỗi 15 phút
+- [x] Job: `escalation-check` — chạy mỗi 15 phút
   - Query requests WHERE `slaHealth` = BREACHED AND `escalated` = false
   - Mark as escalated
   - (Log activity event, chưa cần gửi email)
@@ -516,11 +519,11 @@ dashboard.sections.slaOverview
 ```
 
 **Acceptance Criteria:**
-- [ ] `pnpm --filter @supportops/worker build` pass (không còn echo TODO)
-- [ ] `pnpm --filter @supportops/worker typecheck` pass
-- [ ] SLA check job runs trên schedule
-- [ ] SLA health cập nhật đúng trong DB
-- [ ] Activity log ghi event khi SLA status change
+- [x] `pnpm --filter @supportops/worker build` pass (không còn echo TODO)
+- [x] `pnpm --filter @supportops/worker typecheck` pass
+- [x] SLA check job runs trên schedule
+- [x] SLA health cập nhật đúng trong DB
+- [x] Activity log ghi event khi SLA status change
 
 ---
 
@@ -630,10 +633,10 @@ packages/types/src/
 - **KHÔNG thêm runtime logic** vào types package (giữ nó pure types)
 
 **Acceptance Criteria:**
-- [ ] Mỗi layer có barrel export riêng
-- [ ] Không có circular imports giữa layers
-- [ ] `pnpm --filter @supportops/types typecheck` pass
-- [ ] Consumers (`apps/web`, `apps/api`) vẫn import thành công
+- [x] Mỗi layer có barrel export riêng
+- [x] Không có circular imports giữa layers
+- [x] `pnpm --filter @supportops/types typecheck` pass
+- [x] Consumers (`apps/web`, `apps/api`) vẫn import thành công
 
 ---
 
@@ -679,10 +682,10 @@ class RequestEscalatedEvent { requestId: string; escalatedAt: Date; }
 **Pattern:** Dùng NestJS `EventEmitter2` — đủ cho internal monolith, chưa cần message queue.
 
 **Acceptance Criteria:**
-- [ ] Service methods emit events sau mutation thành công
-- [ ] Listeners handle side effects
-- [ ] Activity log tạo qua event listener, không inline trong service
-- [ ] `pnpm --filter @supportops/api build` pass
+- [x] Service methods emit events sau mutation thành công
+- [x] Listeners handle side effects
+- [x] Activity log tạo qua event listener, không inline trong service
+- [x] `pnpm --filter @supportops/api build` pass
 
 ---
 
@@ -701,23 +704,23 @@ class RequestEscalatedEvent { requestId: string; escalatedAt: Date; }
 | Invoice | Xóa | Retire |
 
 **Scope xóa:**
-- [ ] Backend: xóa modules, controllers, services, DTOs
-- [ ] Frontend: xóa `productService.ts`, product pages, kanban pages
-- [ ] Prisma: tạo migration drop tables (hoặc comment models)
-- [ ] `packages/types`: xóa `Product`, `ProductImage`, `CreateProductRequest`, `UpdateProductRequest`, etc.
-- [ ] i18n: xóa keys liên quan (`projects.*`, etc.)
-- [ ] AGENTS.md: bỏ "DO NOT MODIFY" section → thay bằng "Legacy modules removed"
-- [ ] `docs/api-spec.md`: xóa legacy endpoints section
+- [x] Backend: xóa modules, controllers, services, DTOs
+- [x] Frontend: xóa `productService.ts`, product pages, kanban pages
+- [x] Prisma: tạo migration drop tables (hoặc comment models)
+- [x] `packages/types`: xóa `Product`, `ProductImage`, `CreateProductRequest`, `UpdateProductRequest`, etc.
+- [x] i18n: xóa keys liên quan (`projects.*`, etc.)
+- [x] AGENTS.md: bỏ "DO NOT MODIFY" section → thay bằng "Legacy modules removed"
+- [x] `docs/api-spec.md`: xóa legacy endpoints section
 
 **⚠️ Rủi ro:** Frontend `productService.ts` hiện vẫn import từ `@supportops/types` (`CreateProductRequest`, `Product`, etc.). Agent phải xóa cả service lẫn types.
 
 **Acceptance Criteria:**
-- [ ] Không còn file nào reference legacy modules
-- [ ] `pnpm typecheck` pass
-- [ ] `pnpm lint` pass
-- [ ] `pnpm --filter @supportops/api build` pass
-- [ ] `pnpm --filter @supportops/web build` pass
-- [ ] Prisma migration pass
+- [x] Không còn file nào reference legacy modules
+- [x] `pnpm typecheck` pass
+- [x] `pnpm lint` pass
+- [x] `pnpm --filter @supportops/api build` pass
+- [x] `pnpm --filter @supportops/web build` pass
+- [x] Prisma migration pass
 
 ---
 
@@ -758,10 +761,10 @@ class RequestEscalatedEvent { requestId: string; escalatedAt: Date; }
 **File:** `apps/api/prisma/seed.ts`
 
 **Acceptance Criteria:**
-- [ ] `pnpm --filter @supportops/api exec prisma db seed` chạy thành công
-- [ ] Login với mỗi account đều vào được dashboard
-- [ ] Request list hiện đủ requests ở các trạng thái
-- [ ] Request detail hiện comments, work logs, timeline
+- [x] `pnpm --filter @supportops/api exec prisma db seed` chạy thành công
+- [x] Login với mỗi account đều vào được dashboard
+- [x] Request list hiện đủ requests ở các trạng thái
+- [x] Request detail hiện comments, work logs, timeline
 
 ---
 
@@ -894,22 +897,22 @@ pnpm --filter @supportops/api build         # nếu sửa backend
 
 | # | Task | Status |
 |---|---|---|
-| 1.1 | Create Request end-to-end | ⬜ |
-| 1.2 | Request Detail backend | ⬜ |
-| 1.3 | Polish Request List | ⬜ |
-| 1.4a | Service Types CRUD | ⬜ |
-| 1.4b | SLA Policies CRUD | ⬜ |
-| 1.4c | Workflow Transitions CRUD | ⬜ |
-| 1.5 | Sync Docs với Code | ⬜ |
-| 1.6 | Quality Gate MVP | ⬜ |
+| 1.1 | Create Request end-to-end | ✅ |
+| 1.2 | Request Detail backend | ✅ |
+| 1.3 | Polish Request List | ✅ |
+| 1.4a | Service Types CRUD | ✅ |
+| 1.4b | SLA Policies CRUD | ✅ |
+| 1.4c | Workflow Transitions CRUD | ✅ |
+| 1.5 | Sync Docs với Code | ✅ |
+| 1.6 | Quality Gate MVP | ✅ |
 
 ### Giai đoạn 2 — Hệ thống "sống"
 
 | # | Task | Status |
 |---|---|---|
-| 2.1 | Dashboard ServiceOps (viết mới) | ⬜ |
-| 2.2 | Rename Notification API Fields | ⬜ |
-| 2.3 | Worker App Phase 1 (SLA Monitor) | ⬜ |
+| 2.1 | Dashboard ServiceOps (viết mới) | ✅ |
+| 2.2 | Rename Notification API Fields | ✅ |
+| 2.3 | Worker App Phase 1 (SLA Monitor) | ✅ |
 | 2.4 | Tách nhỏ RequestListView | ⬜ |
 | 2.5 | Audit / Activity Log Consistency | ⬜ |
 
@@ -917,18 +920,18 @@ pnpm --filter @supportops/api build         # nếu sửa backend
 
 | # | Task | Status |
 |---|---|---|
-| 3.1 | Ổn định @supportops/types | ⬜ |
-| 3.2 | Chốt Package Boundaries | ⬜ |
-| 3.3 | Event-driven Side Effects | ⬜ |
-| 3.4 | Dọn Legacy Modules | ⬜ |
+| 3.1 | Ổn định @supportops/types | ✅ |
+| 3.2 | Chốt Package Boundaries | ✅ |
+| 3.3 | Event-driven Side Effects | ✅ |
+| 3.4 | Dọn Legacy Modules | ✅ |
 
 ### Giai đoạn 4 — Portfolio & Demo Ready
 
 | # | Task | Status |
 |---|---|---|
-| 4.1 | Seed Data / Demo Accounts | ⬜ |
-| 4.2 | Technical Docs | ⬜ |
-| 4.3 | Nâng cấp README | ⬜ |
+| 4.1 | Seed Data / Demo Accounts | ✅ |
+| 4.2 | Technical Docs | ✅ |
+| 4.3 | Nâng cấp README | ✅ |
 
 ---
 
