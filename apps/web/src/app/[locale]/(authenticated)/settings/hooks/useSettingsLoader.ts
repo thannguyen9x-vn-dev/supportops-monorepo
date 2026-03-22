@@ -37,6 +37,7 @@ export function useSettingsLoader(): UseSettingsLoaderReturn {
 
       setData({
         avatarUrl: profile.avatarUrl ?? null,
+        joinedAt: profile.joinedAt ?? null,
         profile: toProfileFormValues(profile),
         notifications: toNotificationPreferences(preferences)
       });

@@ -49,6 +49,7 @@ function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
     timezone: "UTC",
     locale: "en",
     role: "TENANT_ADMIN",
+    joinedAt: null,
     ...overrides
   };
 }

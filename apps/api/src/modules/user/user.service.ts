@@ -77,8 +77,9 @@ export class UserService {
       throw new NotFoundException('User', userId);
     }
 
-    const roleCode = await this.resolveUserRoleCode(user.id, tenantId, user.role);
-    return UserResponseDto.from(user, roleCode);
+    const membership = await this.resolveActiveMembershipSummary(user.id, tenantId);
+    const roleCode = this.resolveRoleCodeWithFallback(membership?.roleCode, user.role);
+    return UserResponseDto.from(user, roleCode, membership?.joinedAt ?? null);
   }
 
   async listTenantUsers(tenantId: string): Promise<TenantUserResponseDto[]> {
@@ -301,7 +302,8 @@ export class UserService {
       throw new NotFoundException('User', userId);
     }
 
-    const currentRoleCode = await this.resolveUserRoleCode(user.id, tenantId, user.role);
+    const currentMembership = await this.resolveActiveMembershipSummary(user.id, tenantId);
+    const currentRoleCode = this.resolveRoleCodeWithFallback(currentMembership?.roleCode, user.role);
     const canUpdateDepartment =
       currentRoleCode === 'TENANT_ADMIN' || user.role === Role.SUPER_ADMIN;
 
@@ -333,8 +335,9 @@ export class UserService {
       throw new UnprocessableEntityException('First name and last name are required');
     }
 
-    const roleCode = await this.resolveUserRoleCode(updated.id, tenantId, updated.role);
-    return UserResponseDto.from(updated, roleCode);
+    const updatedMembership = await this.resolveActiveMembershipSummary(updated.id, tenantId);
+    const roleCode = this.resolveRoleCodeWithFallback(updatedMembership?.roleCode, updated.role);
+    return UserResponseDto.from(updated, roleCode, updatedMembership?.joinedAt ?? null);
   }
 
   async changePassword(tenantId: string, userId: string, dto: ChangePasswordDto): Promise<void> {
@@ -798,12 +801,24 @@ export class UserService {
     return 'EMPLOYEE';
   }
 
-  private async resolveUserRoleCode(
-    userId: string,
-    tenantId: string,
+  private resolveRoleCodeWithFallback(
+    roleCode: string | null | undefined,
     fallbackRole: Role,
-  ): Promise<'EMPLOYEE' | 'OPS_COORDINATOR' | 'TECHNICIAN' | 'TENANT_ADMIN'> {
-    const membership = await this.prisma.membership.findFirst({
+  ): 'EMPLOYEE' | 'OPS_COORDINATOR' | 'TECHNICIAN' | 'TENANT_ADMIN' {
+    if (
+      roleCode === 'EMPLOYEE' ||
+      roleCode === 'OPS_COORDINATOR' ||
+      roleCode === 'TECHNICIAN' ||
+      roleCode === 'TENANT_ADMIN'
+    ) {
+      return roleCode;
+    }
+
+    return this.mapLegacyRoleToRoleCode(fallbackRole);
+  }
+
+  private async resolveActiveMembershipSummary(userId: string, tenantId: string) {
+    return this.prisma.membership.findFirst({
       where: {
         userId,
         tenantId,
@@ -811,20 +826,10 @@ export class UserService {
       },
       select: {
         roleCode: true,
+        joinedAt: true,
       },
       orderBy: { createdAt: 'asc' },
     });
-
-    if (
-      membership?.roleCode === 'EMPLOYEE' ||
-      membership?.roleCode === 'OPS_COORDINATOR' ||
-      membership?.roleCode === 'TECHNICIAN' ||
-      membership?.roleCode === 'TENANT_ADMIN'
-    ) {
-      return membership.roleCode;
-    }
-
-    return this.mapLegacyRoleToRoleCode(fallbackRole);
   }
 
   private async revokeTenantUserSessionsTx(

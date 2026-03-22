@@ -44,6 +44,7 @@ export type NotificationPreference = {
 
 export type SettingsData = {
   avatarUrl: string | null;
+  joinedAt: string | null;
   profile: ProfileFormValues;
   notifications: NotificationPreference[];
 };

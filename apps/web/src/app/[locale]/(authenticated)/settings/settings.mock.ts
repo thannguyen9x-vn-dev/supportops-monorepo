@@ -2,6 +2,7 @@ import type { SettingsData } from "./settings.types";
 
 export const MOCK_SETTINGS_DATA: SettingsData = {
   avatarUrl: null,
+  joinedAt: "2025-01-01T00:00:00.000Z",
   profile: {
     firstName: "Thomas",
     lastName: "Lean",

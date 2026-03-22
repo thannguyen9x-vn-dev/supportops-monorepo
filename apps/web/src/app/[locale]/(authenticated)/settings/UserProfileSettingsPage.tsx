@@ -12,6 +12,7 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useToast } from "@/features/common/toast/useToast";
 import { settingsService } from "@/features/settings/services/settings.service";
 import { NotificationSettingsCard } from "./components/NotificationSettingsCard";
+import { OrganizationAccessCard } from "./components/OrganizationAccessCard";
 import { PasswordForm } from "./components/PasswordForm";
 import { ProfileCard } from "./components/ProfileCard";
 import { ProfileForm } from "./components/ProfileForm";
@@ -112,9 +113,7 @@ export default function SettingsPage() {
   const groupedNotifications = useMemo(
     () => ({
       alerts: notifications.preferences.filter((item) => item.group === "alerts"),
-      email: notifications.preferences
-        .filter((item) => item.group === "email")
-        .filter((item) => item.key !== "buyerReviewNotifications"),
+      email: notifications.preferences.filter((item) => item.group === "email"),
     }),
     [notifications.preferences],
   );
@@ -131,6 +130,22 @@ export default function SettingsPage() {
     };
     return roleMap[roleKey] ?? roleKey;
   }, [t, tRoles, user?.role]);
+  const roleKey = user?.role ?? "";
+  const organizationName = user?.tenantName?.trim() || t("organizationAccess.fallback.organization");
+  const departmentName = settingsData?.profile.department?.trim() || t("organizationAccess.fallback.department");
+  const teamQueueLabel = settingsData?.profile.department?.trim()
+    ? t("organizationAccess.teamQueueValue", { department: settingsData.profile.department.trim() })
+    : t("organizationAccess.fallback.teamQueue");
+  const joinedDateRaw = settingsData?.joinedAt ?? user?.joinedAt ?? null;
+  const permissionSummary = useMemo(() => {
+    const permissionMap: Record<string, string> = {
+      EMPLOYEE: t("organizationAccess.permissionSummary.EMPLOYEE"),
+      OPS_COORDINATOR: t("organizationAccess.permissionSummary.OPS_COORDINATOR"),
+      TECHNICIAN: t("organizationAccess.permissionSummary.TECHNICIAN"),
+      TENANT_ADMIN: t("organizationAccess.permissionSummary.TENANT_ADMIN"),
+    };
+    return permissionMap[roleKey] ?? t("organizationAccess.permissionSummary.default");
+  }, [roleKey, t]);
   const activeSession = sessions[0] ?? null;
   const otherSessions = sessions.slice(1);
   const tabParam = searchParams.get("tab");
@@ -179,6 +194,7 @@ export default function SettingsPage() {
     },
     [locale, t],
   );
+  const joinedDateLabel = joinedDateRaw ? formatSessionDate(joinedDateRaw) : t("organizationAccess.fallback.joinedDate");
 
   const getSessionDeviceLabel = useCallback(
     (session: UserSession) => {
@@ -291,6 +307,14 @@ export default function SettingsPage() {
         <div className={styles.tabPanelContent}>
           {activeTab === "general" ? (
             <div className={styles.tabContent}>
+              <OrganizationAccessCard
+                department={departmentName}
+                joinedDate={joinedDateLabel}
+                organizationName={organizationName}
+                permissionSummary={permissionSummary}
+                role={roleLabel}
+                teamQueue={teamQueueLabel}
+              />
               <ProfileForm
                 canEditDepartment={canEditDepartment}
                 control={profile.control}

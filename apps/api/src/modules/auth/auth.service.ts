@@ -732,6 +732,7 @@ export class AuthService {
         id: string;
         tenantId: string;
         roleCode: string;
+        joinedAt?: Date | null;
       } | null;
       tokenFamilyId?: string;
       previousRefreshSessionId?: string;
@@ -814,6 +815,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         role: effectiveRoleCode,
+        joinedAt: membership?.joinedAt?.toISOString() ?? null,
       },
       membership: membership
         ? {

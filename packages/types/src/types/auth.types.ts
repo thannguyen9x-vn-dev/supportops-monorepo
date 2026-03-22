@@ -20,6 +20,7 @@ export interface AuthUser {
   role: UserRole;
   tenantId: string;
   tenantName: string;
+  joinedAt: string | null;
 }
 
 export interface RegisterRequest {

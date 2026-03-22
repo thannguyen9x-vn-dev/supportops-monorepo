@@ -43,7 +43,8 @@ describe("AuthContext logout", () => {
     avatarUrl: null,
     role: "TENANT_ADMIN",
     tenantId: "t-1",
-    tenantName: "Tenant"
+    tenantName: "Tenant",
+    joinedAt: null,
   };
 
   function wrapper({ children }: { children: ReactNode }) {
