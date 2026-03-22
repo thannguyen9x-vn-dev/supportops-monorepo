@@ -24,6 +24,7 @@ import { RequestCommentResponseDto } from './dto/request-comment-response.dto';
 import { RequestCommentQueryDto } from './dto/request-comment-query.dto';
 import { RequestQueryDto } from './dto/request-query.dto';
 import { RequestResponseDto } from './dto/request-response.dto';
+import { RequestTabCountsResponseDto } from './dto/request-tab-counts-response.dto';
 import { RequestWorkflowDetailResponseDto } from './dto/request-workflow-detail-response.dto';
 import { RequestWorkLogResponseDto } from './dto/request-work-log-response.dto';
 import { UpdateRequestStatusDto } from './dto/update-request-status.dto';
@@ -45,6 +46,18 @@ export class RequestController {
     @Query() query: RequestQueryDto,
   ) {
     return this.requestService.list(tenantId, requesterId, permissions, query);
+  }
+
+  @Get('tab-counts')
+  @Permissions({ any: ['request.read.all', 'request.read.own'] })
+  @ApiOperation({ summary: 'Get request tab counters for list screen' })
+  listTabCounts(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser('sub') requesterId: string,
+    @CurrentPermissions() permissions: string[],
+    @Query() query: RequestQueryDto,
+  ): Promise<RequestTabCountsResponseDto> {
+    return this.requestService.listTabCounts(tenantId, requesterId, permissions, query);
   }
 
   @Post()

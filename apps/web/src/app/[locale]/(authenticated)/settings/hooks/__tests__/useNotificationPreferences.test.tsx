@@ -55,14 +55,14 @@ const mockUpdatePreferences = settingsService.updatePreferences as jest.Mock;
 // Danh sách 8 notification mẫu, tương ứng với data thực từ API
 function makePreferences(): NotificationPreference[] {
   return [
-    { key: "companyNews", group: "alerts", enabled: false },
-    { key: "accountActivity", group: "alerts", enabled: true },
-    { key: "meetupsNearYou", group: "alerts", enabled: false },
-    { key: "newMessages", group: "alerts", enabled: false },
-    { key: "ratingReminders", group: "email", enabled: true },
-    { key: "itemUpdateNotifications", group: "email", enabled: true },
-    { key: "itemCommentNotifications", group: "email", enabled: false },
-    { key: "buyerReviewNotifications", group: "email", enabled: false }
+    { key: "assignmentAlerts", group: "alerts", enabled: false },
+    { key: "statusUpdateAlerts", group: "alerts", enabled: true },
+    { key: "slaRiskAlerts", group: "alerts", enabled: false },
+    { key: "escalationAlerts", group: "alerts", enabled: false },
+    { key: "resolutionReminders", group: "email", enabled: true },
+    { key: "requestUpdateDigest", group: "email", enabled: true },
+    { key: "commentNotifications", group: "email", enabled: false },
+    { key: "mentionNotifications", group: "email", enabled: false }
   ];
 }
 
@@ -126,12 +126,12 @@ describe("useNotificationPreferences", () => {
         result.current.setPreferences(makePreferences());
       });
 
-      // companyNews ban đầu là false → toggle lên true
+      // assignmentAlerts ban đầu là false → toggle lên true
       act(() => {
-        result.current.toggle("companyNews", true);
+        result.current.toggle("assignmentAlerts", true);
       });
 
-      const updated = result.current.preferences.find((p) => p.key === "companyNews");
+      const updated = result.current.preferences.find((p) => p.key === "assignmentAlerts");
       // State thay đổi NGAY LẬP TỨC, không chờ API
       expect(updated?.enabled).toBe(true);
     });
@@ -144,11 +144,11 @@ describe("useNotificationPreferences", () => {
       });
 
       act(() => {
-        result.current.toggle("companyNews", true);
+        result.current.toggle("assignmentAlerts", true);
       });
 
-      // accountActivity ban đầu là true → vẫn phải là true sau khi toggle companyNews
-      const unchanged = result.current.preferences.find((p) => p.key === "accountActivity");
+      // statusUpdateAlerts ban đầu là true → vẫn phải là true sau khi toggle assignmentAlerts
+      const unchanged = result.current.preferences.find((p) => p.key === "statusUpdateAlerts");
       expect(unchanged?.enabled).toBe(true);
     });
 
@@ -160,14 +160,14 @@ describe("useNotificationPreferences", () => {
       });
 
       act(() => {
-        result.current.toggle("companyNews", true);
+        result.current.toggle("assignmentAlerts", true);
       });
 
       // API phải được gọi đúng 1 lần
       expect(mockUpdatePreferences).toHaveBeenCalledTimes(1);
-      // Payload gửi lên phải reflect state mới (companyNews: true)
+      // Payload gửi lên phải reflect state mới (assignmentAlerts: true)
       expect(mockUpdatePreferences).toHaveBeenCalledWith(
-        expect.objectContaining({ companyNews: true })
+        expect.objectContaining({ assignmentAlerts: true })
       );
     });
 
@@ -183,15 +183,15 @@ describe("useNotificationPreferences", () => {
         result.current.setPreferences(makePreferences());
       });
 
-      // Bước 1: toggle → optimistic update (companyNews = true ngay lập tức)
+      // Bước 1: toggle → optimistic update (assignmentAlerts = true ngay lập tức)
       act(() => {
-        result.current.toggle("companyNews", true);
+        result.current.toggle("assignmentAlerts", true);
       });
 
       // Bước 2: đợi async .catch() chạy xong và rollback state
       // waitFor() sẽ retry assertion cho đến khi pass hoặc timeout (1s mặc định)
       await waitFor(() => {
-        const item = result.current.preferences.find((p) => p.key === "companyNews");
+        const item = result.current.preferences.find((p) => p.key === "assignmentAlerts");
         // Sau rollback, phải trở về giá trị cũ (false)
         expect(item?.enabled).toBe(false);
       });
@@ -207,7 +207,7 @@ describe("useNotificationPreferences", () => {
       });
 
       act(() => {
-        result.current.toggle("companyNews", true);
+        result.current.toggle("assignmentAlerts", true);
       });
 
       // Đợi async error handling hoàn tất
@@ -225,7 +225,7 @@ describe("useNotificationPreferences", () => {
       });
 
       await act(async () => {
-        result.current.toggle("companyNews", true);
+        result.current.toggle("assignmentAlerts", true);
       });
 
       expect(mockToastSuccess).toHaveBeenCalledWith("state.saved");

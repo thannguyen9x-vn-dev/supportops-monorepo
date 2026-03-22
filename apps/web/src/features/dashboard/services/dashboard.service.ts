@@ -1,4 +1,6 @@
 import type {
+  DashboardRecentActivityItem,
+  DashboardSummary,
   DashboardKpi,
   DashboardTransaction,
   LatestCustomer,
@@ -10,6 +12,10 @@ import type {
 import { ENDPOINTS, apiClient } from "@/lib/api";
 
 export const dashboardService = {
+  getSummary: () => apiClient.get<DashboardSummary>(ENDPOINTS.DASHBOARD.SUMMARY),
+
+  getRecentActivity: () => apiClient.get<DashboardRecentActivityItem[]>(ENDPOINTS.DASHBOARD.RECENT_ACTIVITY),
+
   getSalesSummary: (period: "day" | "month" | "year" = "day") =>
     apiClient.get<SalesSummary>(ENDPOINTS.DASHBOARD.SALES_SUMMARY, {
       params: { period }

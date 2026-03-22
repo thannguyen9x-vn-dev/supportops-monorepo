@@ -3,39 +3,39 @@ import { UserPreference } from '@prisma/client';
 
 export class UserPreferencesResponseDto {
   @ApiProperty()
-  companyNews!: boolean;
+  assignmentAlerts!: boolean;
 
   @ApiProperty()
-  accountActivity!: boolean;
+  statusUpdateAlerts!: boolean;
 
   @ApiProperty()
-  meetupsNearYou!: boolean;
+  slaRiskAlerts!: boolean;
 
   @ApiProperty()
-  newMessages!: boolean;
+  escalationAlerts!: boolean;
 
   @ApiProperty()
-  ratingReminders!: boolean;
+  resolutionReminders!: boolean;
 
   @ApiProperty()
-  itemUpdateNotif!: boolean;
+  requestUpdateDigest!: boolean;
 
   @ApiProperty()
-  itemCommentNotif!: boolean;
+  commentNotifications!: boolean;
 
   @ApiProperty()
-  buyerReviewNotif!: boolean;
+  mentionNotifications!: boolean;
 
   static from(preference: UserPreference): UserPreferencesResponseDto {
     return {
-      companyNews: preference.companyNews,
-      accountActivity: preference.accountActivity,
-      meetupsNearYou: preference.meetupsNearYou,
-      newMessages: preference.newMessages,
-      ratingReminders: preference.ratingReminders,
-      itemUpdateNotif: preference.itemUpdateNotif,
-      itemCommentNotif: preference.itemCommentNotif,
-      buyerReviewNotif: preference.buyerReviewNotif,
+      assignmentAlerts: preference.assignmentAlerts,
+      statusUpdateAlerts: preference.statusUpdateAlerts,
+      slaRiskAlerts: preference.slaRiskAlerts,
+      escalationAlerts: preference.escalationAlerts,
+      resolutionReminders: preference.resolutionReminders,
+      requestUpdateDigest: preference.requestUpdateDigest,
+      commentNotifications: preference.commentNotifications,
+      mentionNotifications: preference.mentionNotifications,
     };
   }
 }

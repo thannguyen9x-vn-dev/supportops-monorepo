@@ -1,0 +1,19 @@
+export const REQUEST_STATUSES = [
+    "DRAFT",
+    "SUBMITTED",
+    "TRIAGE",
+    "ASSIGNED",
+    "IN_PROGRESS",
+    "RESOLVED",
+    "CLOSED",
+    "WAITING_EXTERNAL_VENDOR",
+    "REOPENED",
+    "CANCELLED",
+];
+export const REQUEST_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"];
+export const REQUEST_IMPACT_LEVELS = ["LOW", "MEDIUM", "HIGH"];
+export const REQUEST_URGENCY_LEVELS = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
+export const SOURCE_CHANNELS = ["WEB", "EMAIL", "PHONE", "CHAT", "API"];
+export const REQUEST_COMMENT_VISIBILITIES = ["PUBLIC", "INTERNAL"];
+export const SLA_HEALTHS = ["ON_TRACK", "AT_RISK", "BREACHED"];
+export const SLA_TYPES = ["ASSIGNMENT", "RESOLUTION"];

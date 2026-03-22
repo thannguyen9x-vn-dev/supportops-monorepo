@@ -7,7 +7,6 @@
     "layout": {
       "dashboard": "Bảng điều khiển",
       "team": "Đội ngũ",
-      "projects": "Dự án",
       "calendar": "Lịch",
       "loginRegister": "Đăng nhập/Đăng ký",
       "requests": "Yêu cầu",
@@ -35,7 +34,7 @@
       "unableToSignIn": "Không thể đăng nhập",
       "unableToRegister": "Không thể đăng ký"
     },
-  "login": {
+    "login": {
       "title": "Đăng nhập",
       "subtitle": "Chào mừng bạn quay lại. Tiếp tục công việc đang dở.",
       "badge": "Truy cập an toàn",
@@ -43,13 +42,13 @@
       "illustrationText": "Giữ dự án luôn vận hành với đăng nhập nhanh và ổn định.",
       "footerPrompt": "Bạn mới ở đây?",
       "footerAction": "Tạo tài khoản",
-    "rememberMe": "Ghi nhớ tôi",
-    "forgotPassword": "Quên mật khẩu?",
-    "submit": "Đăng nhập",
-    "emailNotVerified": "Email của bạn chưa được xác thực. Vui lòng xác thực email trước khi đăng nhập.",
-    "goToVerify": "Mở trang xác thực email"
-  },
-  "register": {
+      "rememberMe": "Ghi nhớ tôi",
+      "forgotPassword": "Quên mật khẩu?",
+      "submit": "Đăng nhập",
+      "emailNotVerified": "Email của bạn chưa được xác thực. Vui lòng xác thực email trước khi đăng nhập.",
+      "goToVerify": "Mở trang xác thực email"
+    },
+    "register": {
       "title": "Tạo tài khoản miễn phí",
       "subtitle": "Khởi tạo workspace của bạn chỉ trong vài phút.",
       "badge": "Khởi tạo",
@@ -71,99 +70,98 @@
         "number": "Có ít nhất một chữ số",
         "specialCharacter": "Có ít nhất một ký tự đặc biệt, ví dụ: ! @ # ?"
       },
-    "submit": "Tạo tài khoản",
-    "submitSuccess": "Chúng tôi đã gửi email xác thực đến {email}. Vui lòng xác thực trước khi đăng nhập.",
-    "resendVerificationEmail": "Gửi lại email xác thực",
-    "resendSuccess": "Đã gửi lại email xác thực.",
-    "resendError": "Không thể gửi lại email xác thực. Vui lòng thử lại.",
-    "goToLogin": "Đi tới đăng nhập"
-  },
-  "forgotPassword": {
-    "title": "Quên mật khẩu?",
-    "subtitle": "Chúng tôi sẽ gửi mã đặt lại gồm 6 chữ số qua email. Mã có hiệu lực trong 10 phút.",
+      "submit": "Tạo tài khoản",
+      "submitSuccess": "Chúng tôi đã gửi email xác thực đến {email}. Vui lòng xác thực trước khi đăng nhập.",
+      "resendVerificationEmail": "Gửi lại email xác thực",
+      "resendSuccess": "Đã gửi lại email xác thực.",
+      "resendError": "Không thể gửi lại email xác thực. Vui lòng thử lại.",
+      "goToLogin": "Đi tới đăng nhập"
+    },
+    "forgotPassword": {
+      "title": "Quên mật khẩu?",
+      "subtitle": "Chúng tôi sẽ gửi mã đặt lại gồm 6 chữ số qua email. Mã có hiệu lực trong 10 phút.",
       "badge": "Khôi phục",
       "illustrationTitle": "Đặt lại trong vài phút",
       "illustrationText": "Nhập email, chúng tôi sẽ giúp bạn đăng nhập lại.",
       "footerPrompt": "Bạn đã nhớ mật khẩu?",
       "footerAction": "Quay lại đăng nhập",
-    "submit": "Gửi mã đặt lại",
-    "submitSuccess": "Nếu tài khoản tồn tại, chúng tôi đã gửi mã đặt lại.",
-    "submitError": "Không thể xử lý yêu cầu. Vui lòng thử lại."
-  },
-  "resetPassword": {
+      "submit": "Gửi mã đặt lại",
+      "submitSuccess": "Nếu tài khoản tồn tại, chúng tôi đã gửi mã đặt lại.",
+      "submitError": "Không thể xử lý yêu cầu. Vui lòng thử lại."
+    },
+    "resetPassword": {
       "title": "Đặt lại mật khẩu",
       "subtitle": "Chọn mật khẩu mới để bảo vệ tài khoản của bạn.",
       "badge": "Bảo mật",
       "illustrationTitle": "Luôn được bảo vệ",
       "illustrationText": "Cập nhật thông tin đăng nhập để giữ an toàn cho công việc.",
-    "footerPrompt": "Muốn bắt đầu lại?",
-    "footerAction": "Yêu cầu mã mới",
-    "codeLabel": "Mã đặt lại",
-    "codePlaceholder": "Nhập mã 6 chữ số",
-    "codeRequired": "Mã đặt lại là bắt buộc",
-    "codeInvalid": "Mã đặt lại phải gồm 6 chữ số",
+      "footerPrompt": "Muốn bắt đầu lại?",
+      "footerAction": "Yêu cầu mã mới",
+      "codeLabel": "Mã đặt lại",
+      "codePlaceholder": "Nhập mã 6 chữ số",
+      "codeRequired": "Mã đặt lại là bắt buộc",
+      "codeInvalid": "Mã đặt lại phải gồm 6 chữ số",
       "newPasswordLabel": "Mật khẩu mới",
       "newPasswordPlaceholder": "Tạo mật khẩu mạnh",
       "confirmNewPasswordLabel": "Xác nhận mật khẩu mới",
       "confirmNewPasswordPlaceholder": "Nhập lại mật khẩu",
       "confirmNewPasswordRequired": "Vui lòng xác nhận mật khẩu",
-    "submit": "Đặt lại mật khẩu",
-    "submitSuccess": "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập lại ngay.",
-    "submitError": "Không thể đặt lại mật khẩu. Vui lòng thử lại.",
-    "missingEmail": "Thiếu thông tin email. Vui lòng bắt đầu lại từ trang quên mật khẩu.",
-    "passwordRequirements": {
+      "submit": "Đặt lại mật khẩu",
+      "submitSuccess": "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập lại ngay.",
+      "submitError": "Không thể đặt lại mật khẩu. Vui lòng thử lại.",
+      "missingEmail": "Thiếu thông tin email. Vui lòng bắt đầu lại từ trang quên mật khẩu.",
+      "passwordRequirements": {
         "minLength": "Ít nhất 10 ký tự (và tối đa 32 ký tự)",
         "lowercase": "Có ít nhất một ký tự chữ thường",
         "uppercase": "Có ít nhất một ký tự chữ HOA",
         "number": "Có ít nhất một chữ số",
-      "specialCharacter": "Có ít nhất một ký tự đặc biệt, ví dụ: ! @ # ?"
+        "specialCharacter": "Có ít nhất một ký tự đặc biệt, ví dụ: ! @ # ?"
+      }
+    },
+    "verifyEmail": {
+      "title": "Xác thực email",
+      "subtitle": "Hãy dùng liên kết trong email để xác thực tài khoản trước khi đăng nhập.",
+      "verifying": "Đang xác thực email...",
+      "success": "Xác thực email thành công. Bạn có thể đăng nhập ngay.",
+      "error": "Không thể xác thực email. Liên kết có thể đã hết hạn hoặc không hợp lệ.",
+      "missingToken": "Thiếu mã xác thực. Vui lòng mở lại liên kết từ email.",
+      "missingEmail": "Thiếu thông tin email. Vui lòng đăng ký lại hoặc liên hệ hỗ trợ.",
+      "resend": "Gửi lại email xác thực",
+      "resendSuccess": "Đã gửi email xác thực.",
+      "resendError": "Không thể gửi lại email xác thực. Vui lòng thử lại.",
+      "goToLogin": "Đi tới đăng nhập",
+      "footerPrompt": "Đã xác thực xong?",
+      "footerAction": "Đăng nhập"
+    },
+    "acceptInvite": {
+      "title": "Chấp nhận lời mời",
+      "subtitle": "Thiết lập mật khẩu để kích hoạt tài khoản của bạn.",
+      "footerPrompt": "Đã có tài khoản?",
+      "footerAction": "Đăng nhập",
+      "fullNameLabel": "Họ và tên",
+      "fullNamePlaceholder": "Nhập họ và tên",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "Nhập mật khẩu",
+      "confirmPasswordLabel": "Xác nhận mật khẩu",
+      "confirmPasswordPlaceholder": "Nhập lại mật khẩu",
+      "missingToken": "Thiếu token lời mời. Vui lòng mở lại liên kết trong email mời.",
+      "submit": "Kích hoạt tài khoản",
+      "submitSuccess": "Kích hoạt tài khoản thành công. Đang chuyển về trang đăng nhập...",
+      "submitError": "Không thể chấp nhận lời mời. Liên kết có thể không hợp lệ hoặc đã hết hạn.",
+      "passwordRequirements": {
+        "minLength": "Ít nhất 10 ký tự (và tối đa 32 ký tự)",
+        "lowercase": "Có ít nhất một ký tự chữ thường",
+        "uppercase": "Có ít nhất một ký tự chữ HOA",
+        "number": "Có ít nhất một chữ số",
+        "specialCharacter": "Có ít nhất một ký tự đặc biệt, ví dụ: ! @ # ?"
+      }
     }
-  },
-  "verifyEmail": {
-    "title": "Xác thực email",
-    "subtitle": "Hãy dùng liên kết trong email để xác thực tài khoản trước khi đăng nhập.",
-    "verifying": "Đang xác thực email...",
-    "success": "Xác thực email thành công. Bạn có thể đăng nhập ngay.",
-    "error": "Không thể xác thực email. Liên kết có thể đã hết hạn hoặc không hợp lệ.",
-    "missingToken": "Thiếu mã xác thực. Vui lòng mở lại liên kết từ email.",
-    "missingEmail": "Thiếu thông tin email. Vui lòng đăng ký lại hoặc liên hệ hỗ trợ.",
-    "resend": "Gửi lại email xác thực",
-    "resendSuccess": "Đã gửi email xác thực.",
-    "resendError": "Không thể gửi lại email xác thực. Vui lòng thử lại.",
-    "goToLogin": "Đi tới đăng nhập",
-    "footerPrompt": "Đã xác thực xong?",
-    "footerAction": "Đăng nhập"
-  },
-  "acceptInvite": {
-    "title": "Chấp nhận lời mời",
-    "subtitle": "Thiết lập mật khẩu để kích hoạt tài khoản của bạn.",
-    "footerPrompt": "Đã có tài khoản?",
-    "footerAction": "Đăng nhập",
-    "fullNameLabel": "Họ và tên",
-    "fullNamePlaceholder": "Nhập họ và tên",
-    "passwordLabel": "Mật khẩu",
-    "passwordPlaceholder": "Nhập mật khẩu",
-    "confirmPasswordLabel": "Xác nhận mật khẩu",
-    "confirmPasswordPlaceholder": "Nhập lại mật khẩu",
-    "missingToken": "Thiếu token lời mời. Vui lòng mở lại liên kết trong email mời.",
-    "submit": "Kích hoạt tài khoản",
-    "submitSuccess": "Kích hoạt tài khoản thành công. Đang chuyển về trang đăng nhập...",
-    "submitError": "Không thể chấp nhận lời mời. Liên kết có thể không hợp lệ hoặc đã hết hạn.",
-    "passwordRequirements": {
-      "minLength": "Ít nhất 10 ký tự (và tối đa 32 ký tự)",
-      "lowercase": "Có ít nhất một ký tự chữ thường",
-      "uppercase": "Có ít nhất một ký tự chữ HOA",
-      "number": "Có ít nhất một chữ số",
-      "specialCharacter": "Có ít nhất một ký tự đặc biệt, ví dụ: ! @ # ?"
-    }
-  }
   },
   "nav": {
     "main": "CHÍNH",
     "analytics": "PHÂN TÍCH",
     "system": "HỆ THỐNG",
     "dashboard": "Bảng điều khiển",
-    "projects": "Dự án",
     "team": "Người dùng",
     "calendar": "Lịch",
     "reports": "Báo cáo",
@@ -190,7 +188,6 @@
   },
   "pages": {
     "dashboardComingSoon": "Bảng điều khiển - sắp ra mắt",
-    "projectsComingSoon": "Dự án - sắp ra mắt",
     "teamComingSoon": "Đội ngũ - sắp ra mắt",
     "teamAdmin": {
       "title": "Quản trị thành viên",
@@ -254,93 +251,6 @@
       "description": "Bạn không có quyền truy cập trang này.",
       "goToDashboard": "Quay về bảng điều khiển"
     },
-    "projects": {
-      "state": {
-        "loading": "Đang tải sản phẩm...",
-        "error": "Không thể tải sản phẩm. Vui lòng thử lại.",
-        "empty": "Không có sản phẩm phù hợp với bộ lọc hiện tại.",
-        "created": "Tạo sản phẩm thành công",
-        "updated": "Cập nhật sản phẩm thành công",
-        "deleted": "{count, plural, one {Đã xóa # sản phẩm} other {Đã xóa # sản phẩm}}",
-        "saveError": "Không thể lưu sản phẩm. Vui lòng thử lại.",
-        "deleteError": "Không thể xóa sản phẩm. Vui lòng thử lại.",
-        "saveAllSummarySuccess": "Đã lưu thành công {successCount, plural, one {# dòng} other {# dòng}}.",
-        "saveAllSummaryPartial": "Đã lưu {successCount, plural, one {# dòng} other {# dòng}}. Thất bại: {failedCount, plural, one {# dòng} other {# dòng}}.",
-        "saveAllSummaryFailed": "Không thể lưu {failedCount, plural, one {# dòng} other {# dòng}}. Vui lòng thử lại."
-      },
-      "action": {
-        "retry": "Thử lại"
-      },
-      "toolbar": {
-        "searchPlaceholder": "Tìm theo tên, công nghệ hoặc mã id",
-        "filterByStatusAria": "Lọc sản phẩm theo trạng thái",
-        "addProduct": "Thêm sản phẩm",
-        "deleteSelected": "{count, plural, =0 {Xóa mục đã chọn} one {Xóa 1 mục đã chọn} other {Xóa # mục đã chọn}}",
-        "search": "Tìm kiếm"
-      },
-      "statusFilter": {
-        "all": "Tất cả trạng thái",
-        "active": "Đang hoạt động",
-        "draft": "Bản nháp",
-        "archived": "Lưu trữ"
-      },
-      "status": {
-        "active": "Đang hoạt động",
-        "draft": "Bản nháp",
-        "archived": "Lưu trữ"
-      },
-      "table": {
-        "ariaLabel": "Bảng sản phẩm",
-        "selectAll": "Chọn tất cả sản phẩm trong trang này",
-        "selectRow": "Chọn sản phẩm {name}",
-        "editAria": "Chỉnh sửa sản phẩm {name}",
-        "columns": {
-          "name": "Tên",
-          "technology": "Công nghệ",
-          "id": "ID",
-          "price": "Giá",
-          "status": "Trạng thái",
-          "updatedAt": "Cập nhật",
-          "action": "Hành động",
-          "category": "Danh mục",
-          "brand": "Thương hiệu"
-        }
-      },
-      "dialog": {
-        "createTitle": "Thêm sản phẩm",
-        "editTitle": "Chỉnh sửa sản phẩm",
-        "save": "Lưu",
-        "saving": "Đang lưu...",
-        "cancel": "Hủy",
-        "fields": {
-          "name": "Tên sản phẩm",
-          "technology": "Công nghệ",
-          "price": "Giá (USD)",
-          "status": "Trạng thái"
-        }
-      },
-      "deleteDialog": {
-        "title": "Xóa các sản phẩm đã chọn",
-        "description": "{count, plural, one {Thao tác này sẽ xóa 1 sản phẩm.} other {Thao tác này sẽ xóa # sản phẩm.}}",
-        "cancel": "Hủy",
-        "confirm": "Xóa",
-        "deleting": "Đang xóa..."
-      },
-      "validation": {
-        "nameRequired": "Tên sản phẩm là bắt buộc",
-        "technologyRequired": "Công nghệ là bắt buộc",
-        "priceRequired": "Giá là bắt buộc",
-        "pricePositive": "Giá phải lớn hơn 0",
-        "statusRequired": "Trạng thái là bắt buộc"
-      },
-      "tableToolbar": {
-        "selectedCount": "{count, plural, one {Đã chọn # mục} other {Đã chọn # mục}}",
-        "bulkDelete": "Xóa đã chọn",
-        "unsavedChanges": "Có thay đổi chưa lưu",
-        "discardAll": "Bỏ tất cả",
-        "saveAll": "Lưu tất cả"
-      }
-    },
     "requests": {
       "list": {
         "title": "Yêu cầu",
@@ -395,6 +305,18 @@
           "Open": "Mở",
           "In Progress": "Đang xử lý",
           "On Hold": "Tạm dừng"
+        },
+        "statusApi": {
+          "DRAFT": "Nháp",
+          "SUBMITTED": "Đã gửi",
+          "TRIAGE": "Phân loại",
+          "ASSIGNED": "Đã phân công",
+          "IN_PROGRESS": "Đang xử lý",
+          "RESOLVED": "Đã xử lý",
+          "CLOSED": "Đã đóng",
+          "WAITING_EXTERNAL_VENDOR": "Đang chờ nhà cung cấp ngoài",
+          "REOPENED": "Mở lại",
+          "CANCELLED": "Đã hủy"
         },
         "priority": {
           "Low": "Thấp",
@@ -641,35 +563,35 @@
         "emailTitle": "Cài đặt email",
         "emailDescription": "Chọn các email tổng hợp và thông báo cho sự kiện vận hành.",
         "items": {
-          "companyNews": {
+          "assignmentAlerts": {
             "title": "Cảnh báo phân công",
             "description": "Thông báo khi yêu cầu được giao hoặc giao lại cho bạn."
           },
-          "accountActivity": {
+          "statusUpdateAlerts": {
             "title": "Cập nhật trạng thái",
             "description": "Thông báo khi các yêu cầu bạn theo dõi đổi trạng thái."
           },
-          "meetupsNearYou": {
+          "slaRiskAlerts": {
             "title": "Cảnh báo rủi ro SLA",
             "description": "Thông báo khi yêu cầu có nguy cơ hoặc đã vi phạm SLA."
           },
-          "newMessages": {
+          "escalationAlerts": {
             "title": "Cảnh báo leo thang",
             "description": "Thông báo khi yêu cầu bị leo thang đến nhóm hoặc vai trò của bạn."
           },
-          "ratingReminders": {
+          "resolutionReminders": {
             "title": "Nhắc xác nhận xử lý",
             "description": "Gửi email nhắc xác nhận các yêu cầu chờ đóng."
           },
-          "itemUpdateNotifications": {
+          "requestUpdateDigest": {
             "title": "Tổng hợp cập nhật yêu cầu",
             "description": "Gửi email tổng hợp định kỳ cho các yêu cầu bạn theo dõi."
           },
-          "itemCommentNotifications": {
+          "commentNotifications": {
             "title": "Thông báo bình luận",
             "description": "Gửi email khi có người bình luận vào yêu cầu bạn theo dõi."
           },
-          "buyerReviewNotifications": {
+          "mentionNotifications": {
             "title": "Thông báo nhắc tên",
             "description": "Gửi email khi bạn được nhắc tên trong hoạt động của yêu cầu."
           }
@@ -723,31 +645,46 @@
       }
     },
     "dashboard": {
-      "title": "Bảng điều khiển",
+      "title": "Bảng điều khiển ServiceOps",
+      "subtitle": "Góc nhìn vận hành trực tiếp về yêu cầu, áp lực SLA và hoạt động dịch vụ gần đây.",
       "state": {
         "loading": "Đang tải dữ liệu bảng điều khiển...",
-        "error": "Không thể tải dữ liệu bảng điều khiển."
+        "error": "Không thể tải dữ liệu bảng điều khiển.",
+        "empty": "Chưa có hoạt động gần đây."
       },
       "action": {
         "retry": "Thử lại",
         "refresh": "Làm mới"
       },
+      "scope": {
+        "team": "Chỉ số toàn đội",
+        "personal": "Phạm vi của tôi"
+      },
       "kpi": {
-        "todaySales": "Doanh số hôm nay",
-        "todayVisitors": "Khách truy cập hôm nay",
-        "weekVisitors": "Khách truy cập tuần",
-        "change": "Biến động: {value}%"
+        "openRequests": "Yêu cầu đang mở",
+        "unassigned": "Chưa phân công",
+        "slaBreached": "Vi phạm SLA",
+        "resolvedToday": "Đã xử lý hôm nay",
+        "avgResolutionTime": "Thời gian xử lý trung bình (giờ)",
+        "avgResolutionTimeHelper": "Trung bình từ lúc gửi/tạo đến lúc xử lý xong",
+        "myAssigned": "Việc đang giao cho tôi"
       },
-      "latestCustomers": {
-        "title": "Khách hàng mới nhất"
+      "sections": {
+        "byStatus": "Yêu cầu theo trạng thái",
+        "byPriority": "Yêu cầu theo mức ưu tiên",
+        "recentActivity": "Hoạt động gần đây",
+        "slaOverview": "Tổng quan sức khỏe SLA"
       },
-      "transactions": {
-        "title": "Giao dịch gần đây",
-        "status": {
-          "COMPLETED": "Hoàn tất",
-          "IN_PROGRESS": "Đang xử lý",
-          "CANCELLED": "Đã hủy"
-        }
+      "priority": {
+        "LOW": "Thấp",
+        "MEDIUM": "Trung bình",
+        "HIGH": "Cao",
+        "URGENT": "Khẩn cấp"
+      },
+      "sla": {
+        "onTrack": "Đúng tiến độ",
+        "atRisk": "Có rủi ro",
+        "breached": "Đã vi phạm"
       }
     },
     "reportsPage": {
@@ -767,7 +704,7 @@
         "templates": "Tổng templates",
         "invoicing": "Tổng invoicing"
       },
-      "transactions": {
+      "activity": {
         "title": "Giao dịch gần đây",
         "status": {
           "COMPLETED": "Hoàn tất",
@@ -826,7 +763,10 @@
         },
         "validation": {
           "required": "Trường này là bắt buộc",
-          "titleRequired": "Cần nhập tiêu đề để gửi."
+          "titleRequired": "Cần nhập tiêu đề để gửi.",
+          "descriptionRequired": "Cần nhập mô tả để gửi.",
+          "titleTooLong": "Tiêu đề tối đa 255 ký tự.",
+          "descriptionTooLong": "Mô tả tối đa 5000 ký tự."
         },
         "hints": {
           "title": "Gợi ý: Mô tả cụ thể, ví dụ: \"Máy lạnh bị rò nước tại Phòng Server B.\"",

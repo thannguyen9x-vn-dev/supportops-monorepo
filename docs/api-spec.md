@@ -252,12 +252,6 @@ Returns last N activity events across all requests in the tenant.
 
 ---
 
-## Legacy Modules (⛔ Being Retired — Do Not Use)
+## Legacy Modules
 
-The following modules exist in the backend but are **not part of v1 scope** and will be removed:
-
-- `/products` — product catalog (template demo)
-- `/boards`, `/tasks` — Kanban (template demo)
-- `/messages` — internal messaging (template demo)
-- `/plans`, `/subscriptions` — subscription management (retiring)
-- `/billing`, `/invoices` — commerce (retiring)
+Legacy modules (`products`, `kanban`, `messages`, `billing`, `subscriptions`, `invoices`) were removed in Phase 3.4.

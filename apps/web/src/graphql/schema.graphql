@@ -3,12 +3,12 @@ type Query {
 }
 
 type UserPreferences {
-  companyNews: Boolean!
-  accountActivity: Boolean!
-  meetupsNearYou: Boolean!
-  newMessages: Boolean!
-  ratingReminders: Boolean!
-  itemUpdateNotif: Boolean!
-  itemCommentNotif: Boolean!
-  buyerReviewNotif: Boolean!
+  assignmentAlerts: Boolean!
+  statusUpdateAlerts: Boolean!
+  slaRiskAlerts: Boolean!
+  escalationAlerts: Boolean!
+  resolutionReminders: Boolean!
+  requestUpdateDigest: Boolean!
+  commentNotifications: Boolean!
+  mentionNotifications: Boolean!
 }

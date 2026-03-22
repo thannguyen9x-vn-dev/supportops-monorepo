@@ -4,6 +4,8 @@ import { Alert, Box, Button, Card, CardContent, Grid, Stack, TextField, Typograp
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { ApiError } from "@/lib/api";
+
 import { serviceOpsSettingsService } from "../services/service-ops-settings.service";
 import type { SettingsLoadState, WorkflowTransitionSetting } from "../types";
 
@@ -42,7 +44,11 @@ export function WorkflowSettingsView() {
       const data = await serviceOpsSettingsService.listWorkflowTransitions();
       setItems(data);
       setLoadState(data.length === 0 ? "empty" : "success");
-    } catch {
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 403) {
+        setLoadState("permissionDenied");
+        return;
+      }
       setLoadState("error");
       setErrorMessage(t("feedback.loadError"));
     }
@@ -110,6 +116,7 @@ export function WorkflowSettingsView() {
       <Typography variant="h4">{t("title")}</Typography>
       <Typography color="text.secondary" variant="body2">{t("description")}</Typography>
 
+      {loadState === "permissionDenied" ? <Alert severity="warning">{t("states.permissionDenied")}</Alert> : null}
       {loadState === "loading" ? <Alert severity="info">{t("states.loading")}</Alert> : null}
       {loadState === "empty" ? <Alert severity="info">{t("states.empty")}</Alert> : null}
       {loadState === "error" ? (

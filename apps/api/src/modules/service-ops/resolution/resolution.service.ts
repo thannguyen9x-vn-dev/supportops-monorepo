@@ -1,16 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, RequestActivityType, RequestStatus } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Prisma, RequestStatus } from '@prisma/client';
 import { RequestService } from '../request/request.service';
 import { RequestResponseDto } from '../request/dto/request-response.dto';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ConfirmResolutionDto } from './dto/confirm-resolution.dto';
 import { ReopenResolutionDto } from './dto/reopen-resolution.dto';
+import { REQUEST_EVENTS } from '../request/events/request-events.constants';
+import { RequestResolutionReopenedEvent, RequestResolutionSubmittedEvent } from '../request/events/request.events';
 
 @Injectable()
 export class ResolutionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly requestService: RequestService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async confirm(
@@ -27,39 +31,34 @@ export class ResolutionService {
       status: targetStatus,
     });
 
-    await this.prisma.$transaction([
-      this.prisma.requestActivity.create({
-        data: {
-          tenantId,
-          requestId,
-          type: RequestActivityType.RESOLUTION_SUBMITTED,
-          title: closeImmediately ? 'Resolution confirmed and request closed' : 'Resolution confirmed',
-          description: dto.summary,
-          actorId,
-          metadata: {
-            summary: dto.summary,
-            notes: dto.notes ?? null,
-            closeImmediately,
-          },
+    await this.prisma.auditLog.create({
+      data: {
+        tenantId,
+        requestId,
+        entityType: 'REQUEST_RESOLUTION',
+        entityId: requestId,
+        action: closeImmediately ? 'REQUEST_CLOSED_WITH_RESOLUTION' : 'REQUEST_RESOLVED',
+        actorId,
+        beforeData: Prisma.JsonNull,
+        afterData: {
+          summary: dto.summary,
+          notes: dto.notes ?? null,
+          status: updated.status,
         },
-      }),
-      this.prisma.auditLog.create({
-        data: {
-          tenantId,
-          requestId,
-          entityType: 'REQUEST_RESOLUTION',
-          entityId: requestId,
-          action: closeImmediately ? 'REQUEST_CLOSED_WITH_RESOLUTION' : 'REQUEST_RESOLVED',
-          actorId,
-          beforeData: Prisma.JsonNull,
-          afterData: {
-            summary: dto.summary,
-            notes: dto.notes ?? null,
-            status: updated.status,
-          },
-        },
-      }),
-    ]);
+      },
+    });
+
+    await this.eventEmitter.emitAsync(
+      REQUEST_EVENTS.RESOLUTION_SUBMITTED,
+      new RequestResolutionSubmittedEvent(
+        tenantId,
+        requestId,
+        actorId,
+        dto.summary,
+        dto.notes ?? null,
+        closeImmediately,
+      ),
+    );
 
     return updated;
   }
@@ -75,36 +74,26 @@ export class ResolutionService {
       status: RequestStatus.REOPENED,
     });
 
-    await this.prisma.$transaction([
-      this.prisma.requestActivity.create({
-        data: {
-          tenantId,
-          requestId,
-          type: RequestActivityType.STATUS_CHANGED,
-          title: 'Resolution reopened',
-          description: dto.reason,
-          actorId,
-          metadata: {
-            reason: dto.reason,
-          },
+    await this.prisma.auditLog.create({
+      data: {
+        tenantId,
+        requestId,
+        entityType: 'REQUEST_RESOLUTION',
+        entityId: requestId,
+        action: 'REQUEST_REOPENED',
+        actorId,
+        beforeData: Prisma.JsonNull,
+        afterData: {
+          reason: dto.reason,
+          status: updated.status,
         },
-      }),
-      this.prisma.auditLog.create({
-        data: {
-          tenantId,
-          requestId,
-          entityType: 'REQUEST_RESOLUTION',
-          entityId: requestId,
-          action: 'REQUEST_REOPENED',
-          actorId,
-          beforeData: Prisma.JsonNull,
-          afterData: {
-            reason: dto.reason,
-            status: updated.status,
-          },
-        },
-      }),
-    ]);
+      },
+    });
+
+    await this.eventEmitter.emitAsync(
+      REQUEST_EVENTS.RESOLUTION_REOPENED,
+      new RequestResolutionReopenedEvent(tenantId, requestId, actorId, dto.reason),
+    );
 
     return updated;
   }

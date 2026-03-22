@@ -388,14 +388,14 @@ export class UserService {
     const savedPreference = await this.prisma.userPreference.update({
       where: { id: preference.id },
       data: {
-        ...(dto.companyNews !== undefined && { companyNews: dto.companyNews }),
-        ...(dto.accountActivity !== undefined && { accountActivity: dto.accountActivity }),
-        ...(dto.meetupsNearYou !== undefined && { meetupsNearYou: dto.meetupsNearYou }),
-        ...(dto.newMessages !== undefined && { newMessages: dto.newMessages }),
-        ...(dto.ratingReminders !== undefined && { ratingReminders: dto.ratingReminders }),
-        ...(dto.itemUpdateNotif !== undefined && { itemUpdateNotif: dto.itemUpdateNotif }),
-        ...(dto.itemCommentNotif !== undefined && { itemCommentNotif: dto.itemCommentNotif }),
-        ...(dto.buyerReviewNotif !== undefined && { buyerReviewNotif: dto.buyerReviewNotif }),
+        ...(dto.assignmentAlerts !== undefined && { assignmentAlerts: dto.assignmentAlerts }),
+        ...(dto.statusUpdateAlerts !== undefined && { statusUpdateAlerts: dto.statusUpdateAlerts }),
+        ...(dto.slaRiskAlerts !== undefined && { slaRiskAlerts: dto.slaRiskAlerts }),
+        ...(dto.escalationAlerts !== undefined && { escalationAlerts: dto.escalationAlerts }),
+        ...(dto.resolutionReminders !== undefined && { resolutionReminders: dto.resolutionReminders }),
+        ...(dto.requestUpdateDigest !== undefined && { requestUpdateDigest: dto.requestUpdateDigest }),
+        ...(dto.commentNotifications !== undefined && { commentNotifications: dto.commentNotifications }),
+        ...(dto.mentionNotifications !== undefined && { mentionNotifications: dto.mentionNotifications }),
       },
     });
 

@@ -36,7 +36,6 @@ apps/api/src/
 │   ├── user/                ← Profile, preferences, sessions, team management (invite, deactivate, role change)
 │   │   └── dto/
 │   ├── file/                ← Upload + MinIO signed URL
-│   ├── dashboard/           ← KPI aggregates (TODO — placeholder)
 │   ├── service-ops/
 │   │   ├── request/         ← ServiceRequest CRUD, status transitions, comments, work logs, SLA
 │   │   ├── assignment/      ← Assignment history
@@ -56,13 +55,6 @@ apps/api/src/
 │   │   ├── notification/    ← Notification preferences
 │   │   ├── audit/           ← Audit log
 │   │   └── work-item/       ← Generic work item
-│   └── [legacy — DO NOT TOUCH]
-│       ├── billing/
-│       ├── invoice/
-│       ├── kanban/
-│       ├── message/
-│       ├── product/
-│       └── subscription/
 └── prisma/
     └── prisma.service.ts    ← PrismaService (singleton)
 ```
@@ -271,7 +263,7 @@ getWorkflow(...) { ... }
 | Query without `tenantId` | Multi-tenant data isolation |
 | Use `any` type | Strict TypeScript |
 | Throw raw `Error` or `HttpException` | Use typed app exceptions |
-| Touch legacy modules (billing, invoice, kanban, message, product, subscription) | Being retired |
+| Touch removed legacy modules (billing, invoice, kanban, message, product, subscription) | Modules were removed in Phase 3.4 |
 | Add a new role beyond the 4 existing | No requirement yet |
 | Bypass `@Permissions()` with manual role check in service | Use the guard system |
 | Manually wrap response in `{ data: ... }` | Interceptor handles it |

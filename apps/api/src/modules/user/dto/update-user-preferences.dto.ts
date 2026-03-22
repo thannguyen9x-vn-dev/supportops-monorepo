@@ -5,40 +5,40 @@ export class UpdateUserPreferencesDto {
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
-  companyNews?: boolean;
+  assignmentAlerts?: boolean;
 
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
-  accountActivity?: boolean;
+  statusUpdateAlerts?: boolean;
 
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
-  meetupsNearYou?: boolean;
+  slaRiskAlerts?: boolean;
 
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
-  newMessages?: boolean;
+  escalationAlerts?: boolean;
 
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
-  ratingReminders?: boolean;
+  resolutionReminders?: boolean;
 
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
-  itemUpdateNotif?: boolean;
+  requestUpdateDigest?: boolean;
 
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
-  itemCommentNotif?: boolean;
+  commentNotifications?: boolean;
 
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
-  buyerReviewNotif?: boolean;
+  mentionNotifications?: boolean;
 }

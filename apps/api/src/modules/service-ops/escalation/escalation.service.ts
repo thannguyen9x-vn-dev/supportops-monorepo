@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, RequestActivityType, RequestStatus } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Prisma, RequestStatus } from '@prisma/client';
 import { PageMeta, pageMetaOf } from '../../../common/dto/page-meta.dto';
 import { NotFoundException } from '../../../common/exceptions/not-found.exception';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { RequestResponseDto } from '../request/dto/request-response.dto';
+import { REQUEST_EVENTS } from '../request/events/request-events.constants';
+import { RequestEscalatedEvent } from '../request/events/request.events';
 import { RequestService } from '../request/request.service';
 import { EscalationEventQueryDto } from './dto/escalation-event-query.dto';
 import { EscalationEventResponseDto } from './dto/escalation-event-response.dto';
@@ -17,6 +20,7 @@ export class EscalationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly requestService: RequestService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async listRules(tenantId: string): Promise<EscalationRuleResponseDto[]> {
@@ -113,38 +117,34 @@ export class EscalationService {
       status: RequestStatus.WAITING_EXTERNAL_VENDOR,
     });
 
-    await this.prisma.$transaction([
-      this.prisma.requestActivity.create({
-        data: {
-          tenantId,
-          requestId,
-          type: RequestActivityType.SLA_BREACHED,
-          title: 'Request escalated',
-          description: dto.reason ?? 'Escalated by operator',
-          actorId,
-          metadata: {
-            isAuto: false,
-            reason: dto.reason ?? null,
-          },
+    await this.prisma.auditLog.create({
+      data: {
+        tenantId,
+        requestId,
+        entityType: 'REQUEST_ESCALATION',
+        entityId: requestId,
+        action: 'REQUEST_ESCALATED',
+        actorId,
+        beforeData: Prisma.JsonNull,
+        afterData: {
+          status: updated.status,
+          isAuto: false,
+          reason: dto.reason ?? null,
         },
-      }),
-      this.prisma.auditLog.create({
-        data: {
-          tenantId,
-          requestId,
-          entityType: 'REQUEST_ESCALATION',
-          entityId: requestId,
-          action: 'REQUEST_ESCALATED',
-          actorId,
-          beforeData: Prisma.JsonNull,
-          afterData: {
-            status: updated.status,
-            isAuto: false,
-            reason: dto.reason ?? null,
-          },
-        },
-      }),
-    ]);
+      },
+    });
+
+    await this.eventEmitter.emitAsync(
+      REQUEST_EVENTS.ESCALATED,
+      new RequestEscalatedEvent(
+        tenantId,
+        requestId,
+        new Date(),
+        actorId,
+        dto.reason ?? null,
+        false,
+      ),
+    );
 
     return updated;
   }

@@ -7,7 +7,6 @@
     "layout": {
       "dashboard": "Dashboard",
       "team": "Team",
-      "projects": "Projects",
       "calendar": "Calendar",
       "loginRegister": "Login/Register",
       "requests": "Requests",
@@ -35,7 +34,7 @@
       "unableToSignIn": "Unable to sign in",
       "unableToRegister": "Unable to register"
     },
-  "login": {
+    "login": {
       "title": "Sign in",
       "subtitle": "Welcome back. Pick up where you left off.",
       "badge": "Secure access",
@@ -43,13 +42,13 @@
       "illustrationText": "Keep projects moving with quick, reliable sign in.",
       "footerPrompt": "New here?",
       "footerAction": "Create an account",
-    "rememberMe": "Remember me",
-    "forgotPassword": "Forgot password?",
-    "submit": "Sign In",
-    "emailNotVerified": "Your email is not verified. Please verify your email before signing in.",
-    "goToVerify": "Open email verification page"
-  },
-  "register": {
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign In",
+      "emailNotVerified": "Your email is not verified. Please verify your email before signing in.",
+      "goToVerify": "Open email verification page"
+    },
+    "register": {
       "title": "Create your free account",
       "subtitle": "Launch your workspace in minutes.",
       "badge": "Onboarding",
@@ -71,99 +70,98 @@
         "number": "At least one number",
         "specialCharacter": "Inclusion of at least one special character, e.g., ! @ # ?"
       },
-    "submit": "Create account",
-    "submitSuccess": "We sent a verification email to {email}. Please verify before signing in.",
-    "resendVerificationEmail": "Resend verification email",
-    "resendSuccess": "A new verification email has been sent.",
-    "resendError": "Unable to resend verification email. Please try again.",
-    "goToLogin": "Go to sign in"
-  },
-  "forgotPassword": {
-    "title": "Forgot your password?",
-    "subtitle": "We will send a 6-digit reset code to your email. The code is valid for 10 minutes.",
+      "submit": "Create account",
+      "submitSuccess": "We sent a verification email to {email}. Please verify before signing in.",
+      "resendVerificationEmail": "Resend verification email",
+      "resendSuccess": "A new verification email has been sent.",
+      "resendError": "Unable to resend verification email. Please try again.",
+      "goToLogin": "Go to sign in"
+    },
+    "forgotPassword": {
+      "title": "Forgot your password?",
+      "subtitle": "We will send a 6-digit reset code to your email. The code is valid for 10 minutes.",
       "badge": "Recovery",
       "illustrationTitle": "Reset in minutes",
       "illustrationText": "Enter your email and we will help you get back in.",
       "footerPrompt": "Remembered your password?",
       "footerAction": "Back to sign in",
-    "submit": "Send reset code",
-    "submitSuccess": "If the account exists, we sent a reset code.",
-    "submitError": "Unable to process your request. Please try again."
-  },
-  "resetPassword": {
+      "submit": "Send reset code",
+      "submitSuccess": "If the account exists, we sent a reset code.",
+      "submitError": "Unable to process your request. Please try again."
+    },
+    "resetPassword": {
       "title": "Reset password",
       "subtitle": "Choose a new password to secure your account.",
       "badge": "Security",
       "illustrationTitle": "Stay protected",
       "illustrationText": "Update your credentials and keep your work safe.",
-    "footerPrompt": "Need to start over?",
-    "footerAction": "Request a new code",
-    "codeLabel": "Reset code",
-    "codePlaceholder": "Enter 6-digit code",
-    "codeRequired": "Reset code is required",
-    "codeInvalid": "Reset code must be 6 digits",
+      "footerPrompt": "Need to start over?",
+      "footerAction": "Request a new code",
+      "codeLabel": "Reset code",
+      "codePlaceholder": "Enter 6-digit code",
+      "codeRequired": "Reset code is required",
+      "codeInvalid": "Reset code must be 6 digits",
       "newPasswordLabel": "New password",
       "newPasswordPlaceholder": "Create a strong password",
       "confirmNewPasswordLabel": "Confirm new password",
       "confirmNewPasswordPlaceholder": "Repeat your password",
       "confirmNewPasswordRequired": "Confirm your password",
-    "submit": "Reset password",
-    "submitSuccess": "Password reset successfully. You can sign in now.",
-    "submitError": "Unable to reset password. Please try again.",
-    "missingEmail": "Missing email context. Please start from forgot password.",
-    "passwordRequirements": {
+      "submit": "Reset password",
+      "submitSuccess": "Password reset successfully. You can sign in now.",
+      "submitError": "Unable to reset password. Please try again.",
+      "missingEmail": "Missing email context. Please start from forgot password.",
+      "passwordRequirements": {
         "minLength": "At least 10 characters (and up to 32 characters)",
         "lowercase": "At least one lowercase character",
         "uppercase": "At least one UPPERCASE letter",
         "number": "At least one number",
-      "specialCharacter": "Inclusion of at least one special character, e.g., ! @ # ?"
+        "specialCharacter": "Inclusion of at least one special character, e.g., ! @ # ?"
+      }
+    },
+    "verifyEmail": {
+      "title": "Verify your email",
+      "subtitle": "Use the link in your email to verify your account before signing in.",
+      "verifying": "Verifying your email...",
+      "success": "Email verified successfully. You can sign in now.",
+      "error": "Unable to verify email. The link may be invalid or expired.",
+      "missingToken": "Missing verification token. Please open the link from your email.",
+      "missingEmail": "Missing email. Please register again or contact support.",
+      "resend": "Resend verification email",
+      "resendSuccess": "Verification email sent.",
+      "resendError": "Unable to resend verification email. Please try again.",
+      "goToLogin": "Go to sign in",
+      "footerPrompt": "Already verified?",
+      "footerAction": "Sign in"
+    },
+    "acceptInvite": {
+      "title": "Accept invitation",
+      "subtitle": "Set your password to activate your account.",
+      "footerPrompt": "Already have an account?",
+      "footerAction": "Sign in",
+      "fullNameLabel": "Full name",
+      "fullNamePlaceholder": "Input full name",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Input password",
+      "confirmPasswordLabel": "Confirm password",
+      "confirmPasswordPlaceholder": "Input confirm password",
+      "missingToken": "Missing invite token. Please open the invitation link from your email.",
+      "submit": "Activate account",
+      "submitSuccess": "Account activated successfully. Redirecting to sign in...",
+      "submitError": "Unable to accept invitation. The link may be invalid or expired.",
+      "passwordRequirements": {
+        "minLength": "At least 10 characters (and up to 32 characters)",
+        "lowercase": "At least one lowercase character",
+        "uppercase": "At least one UPPERCASE letter",
+        "number": "At least one number",
+        "specialCharacter": "Inclusion of at least one special character, e.g., ! @ # ?"
+      }
     }
-  },
-  "verifyEmail": {
-    "title": "Verify your email",
-    "subtitle": "Use the link in your email to verify your account before signing in.",
-    "verifying": "Verifying your email...",
-    "success": "Email verified successfully. You can sign in now.",
-    "error": "Unable to verify email. The link may be invalid or expired.",
-    "missingToken": "Missing verification token. Please open the link from your email.",
-    "missingEmail": "Missing email. Please register again or contact support.",
-    "resend": "Resend verification email",
-    "resendSuccess": "Verification email sent.",
-    "resendError": "Unable to resend verification email. Please try again.",
-    "goToLogin": "Go to sign in",
-    "footerPrompt": "Already verified?",
-    "footerAction": "Sign in"
-  },
-  "acceptInvite": {
-    "title": "Accept invitation",
-    "subtitle": "Set your password to activate your account.",
-    "footerPrompt": "Already have an account?",
-    "footerAction": "Sign in",
-    "fullNameLabel": "Full name",
-    "fullNamePlaceholder": "Input full name",
-    "passwordLabel": "Password",
-    "passwordPlaceholder": "Input password",
-    "confirmPasswordLabel": "Confirm password",
-    "confirmPasswordPlaceholder": "Input confirm password",
-    "missingToken": "Missing invite token. Please open the invitation link from your email.",
-    "submit": "Activate account",
-    "submitSuccess": "Account activated successfully. Redirecting to sign in...",
-    "submitError": "Unable to accept invitation. The link may be invalid or expired.",
-    "passwordRequirements": {
-      "minLength": "At least 10 characters (and up to 32 characters)",
-      "lowercase": "At least one lowercase character",
-      "uppercase": "At least one UPPERCASE letter",
-      "number": "At least one number",
-      "specialCharacter": "Inclusion of at least one special character, e.g., ! @ # ?"
-    }
-  }
   },
   "nav": {
     "main": "MAIN",
     "analytics": "ANALYTICS",
     "system": "SYSTEM",
     "dashboard": "Dashboard",
-    "projects": "Projects",
     "team": "Users",
     "calendar": "Calendar",
     "reports": "Reports",
@@ -190,7 +188,6 @@
   },
   "pages": {
     "dashboardComingSoon": "Dashboard - coming soon",
-    "projectsComingSoon": "Projects - coming soon",
     "teamComingSoon": "Team - coming soon",
     "teamAdmin": {
       "title": "Team Administration",
@@ -254,93 +251,6 @@
       "description": "You do not have permission to access this page.",
       "goToDashboard": "Go to dashboard"
     },
-    "projects": {
-      "state": {
-        "loading": "Loading products...",
-        "error": "Unable to load products. Please try again.",
-        "empty": "No products match your current filters.",
-        "created": "Product created successfully",
-        "updated": "Product updated successfully",
-        "deleted": "{count, plural, one {# product deleted} other {# products deleted}}",
-        "saveError": "Unable to save product. Please try again.",
-        "deleteError": "Unable to delete products. Please try again.",
-        "saveAllSummarySuccess": "Saved {successCount, plural, one {# row} other {# rows}} successfully.",
-        "saveAllSummaryPartial": "Saved {successCount, plural, one {# row} other {# rows}}. Failed: {failedCount, plural, one {# row} other {# rows}}.",
-        "saveAllSummaryFailed": "Failed to save {failedCount, plural, one {# row} other {# rows}}. Please try again."
-      },
-      "action": {
-        "retry": "Retry"
-      },
-      "toolbar": {
-        "searchPlaceholder": "Search by name, technology, or id",
-        "filterByStatusAria": "Filter products by status",
-        "addProduct": "Add product",
-        "deleteSelected": "{count, plural, =0 {Delete selected} one {Delete 1 selected} other {Delete # selected}}",
-        "search": "Search"
-      },
-      "statusFilter": {
-        "all": "All statuses",
-        "active": "Active",
-        "draft": "Draft",
-        "archived": "Archived"
-      },
-      "status": {
-        "active": "Active",
-        "draft": "Draft",
-        "archived": "Archived"
-      },
-      "table": {
-        "ariaLabel": "Products table",
-        "selectAll": "Select all products in this page",
-        "selectRow": "Select product {name}",
-        "editAria": "Edit product {name}",
-        "columns": {
-          "name": "Name",
-          "technology": "Technology",
-          "id": "ID",
-          "price": "Price",
-          "status": "Status",
-          "updatedAt": "Updated",
-          "action": "Action",
-          "category": "Category",
-          "brand": "Brand"
-        }
-      },
-      "dialog": {
-        "createTitle": "Add product",
-        "editTitle": "Edit product",
-        "save": "Save",
-        "saving": "Saving...",
-        "cancel": "Cancel",
-        "fields": {
-          "name": "Product name",
-          "technology": "Technology",
-          "price": "Price (USD)",
-          "status": "Status"
-        }
-      },
-      "deleteDialog": {
-        "title": "Delete selected products",
-        "description": "{count, plural, one {This action will delete 1 product.} other {This action will delete # products.}}",
-        "cancel": "Cancel",
-        "confirm": "Delete",
-        "deleting": "Deleting..."
-      },
-      "validation": {
-        "nameRequired": "Product name is required",
-        "technologyRequired": "Technology is required",
-        "priceRequired": "Price is required",
-        "pricePositive": "Price must be greater than 0",
-        "statusRequired": "Status is required"
-      },
-      "tableToolbar": {
-        "selectedCount": "{count, plural, one {# selected} other {# selected}}",
-        "bulkDelete": "Bulk delete",
-        "unsavedChanges": "Unsaved changes",
-        "discardAll": "Discard all",
-        "saveAll": "Save all"
-      }
-    },
     "requests": {
       "list": {
         "title": "Requests",
@@ -395,6 +305,18 @@
           "Open": "Open",
           "In Progress": "In Progress",
           "On Hold": "On Hold"
+        },
+        "statusApi": {
+          "DRAFT": "Draft",
+          "SUBMITTED": "Submitted",
+          "TRIAGE": "Triage",
+          "ASSIGNED": "Assigned",
+          "IN_PROGRESS": "In Progress",
+          "RESOLVED": "Resolved",
+          "CLOSED": "Closed",
+          "WAITING_EXTERNAL_VENDOR": "Waiting External Vendor",
+          "REOPENED": "Reopened",
+          "CANCELLED": "Cancelled"
         },
         "priority": {
           "Low": "Low",
@@ -641,35 +563,35 @@
         "emailTitle": "Email Settings",
         "emailDescription": "Choose digest and email notifications for operational events.",
         "items": {
-          "companyNews": {
+          "assignmentAlerts": {
             "title": "Assignment alerts",
             "description": "Notify when requests are assigned or reassigned to you."
           },
-          "accountActivity": {
+          "statusUpdateAlerts": {
             "title": "Status change updates",
             "description": "Notify when tracked requests change status."
           },
-          "meetupsNearYou": {
+          "slaRiskAlerts": {
             "title": "SLA Risk Alerts",
             "description": "Notify when requests are at risk or breached against SLA."
           },
-          "newMessages": {
+          "escalationAlerts": {
             "title": "Escalation Alerts",
             "description": "Notify when requests are escalated to your team or role."
           },
-          "ratingReminders": {
+          "resolutionReminders": {
             "title": "Resolution reminders",
             "description": "Send reminders for pending resolution confirmations."
           },
-          "itemUpdateNotifications": {
+          "requestUpdateDigest": {
             "title": "Request update digest",
             "description": "Send periodic digests for updates on watched requests."
           },
-          "itemCommentNotifications": {
+          "commentNotifications": {
             "title": "Comment notifications",
             "description": "Send an email when someone comments on requests you follow."
           },
-          "buyerReviewNotifications": {
+          "mentionNotifications": {
             "title": "Mention notifications",
             "description": "Send an email when you are mentioned in request activity."
           }
@@ -723,31 +645,46 @@
       }
     },
     "dashboard": {
-      "title": "Dashboard",
+      "title": "ServiceOps Dashboard",
+      "subtitle": "Live operational view of requests, SLA pressure, and recent service activity.",
       "state": {
         "loading": "Loading dashboard...",
-        "error": "Unable to load dashboard data."
+        "error": "Unable to load dashboard data.",
+        "empty": "No recent activity yet."
       },
       "action": {
         "retry": "Retry",
         "refresh": "Refresh"
       },
+      "scope": {
+        "team": "Team-wide metrics",
+        "personal": "My scope"
+      },
       "kpi": {
-        "todaySales": "Today sales",
-        "todayVisitors": "Today visitors",
-        "weekVisitors": "Week visitors",
-        "change": "Change: {value}%"
+        "openRequests": "Open requests",
+        "unassigned": "Unassigned",
+        "slaBreached": "SLA breached",
+        "resolvedToday": "Resolved today",
+        "avgResolutionTime": "Avg. resolution time (hours)",
+        "avgResolutionTimeHelper": "Average from submit/create to resolved time",
+        "myAssigned": "My assigned work"
       },
-      "latestCustomers": {
-        "title": "Latest customers"
+      "sections": {
+        "byStatus": "Requests by status",
+        "byPriority": "Requests by priority",
+        "recentActivity": "Recent activity",
+        "slaOverview": "SLA health overview"
       },
-      "transactions": {
-        "title": "Recent transactions",
-        "status": {
-          "COMPLETED": "Completed",
-          "IN_PROGRESS": "In progress",
-          "CANCELLED": "Cancelled"
-        }
+      "priority": {
+        "LOW": "Low",
+        "MEDIUM": "Medium",
+        "HIGH": "High",
+        "URGENT": "Urgent"
+      },
+      "sla": {
+        "onTrack": "On track",
+        "atRisk": "At risk",
+        "breached": "Breached"
       }
     },
     "reportsPage": {
@@ -767,7 +704,7 @@
         "templates": "Templates total",
         "invoicing": "Invoicing total"
       },
-      "transactions": {
+      "activity": {
         "title": "Recent transactions",
         "status": {
           "COMPLETED": "Completed",
@@ -826,7 +763,10 @@
         },
         "validation": {
           "required": "This field is required",
-          "titleRequired": "Title is required to submit."
+          "titleRequired": "Title is required to submit.",
+          "descriptionRequired": "Description is required to submit.",
+          "titleTooLong": "Title must be at most 255 characters.",
+          "descriptionTooLong": "Description must be at most 5000 characters."
         },
         "hints": {
           "title": "Tip: Be specific, e.g., \"AC unit leaking in Server Room B.\"",

@@ -5,6 +5,7 @@ jest.mock("@/lib/api", () => {
   const ENDPOINTS = {
     REQUESTS: {
       LIST: "/requests",
+      TAB_COUNTS: "/requests/tab-counts",
       ASSIGNEES: "/requests/assignees",
       CREATE: "/requests",
       DETAIL: (id: string) => `/requests/${id}`,
@@ -20,6 +21,9 @@ jest.mock("@/lib/api", () => {
     },
     ASSIGNMENTS: {
       LIST: "/assignments",
+    },
+    SERVICE_TYPES: {
+      LIST: "/service-types",
     },
   } as const;
 
@@ -54,8 +58,34 @@ describe("requestService", () => {
         size: 20,
         search: undefined,
         status: undefined,
+        serviceTypeCode: undefined,
+        assigneeId: undefined,
+        locationId: undefined,
+        slaHealth: undefined,
+        updatedToday: undefined,
+        tab: undefined,
       },
     });
+  });
+
+  it("calls tab counts endpoint", async () => {
+    await requestService.listTabCounts();
+    expect(mockGet).toHaveBeenCalledWith("/requests/tab-counts", {
+      params: {
+        search: undefined,
+        status: undefined,
+        serviceTypeCode: undefined,
+        assigneeId: undefined,
+        locationId: undefined,
+        slaHealth: undefined,
+        updatedToday: undefined,
+      },
+    });
+  });
+
+  it("calls service types endpoint", async () => {
+    await requestService.listServiceTypes();
+    expect(mockGet).toHaveBeenCalledWith("/service-types", { cache: "no-store" });
   });
 
   it("calls detail endpoint", async () => {
