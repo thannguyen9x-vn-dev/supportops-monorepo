@@ -1,4 +1,4 @@
-import { RequestDetailScreen } from "@/features/service-ops/requests/components/RequestDetailScreen";
+import { RequestDetailView } from "@/features/service-ops/requests/components/RequestDetailView";
 
 export default async function RequestDetailPage({
   params,
@@ -6,5 +6,5 @@ export default async function RequestDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <RequestDetailScreen requestId={id} />;
+  return <RequestDetailView requestId={id} />;
 }

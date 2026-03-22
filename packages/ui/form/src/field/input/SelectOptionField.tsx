@@ -580,12 +580,12 @@ function SelectOptionFieldInner<
 
       {searchable ? (
         searchInPopup ? (
-          <PopupSearchAutocomplete />
+          PopupSearchAutocomplete()
         ) : (
-          <InlineSearchAutocomplete />
+          InlineSearchAutocomplete()
         )
       ) : (
-        <NativeSelectField />
+        NativeSelectField()
       )}
 
       {showHelper ? (

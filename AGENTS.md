@@ -175,6 +175,17 @@ Tenant
 - Scope by module: `feat(auth): add login endpoint`
 - Atomic commits — one logical change per commit
 
+### Pre-Commit Quality Gate (Required)
+- Before any `git commit` or `git push`, run:
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm --filter @supportops/web test` (when frontend/web code changes)
+- `pnpm --filter @supportops/ui build` (when shared UI package changes)
+- `pnpm --filter @supportops/web build` (when web routes/pages are changed)
+- `pnpm --filter @supportops/api build` (when backend code changes)
+- If backend or shared packages are changed, run the corresponding package tests before commit.
+- Only commit after these checks pass locally (unless explicitly asked to skip).
+
 ## Important File Locations
 
 | Purpose | Path |

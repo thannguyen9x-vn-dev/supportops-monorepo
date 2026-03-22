@@ -15,6 +15,7 @@ export interface UserProfile {
   timezone: string;
   locale: string;
   role: string;
+  joinedAt: string | null;
 }
 
 export interface UpdateProfileRequest {

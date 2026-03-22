@@ -2,8 +2,13 @@ declare module "@supportops/ui-file-upload" {
   import type { ComponentType } from "react";
 
   export type UploadableFile = {
+    id: string;
     file: File;
     croppedBlob?: Blob | null;
+    croppedPreviewUrl?: string | null;
+    previewUrl: string;
+    progress: number;
+    status: "idle" | "ready" | "uploading" | "done" | "error";
   };
 
   export type UploadProgress = {
@@ -16,10 +21,16 @@ declare module "@supportops/ui-file-upload" {
   ) => Promise<T>;
 
   export interface AvatarUploadProps {
-    buttonLabel: string;
-    name: string;
-    size?: "sm" | "md" | "lg";
-    uploadFn: UploadFn;
+    avatarVariant?: "circular" | "rounded" | "square";
+    buttonLabel?: string;
+    cropOnSelect?: boolean;
+    currentSrc?: string | null;
+    name?: string;
+    onAvatarChange?: (blob: Blob, previewUrl: string) => void;
+    onUploadError?: (message: string) => void;
+    onUploadSuccess?: () => void;
+    size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+    uploadFn?: UploadFn;
   }
 
   export type RejectedFileReason = "invalid-type" | "file-too-large";

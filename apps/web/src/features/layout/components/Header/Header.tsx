@@ -22,12 +22,14 @@ export function Header() {
       <div className={styles.right}>
         <LanguageMenu />
         <ThemeModeToggle />
-        <IconButton size="small" aria-label={t("notificationsAriaLabel")}>
+        <IconButton className={styles.notificationButton} size="small" aria-label={t("notificationsAriaLabel")}>
           <Badge badgeContent={5} color="error">
             <NotificationsNoneOutlinedIcon />
           </Badge>
         </IconButton>
-        <UserMenu />
+        <div className={styles.userMenuWrap}>
+          <UserMenu />
+        </div>
       </div>
     </header>
   );

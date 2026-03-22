@@ -5,7 +5,9 @@
       "Bash(grep -r \"TODO\\\\|FIXME\\\\|HACK\\\\|XXX\" ./apps/api/src --include=*.ts)",
       "Bash(grep -r \"throw new Error\\\\|console\\\\.\" ./apps/api/src --include=*.ts)",
       "Bash(grep -r \"export default\\\\|export const\\\\|export function\\\\|export class\" ./packages/types/src/types/*.ts --include=*.ts)",
-      "Bash(find ./apps/api/src/modules -type f -name *entity.ts -o -name *base*.ts)"
+      "Bash(find ./apps/api/src/modules -type f -name *entity.ts -o -name *base*.ts)",
+      "Bash(ls -la /Users/thannguyennham/projects/supportops/supportops-admin-fe/apps/web/src/app/[locale]/\\\\\\(authenticated\\\\\\)/admin/user/)",
+      "Bash(npx tsup:*)"
     ]
   }
 }

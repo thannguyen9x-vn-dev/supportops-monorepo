@@ -1,5 +1,5 @@
-import { RequestListScreen } from "@/features/service-ops/requests/components/RequestListScreen";
+import { RequestListView } from "@/features/service-ops/requests/components/RequestListView";
 
 export default function RequestListPage() {
-  return <RequestListScreen />;
+  return <RequestListView />;
 }

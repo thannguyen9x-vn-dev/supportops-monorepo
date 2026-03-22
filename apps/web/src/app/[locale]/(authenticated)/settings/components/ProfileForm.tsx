@@ -8,7 +8,7 @@ import {
   parsePhoneNumberFromString,
   type CountryCode as PhoneLibCountryCode
 } from "libphonenumber-js";
-import { useWatch, type Control, type UseFormHandleSubmit } from "react-hook-form";
+import type { Control, UseFormHandleSubmit } from "react-hook-form";
 
 import { PhoneNumberField, SelectDateField, SelectOptionField, TextInputField } from "@supportops/ui-form";
 import type { PhoneCountryOption } from "@supportops/ui-form";
@@ -24,8 +24,11 @@ type ProfileFormProps = {
   canEditDepartment: boolean;
   control: Control<ProfileFormValues>;
   handleSubmit: UseFormHandleSubmit<ProfileFormValues>;
+  initialDepartment: string;
+  isDirty: boolean;
   onSubmit: (values: ProfileFormValues) => Promise<void>;
   systemRoleLabel: string;
+  systemRoleValue: string;
   submitState: SubmitState;
 };
 
@@ -37,11 +40,20 @@ function toFlagEmoji(countryCode: string): string {
     .join("");
 }
 
-export function ProfileForm({ canEditDepartment, control, handleSubmit, onSubmit, systemRoleLabel, submitState }: ProfileFormProps) {
+export function ProfileForm({
+  canEditDepartment,
+  control,
+  handleSubmit,
+  initialDepartment,
+  isDirty,
+  onSubmit,
+  systemRoleLabel,
+  systemRoleValue,
+  submitState,
+}: ProfileFormProps) {
   const t = useTranslations("pages.settings");
   const locale = useLocale();
-  const departmentValue = useWatch({ control, name: "department" });
-  const systemRoleValue = useWatch({ control, name: "systemRole" });
+  const submitProfile = useMemo(() => handleSubmit(onSubmit), [handleSubmit, onSubmit]);
 
   const countryOptions = useMemo(() => createCountryOptions({ locale }), [locale]);
   const phoneCountryOptions = useMemo<PhoneCountryOption<ProfileFormValues["phoneCountry"]>[]>(
@@ -64,8 +76,8 @@ export function ProfileForm({ canEditDepartment, control, handleSubmit, onSubmit
     [countryOptions],
   );
   const departmentOptions = useMemo(
-    () => buildDepartmentOptions(departmentValue),
-    [departmentValue],
+    () => buildDepartmentOptions(initialDepartment),
+    [initialDepartment],
   );
   const systemRoleOptions = useMemo(
     () => [{ label: systemRoleLabel, value: systemRoleValue || systemRoleLabel }],
@@ -78,17 +90,19 @@ export function ProfileForm({ canEditDepartment, control, handleSubmit, onSubmit
         <h3 className={styles.sectionTitle}>{t("profile.generalInfoTitle")}</h3>
         <Button
           className={styles.sectionAction}
-          disabled={submitState === "saving"}
+          disabled={submitState === "saving" || !isDirty}
+          onClick={() => {
+            void submitProfile();
+          }}
           size="medium"
-          type="submit"
+          type="button"
           variant="contained"
-          form="general-information-form"
         >
           {submitState === "saving" ? t("action.saving") : t("action.saveChanges")}
         </Button>
       </div>
 
-      <form id="general-information-form" className={styles.formGrid} onSubmit={handleSubmit(onSubmit)}>
+      <form className={styles.formGrid} onSubmit={submitProfile}>
         <TextInputField
           control={control}
           label={t("profile.fields.firstName")}

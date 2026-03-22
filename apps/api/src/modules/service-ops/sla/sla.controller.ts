@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentTenant } from '../../../common/decorators/current-tenant.decorator';
 import { Permissions } from '../../../common/decorators/permissions.decorator';
@@ -17,6 +17,13 @@ export class SlaController {
   @ApiOperation({ summary: 'List SLA policy snapshots by service type' })
   listPolicies(@CurrentTenant() tenantId: string): Promise<SlaPolicyResponseDto[]> {
     return this.slaService.listPolicies(tenantId);
+  }
+
+  @Get('policies/:id')
+  @Permissions({ any: ['sla.manage', 'request.read.all'] })
+  @ApiOperation({ summary: 'Get SLA policy snapshot by id' })
+  detailPolicy(@CurrentTenant() tenantId: string, @Param('id') id: string): Promise<SlaPolicyResponseDto> {
+    return this.slaService.detailPolicy(tenantId, id);
   }
 
   @Get('violations')

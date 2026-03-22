@@ -168,7 +168,7 @@ var StyledHelperText = styled(FormHelperText)(({ theme }) => ({
 }));
 var popupPaperBorderStyles = {
   border: "1px solid var(--mui-palette-divider)",
-  borderRadius: 3,
+  borderRadius: "8px",
   boxShadow: "0px 2px 8px -2px rgba(21, 21, 21, 0.08), 0px 6px 12px -2px rgba(144, 139, 164, 0.08)",
   overflow: "hidden"
 };
@@ -346,6 +346,7 @@ function SelectOptionFieldInner(props) {
     PaperProps: {
       sx: {
         ...popupPaperBorderStyles,
+        mt: "4px",
         bgcolor: "background.paper",
         "& .MuiMenuItem-root": {
           ...textSmStyle,
@@ -475,7 +476,8 @@ function SelectOptionFieldInner(props) {
           popupIndicator: {
             ...autocompleteProps?.slotProps?.popupIndicator ?? {},
             disableRipple: true
-          }
+          },
+          popper: mergedPopperSlotProps
         },
         sx: autocompleteSx,
         value: selectedOption
@@ -521,7 +523,7 @@ function SelectOptionFieldInner(props) {
   }
   return /* @__PURE__ */ jsxs(Box4, { sx: { width: "100%" }, children: [
     label ? /* @__PURE__ */ jsx(StyledFieldLabel, { htmlFor: inputId, children: label }) : null,
-    searchable ? searchInPopup ? /* @__PURE__ */ jsx(PopupSearchAutocomplete, {}) : /* @__PURE__ */ jsx(InlineSearchAutocomplete, {}) : /* @__PURE__ */ jsx(NativeSelectField, {}),
+    searchable ? searchInPopup ? PopupSearchAutocomplete() : InlineSearchAutocomplete() : NativeSelectField(),
     showHelper ? /* @__PURE__ */ jsx(StyledHelperText, { error: Boolean(error), children: helperTextContent }) : null
   ] });
 }

@@ -161,6 +161,7 @@ export type EntityTableConfig<TData extends object, TFilters extends object> = {
   pageSize?: number;
   totalRows?: number;
   serverSide?: boolean;
+  onTableStateChange?: (state: { pageIndex: number; pageSize: number }) => void;
 
   // ── Row form ─────────────────────────────────────────────────────────────
   /**
@@ -199,6 +200,7 @@ export type EntityTableInstance<TData extends object, TFilters extends object> =
     pageSize: number;
     totalRows: number;
     serverSide: boolean;
+    onTableStateChange?: EntityTableConfig<TData, TFilters>["onTableStateChange"];
     rowSaveTrigger: RowSaveTrigger;
     rowDensity: "comfortable" | "compact";
     pinnedColumns?: { left?: string[]; right?: string[] };

@@ -29,6 +29,7 @@ import {OverrideTablePagination} from '../components/OverrideTablePagination'
 import {OverrideTableRow} from '../components/OverrideTableRow'
 import {OverrideTabs} from '../components/OverrideTabs'
 import {OverrideTextField} from '../components/OverrideTextField'
+import {TypographyOverrides} from '../components/OverrideTypography'
 
 export function createComponents(theme: Theme): ThemeOptions['components'] {
   return {
@@ -69,5 +70,6 @@ export function createComponents(theme: Theme): ThemeOptions['components'] {
     MuiTableRow: OverrideTableRow(theme),
     MuiTabs: OverrideTabs(theme),
     MuiTextField: OverrideTextField(),
+    MuiTypography: TypographyOverrides,
   }
 }

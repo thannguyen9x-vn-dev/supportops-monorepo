@@ -1,4 +1,3 @@
-import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
@@ -13,11 +12,6 @@ export const navigationConfig: NavGroup[] = [
   {
     groupLabel: "nav.main",
     items: [
-      {
-        label: "nav.dashboard",
-        href: "/dashboard",
-        icon: <DashboardOutlinedIcon fontSize="small" />,
-      },
       {
         label: "nav.requests",
         href: "/requests/list",

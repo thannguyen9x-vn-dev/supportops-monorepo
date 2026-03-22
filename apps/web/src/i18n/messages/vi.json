@@ -185,6 +185,7 @@
     "notificationsAriaLabel": "Thông báo",
     "userMenuAriaLabel": "Mở menu người dùng",
     "profile": "Hồ sơ",
+    "settings": "Cài đặt",
     "signOut": "Đăng xuất"
   },
   "pages": {
@@ -248,6 +249,11 @@
     "reportsComingSoon": "Báo cáo - sắp ra mắt",
     "reportsOverviewComingSoon": "Tổng quan báo cáo - sắp ra mắt",
     "reportsPerformanceComingSoon": "Hiệu suất báo cáo - sắp ra mắt",
+    "accessDenied": {
+      "title": "Không có quyền truy cập",
+      "description": "Bạn không có quyền truy cập trang này.",
+      "goToDashboard": "Quay về bảng điều khiển"
+    },
     "projects": {
       "state": {
         "loading": "Đang tải sản phẩm...",
@@ -425,6 +431,13 @@
           "backToList": "Quay lại danh sách yêu cầu",
           "title": "Máy lạnh văn phòng rò rỉ ở tầng 5 - Phòng họp C",
           "subtitle": "Cập nhật lần cuối {updatedAgo} · Người yêu cầu {requester} ({role})",
+          "requestedBy": "Người yêu cầu {requester} ({role})",
+          "requestedByLabel": "Người yêu cầu",
+          "lastUpdated": "Cập nhật lần cuối {updatedAgo}",
+          "lastUpdatedLabel": "Cập nhật lần cuối",
+          "copyCodeAriaLabel": "Sao chép mã yêu cầu",
+          "copyCodeSuccess": "Đã copy mã yêu cầu",
+          "copyCodeError": "Không thể copy mã yêu cầu",
           "updatedMinutesAgo": "{minutes} phút trước",
           "breadcrumbs": {
             "requests": "Yêu cầu"
@@ -432,6 +445,15 @@
           "meta": {
             "inProgress": "Đang xử lý"
           }
+        },
+        "overview": {
+          "title": "Tổng quan yêu cầu",
+          "serviceType": "Loại dịch vụ",
+          "category": "Danh mục",
+          "location": "Địa điểm",
+          "asset": "Tài sản",
+          "createdAt": "Tạo lúc",
+          "description": "Mô tả"
         },
         "statusLabels": {
           "DRAFT": "Nháp",
@@ -505,7 +527,7 @@
         "reload": "Tải lại",
         "update": "Cập nhật",
         "saveChanges": "Lưu thay đổi",
-        "savePassword": "Lưu mật khẩu",
+        "updatePassword": "Cập nhật mật khẩu",
         "saving": "Đang lưu...",
         "savePreferences": "Lưu tùy chọn"
       },
@@ -567,6 +589,32 @@
           "selectYearAriaLabel": "Chọn năm"
         }
       },
+      "organizationAccess": {
+        "title": "Tổ chức và quyền truy cập",
+        "description": "Xem bối cảnh vận hành của bạn trong workspace này.",
+        "fields": {
+          "organization": "Tổ chức",
+          "role": "Vai trò",
+          "department": "Phòng ban",
+          "teamQueue": "Nhóm / Hàng đợi",
+          "joinedDate": "Ngày tham gia",
+          "permissionSummary": "Tóm tắt quyền"
+        },
+        "teamQueueValue": "Hàng đợi {department}",
+        "fallback": {
+          "organization": "Chưa có dữ liệu",
+          "department": "Chưa phân phòng ban",
+          "teamQueue": "Chưa gán hàng đợi",
+          "joinedDate": "Chưa có dữ liệu"
+        },
+        "permissionSummary": {
+          "EMPLOYEE": "Có thể tạo và theo dõi yêu cầu của chính mình.",
+          "OPS_COORDINATOR": "Có thể phân loại, phân công và điều phối yêu cầu liên phòng ban.",
+          "TECHNICIAN": "Có thể xử lý yêu cầu được giao và cập nhật tiến độ.",
+          "TENANT_ADMIN": "Toàn quyền quản trị workspace và cấu hình chính sách.",
+          "default": "Quyền được áp dụng theo vai trò hiện tại trong workspace."
+        }
+      },
       "password": {
         "title": "Cài đặt Email",
         "currentPassword": "Mật khẩu hiện tại",
@@ -589,50 +637,50 @@
       },
       "notifications": {
         "alertsTitle": "Cảnh báo & Thông báo",
-        "alertsDescription": "Nhận tin tức ServiceOps, thông báo và các cập nhật liên quan.",
+        "alertsDescription": "Chọn cảnh báo vận hành theo thời gian thực cho luồng xử lý yêu cầu.",
         "emailTitle": "Cài đặt email",
-        "emailDescription": "Chọn loại email ServiceOps sẽ gửi cho bạn.",
+        "emailDescription": "Chọn các email tổng hợp và thông báo cho sự kiện vận hành.",
         "items": {
           "companyNews": {
-            "title": "Tin tức công ty",
-            "description": "Nhận tin tức, thông báo và cập nhật sản phẩm từ ServiceOps."
+            "title": "Cảnh báo phân công",
+            "description": "Thông báo khi yêu cầu được giao hoặc giao lại cho bạn."
           },
           "accountActivity": {
-            "title": "Thông báo phân công",
-            "description": "Nhận thông báo khi có yêu cầu mới được giao cho bạn."
+            "title": "Cập nhật trạng thái",
+            "description": "Thông báo khi các yêu cầu bạn theo dõi đổi trạng thái."
           },
           "meetupsNearYou": {
             "title": "Cảnh báo rủi ro SLA",
-            "description": "Nhận cảnh báo khi yêu cầu có nguy cơ vi phạm SLA."
+            "description": "Thông báo khi yêu cầu có nguy cơ hoặc đã vi phạm SLA."
           },
           "newMessages": {
             "title": "Cảnh báo leo thang",
-            "description": "Nhận thông báo khi yêu cầu bị leo thang."
+            "description": "Thông báo khi yêu cầu bị leo thang đến nhóm hoặc vai trò của bạn."
           },
           "ratingReminders": {
-            "title": "Nhắc đánh giá",
-            "description": "Gửi email nhắc tôi đánh giá một mục sau một tuần."
+            "title": "Nhắc xác nhận xử lý",
+            "description": "Gửi email nhắc xác nhận các yêu cầu chờ đóng."
           },
           "itemUpdateNotifications": {
-            "title": "Thông báo cập nhật mục",
-            "description": "Gửi email khi mục tôi đã mua được cập nhật."
+            "title": "Tổng hợp cập nhật yêu cầu",
+            "description": "Gửi email tổng hợp định kỳ cho các yêu cầu bạn theo dõi."
           },
           "itemCommentNotifications": {
-            "title": "Thông báo bình luận mục",
-            "description": "Gửi email cho tôi khi có người bình luận vào một trong các mục của tôi."
+            "title": "Thông báo bình luận",
+            "description": "Gửi email khi có người bình luận vào yêu cầu bạn theo dõi."
           },
           "buyerReviewNotifications": {
-            "title": "Thông báo đánh giá người mua",
-            "description": "Gửi email cho tôi khi có người để lại đánh giá kèm xếp hạng"
+            "title": "Thông báo nhắc tên",
+            "description": "Gửi email khi bạn được nhắc tên trong hoạt động của yêu cầu."
           }
         }
       },
       "tabs": {
         "ariaLabel": "Các nhóm cài đặt hồ sơ",
         "introLabel": "Không gian cài đặt",
-        "introTitle": "Quản lý cài đặt tài khoản",
-        "generalDescription": "Cập nhật thông tin hồ sơ cá nhân mà đồng nghiệp có thể nhìn thấy.",
-        "notificationsDescription": "Chọn các cảnh báo và email cập nhật bạn muốn nhận.",
+        "introTitle": "Quản lý hồ sơ vận hành của bạn",
+        "generalDescription": "Cập nhật hồ sơ và xem bối cảnh tổ chức/quyền truy cập.",
+        "notificationsDescription": "Quản lý cảnh báo phân công, SLA, leo thang, bình luận và nhắc tên.",
         "securityDescription": "Giữ tài khoản an toàn bằng cách cập nhật mật khẩu định kỳ.",
         "sessionsDescription": "Kiểm tra các thiết bị đang đăng nhập và đăng xuất phiên không còn sử dụng.",
         "general": "Chung",
@@ -663,7 +711,8 @@
         "passwordMin": "Mật khẩu phải có ít nhất 10 ký tự",
         "passwordMax": "Mật khẩu tối đa 32 ký tự",
         "passwordFormat": "Mật khẩu phải có chữ hoa, chữ thường, số và ký tự đặc biệt",
-        "passwordMismatch": "Mật khẩu mới không khớp"
+        "passwordMismatch": "Mật khẩu mới không khớp",
+        "passwordSameAsCurrent": "Mật khẩu mới phải khác mật khẩu hiện tại"
       },
       "countries": {
         "unitedStates": "Hoa Kỳ",
@@ -823,6 +872,141 @@
           "expectedSla": "SLA dự kiến xử lý",
           "hours": "Giờ",
           "visibility": "Hiển thị với đội Facilities và quản lý trực tiếp của bạn."
+        }
+      },
+      "settings": {
+        "workflow": {
+          "title": "Cấu hình workflow",
+          "description": "Quản lý luồng chuyển trạng thái theo vai trò cho từng loại dịch vụ.",
+          "states": {
+            "loading": "Đang tải cấu hình workflow...",
+            "empty": "Chưa có transition workflow nào."
+          },
+          "feedback": {
+            "loadError": "Không thể tải workflow transitions. Vui lòng thử lại.",
+            "saveSuccess": "Lưu workflow transition thành công.",
+            "saveError": "Không thể lưu workflow transition.",
+            "deleteSuccess": "Xóa workflow transition thành công.",
+            "deleteError": "Không thể xóa workflow transition."
+          },
+          "actions": {
+            "retry": "Thử lại",
+            "create": "Tạo",
+            "update": "Cập nhật",
+            "clear": "Xóa nhập liệu",
+            "edit": "Sửa",
+            "delete": "Xóa",
+            "confirmDelete": "Xóa workflow transition này?"
+          },
+          "form": {
+            "createTitle": "Thêm transition",
+            "editTitle": "Sửa transition",
+            "fields": {
+              "serviceTypeCode": "Mã loại dịch vụ",
+              "fromStatus": "Từ trạng thái",
+              "toStatus": "Sang trạng thái",
+              "allowedRoles": "Vai trò được phép"
+            },
+            "placeholders": {
+              "allowedRoles": "TENANT_ADMIN, TEAM_LEADER, AGENT"
+            },
+            "validation": {
+              "serviceTypeCodeRequired": "Mã loại dịch vụ là bắt buộc.",
+              "statusRequired": "Bắt buộc nhập trạng thái nguồn và đích.",
+              "allowedRolesRequired": "Cần ít nhất một vai trò được phép."
+            }
+          },
+          "table": {
+            "title": "Danh sách transition hiện tại"
+          }
+        },
+        "sla": {
+          "title": "Chính sách SLA",
+          "description": "Cấu hình mục tiêu thời gian phản hồi và xử lý theo loại dịch vụ.",
+          "states": {
+            "loading": "Đang tải chính sách SLA...",
+            "empty": "Chưa có chính sách SLA nào.",
+            "permissionDenied": "Bạn không có quyền quản lý chính sách SLA."
+          },
+          "feedback": {
+            "loadError": "Không thể tải chính sách SLA. Vui lòng thử lại.",
+            "saveSuccess": "Lưu chính sách SLA thành công.",
+            "saveError": "Không thể lưu chính sách SLA.",
+            "deleteSuccess": "Xóa chính sách SLA thành công.",
+            "deleteError": "Không thể xóa chính sách SLA."
+          },
+          "actions": {
+            "retry": "Thử lại",
+            "create": "Tạo",
+            "update": "Cập nhật",
+            "clear": "Xóa nhập liệu",
+            "edit": "Sửa",
+            "delete": "Xóa",
+            "confirmDelete": "Xóa chính sách SLA này?"
+          },
+          "form": {
+            "createTitle": "Thêm chính sách SLA",
+            "editTitle": "Sửa chính sách SLA",
+            "fields": {
+              "serviceTypeCode": "Mã loại dịch vụ",
+              "responseMinutes": "Phút phản hồi",
+              "resolutionMinutes": "Phút xử lý",
+              "escalationAfterMinutes": "Phút trước khi escalation"
+            },
+            "validation": {
+              "serviceTypeCodeRequired": "Mã loại dịch vụ là bắt buộc.",
+              "minutesPositive": "Số phút phải lớn hơn 0."
+            }
+          },
+          "table": {
+            "title": "Danh sách chính sách SLA"
+          }
+        },
+        "serviceTypes": {
+          "title": "Loại dịch vụ",
+          "description": "Cấu hình nhóm dịch vụ và map sang workflow/SLA mặc định.",
+          "states": {
+            "loading": "Đang tải loại dịch vụ...",
+            "empty": "Chưa có loại dịch vụ nào.",
+            "permissionDenied": "Bạn không có quyền quản lý loại dịch vụ."
+          },
+          "feedback": {
+            "loadError": "Không thể tải loại dịch vụ. Vui lòng thử lại.",
+            "saveSuccess": "Lưu loại dịch vụ thành công.",
+            "saveError": "Không thể lưu loại dịch vụ.",
+            "deleteSuccess": "Xóa loại dịch vụ thành công.",
+            "deleteError": "Không thể xóa loại dịch vụ."
+          },
+          "actions": {
+            "retry": "Thử lại",
+            "create": "Tạo",
+            "update": "Cập nhật",
+            "clear": "Xóa nhập liệu",
+            "edit": "Sửa",
+            "delete": "Xóa",
+            "confirmDelete": "Xóa loại dịch vụ này?"
+          },
+          "form": {
+            "createTitle": "Thêm loại dịch vụ",
+            "editTitle": "Sửa loại dịch vụ",
+            "fields": {
+              "code": "Mã",
+              "name": "Tên",
+              "workflowName": "Tên workflow",
+              "slaPolicyId": "Mã SLA policy",
+              "isActive": "Đang hoạt động"
+            },
+            "validation": {
+              "codeRequired": "Mã là bắt buộc.",
+              "nameRequired": "Tên là bắt buộc.",
+              "duplicateCode": "Đã tồn tại loại dịch vụ với mã này."
+            }
+          },
+          "table": {
+            "title": "Danh sách loại dịch vụ",
+            "active": "Đang hoạt động",
+            "inactive": "Ngừng hoạt động"
+          }
         }
       }
     }

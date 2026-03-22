@@ -23,7 +23,8 @@ export function useProfileForm({ canEditDepartment, t, onSaved }: UseProfileForm
   const {
     control,
     handleSubmit,
-    reset
+    reset,
+    formState: { isDirty },
   } = useForm<ProfileFormValues>({
     defaultValues: {
       firstName: "",
@@ -42,12 +43,17 @@ export function useProfileForm({ canEditDepartment, t, onSaved }: UseProfileForm
   });
 
   const onSubmit = async (values: ProfileFormValues) => {
+    if (!isDirty) {
+      return;
+    }
+
     setSubmitState("saving");
 
     try {
       await settingsService.updateProfile(
         toUpdateProfileRequest(values, { includeDepartment: canEditDepartment }),
       );
+      reset(values);
       onSaved(values);
       setSubmitState("success");
       toast.success(t("state.saved"));
@@ -57,5 +63,5 @@ export function useProfileForm({ canEditDepartment, t, onSaved }: UseProfileForm
     }
   };
 
-  return { control, handleSubmit, onSubmit, reset, submitState };
+  return { control, handleSubmit, isDirty, onSubmit, reset, submitState };
 }

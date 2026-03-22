@@ -4,3 +4,83 @@
   flex: 1;
   min-height: 0;
 }
+
+/* ── Opaque background for sticky cells ─────────────────────────────────────
+   Prevents scrolled content bleeding through the semi-transparent hover colour. */
+.root :global(td[style*="sticky"])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--mui-palette-background-paper);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.root :global(tr:hover td[style*="sticky"])::before {
+  background-color: var(--mui-palette-background-paper);
+  background-image: linear-gradient(
+    var(--mui-palette-action-hover),
+    var(--mui-palette-action-hover)
+  );
+}
+
+/* Unify hover: remove the <tr> background so sticky and non-sticky cells
+   share the same single-layer action-hover tint. */
+.root :global(tr:hover) {
+  background: transparent !important;
+}
+
+/* ── Clear always-visible inline box-shadow from getStickyStyle ──────────── */
+.root :global(td[style*="sticky"]),
+.root :global(th[style*="sticky"]) {
+  box-shadow: none !important;
+}
+
+/* ── Freeze-pane shadow: LEFT pinned ─────────────────────────────────────────
+   th  → inset box-shadow  (th has overflow:hidden; inset is never clipped)
+   td  → ::after gradient  (td has ::before at z-index:-1 which covers inset
+         shadows; ::after is painted after ::before so it remains visible)
+   Both fade from the right inner edge of the sticky cell toward the left,
+   giving an identical visual to the naked eye.
+   Only visible when .scrolledLeft is present (scrollLeft > 0).               */
+.scrolledLeft :global(th[style*="sticky"][style*="left:"]) {
+  box-shadow: inset -12px 0 10px -8px rgb(var(--mui-palette-primary-mainChannel) / 0.25) !important;
+}
+
+.scrolledLeft :global(td[style*="sticky"][style*="left:"])::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 16px;
+  height: 100%;
+  background: linear-gradient(
+    to left,
+    rgb(var(--mui-palette-primary-mainChannel) / 0.22),
+    rgb(var(--mui-palette-primary-mainChannel) / 0.08) 60%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* ── Freeze-pane shadow: RIGHT pinned ────────────────────────────────────────
+   Visible when .scrolledRight class is present (not yet at end of scroll).   */
+.scrolledRight :global(th[style*="sticky"][style*="right: 0"]) {
+  box-shadow: inset 12px 0 10px -8px rgb(var(--mui-palette-primary-mainChannel) / 0.25) !important;
+}
+
+.scrolledRight :global(td[style*="sticky"][style*="right: 0"])::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgb(var(--mui-palette-primary-mainChannel) / 0.22),
+    rgb(var(--mui-palette-primary-mainChannel) / 0.08) 60%,
+    transparent
+  );
+  pointer-events: none;
+}

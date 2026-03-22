@@ -83,7 +83,7 @@
 }
 
 .sectionTitle {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--mui-palette-grey-800);
   line-height: 1.2;
@@ -233,13 +233,41 @@
 
 .aboutWork {
   margin: 0;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.5;
   color: var(--mui-palette-grey-800);
 }
 
 .aboutWork strong {
   font-weight: 700;
+}
+
+.accessGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.accessItem {
+  border: 1px solid var(--mui-palette-divider);
+  border-radius: var(--mui-radius-sm);
+  padding: 10px 12px;
+}
+
+.accessLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--mui-palette-grey-600);
+}
+
+.accessValue {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--mui-palette-grey-800);
 }
 
 .preferenceList {
@@ -316,6 +344,12 @@
   margin: 0;
   font-size: 16px;
   color: var(--mui-palette-grey-600);
+}
+
+@media (max-width: 900px) {
+  .accessGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .signOutOthersButton {

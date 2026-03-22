@@ -16,7 +16,7 @@ import { FormDialog } from "@supportops/ui-dialog";
 import { useDialog } from "@supportops/ui";
 import type { RequestAssignee, ServiceRequest, UserRole } from "@supportops/types";
 
-import { RequestIntakeScreen, REQUEST_INTAKE_FORM_ID } from "./RequestIntakeScreen";
+import { RequestIntakeView, REQUEST_INTAKE_FORM_ID } from "./RequestIntakeView";
 
 import { EntityTable, useEntityTable, ColumnVisibilityPopover } from "@/components/entity-table";
 import type { EntityColumnDef, FilterSlotProps } from "@/components/entity-table";
@@ -83,6 +83,19 @@ const INITIAL_FILTERS: RequestFilters = {
   slaHealth: "",
   updatedToday: false,
 };
+
+const REQUEST_STATUS_FILTER_OPTIONS = [
+  "DRAFT",
+  "SUBMITTED",
+  "TRIAGE",
+  "ASSIGNED",
+  "IN_PROGRESS",
+  "RESOLVED",
+  "CLOSED",
+  "WAITING_EXTERNAL_VENDOR",
+  "REOPENED",
+  "CANCELLED",
+] as const;
 
 type RequestTabKey = (typeof TAB_KEYS)[number];
 
@@ -153,7 +166,7 @@ function resolveAssigneeProfile(
     assigneeProfile: {
       name,
       email: assignee?.email,
-      avatarUrl: null,
+      avatarUrl: assignee?.avatarUrl ?? null,
     },
   };
 }
@@ -201,7 +214,6 @@ function applyRequestFilters(
     }
 
     // Dropdown filters
-    if (filters.status && row.status !== filters.status) return false;
     if (filters.serviceType && row.serviceType !== filters.serviceType) return false;
     if (filters.assignee && row.assignee !== filters.assignee) return false;
     if (filters.location && row.location !== filters.location) return false;
@@ -301,7 +313,7 @@ function SlaBadge({ value }: { value: SlaHealth }) {
   );
 }
 
-export function RequestListScreen() {
+export function RequestListView() {
   const { locale } = useParams<{ locale: string }>();
   const router = useRouter();
   const t = useTranslations("pages.requests.list");
@@ -315,6 +327,10 @@ export function RequestListScreen() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [draftFilters, setDraftFilters] = useState<RequestFilters>(INITIAL_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState<RequestFilters>(INITIAL_FILTERS);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalRows, setTotalRows] = useState(0);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const isEnglishLocale = locale.toLowerCase().startsWith("en");
   const isVietnameseLocale = locale.toLowerCase().startsWith("vi");
   const visibleTabKeys = useMemo(() => resolveVisibleTabs(user?.role), [user?.role]);
@@ -344,27 +360,29 @@ export function RequestListScreen() {
     };
   }, []);
 
-  const loadRequests = useCallback(async (search?: string) => {
+  const loadRequests = useCallback(async () => {
     setIsLoadingRows(true);
     setLoadError(null);
 
     try {
-      const { data } = await requestService.list({
-        page: 1,
-        size: 100,
-        search: search?.trim() ? search.trim() : undefined,
+      const { data, meta } = await requestService.list({
+        page: pageIndex + 1,
+        size: pageSize,
+        search: debouncedSearch.trim() ? debouncedSearch.trim() : undefined,
+        status: appliedFilters.status.trim() ? appliedFilters.status.trim() : undefined,
       });
+      setTotalRows(meta?.total ?? data.length);
       setRows(data.map((request) => mapServiceRequestToRow(request, assigneesById)));
     } catch (error) {
       if (error instanceof ApiError) {
         setLoadError(error.error.message);
       } else {
-        setLoadError("Unable to load requests. Please try again.");
+        setLoadError(t("feedback.loadError"));
       }
     } finally {
       setIsLoadingRows(false);
     }
-  }, [assigneesById]);
+  }, [appliedFilters.status, assigneesById, debouncedSearch, pageIndex, pageSize, t]);
 
   useEffect(() => {
     if (Object.keys(assigneesById).length === 0) return;
@@ -376,7 +394,8 @@ export function RequestListScreen() {
 
         if (
           row.assignee === resolvedAssignee.assignee &&
-          row.assigneeProfile?.email === resolvedAssignee.assigneeProfile?.email
+          row.assigneeProfile?.email === resolvedAssignee.assigneeProfile?.email &&
+          row.assigneeProfile?.avatarUrl === resolvedAssignee.assigneeProfile?.avatarUrl
         ) {
           return row;
         }
@@ -394,13 +413,17 @@ export function RequestListScreen() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      void loadRequests(appliedFilters.search);
+      setDebouncedSearch(appliedFilters.search);
     }, 300);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [appliedFilters.search, loadRequests]);
+  }, [appliedFilters.search]);
+
+  useEffect(() => {
+    void loadRequests();
+  }, [loadRequests]);
 
   const tabCounts = useMemo(
     () =>
@@ -511,6 +534,7 @@ export function RequestListScreen() {
               avatarSize={28}
               email={row.original.assigneeProfile.email}
               name={row.original.assigneeProfile.name}
+              avatarUrl={row.original.assigneeProfile.avatarUrl}
               variant="full"
             />
           ) : (
@@ -603,6 +627,14 @@ export function RequestListScreen() {
     // Filter state is managed above — pass dummy initialFilters so the hook
     // doesn't own filter state. The filter slots receive our local state via
     // the overrides below.
+    pageIndex,
+    pageSize,
+    totalRows,
+    serverSide: true,
+    onTableStateChange: (state) => {
+      setPageIndex((current) => (current === state.pageIndex ? current : state.pageIndex));
+      setPageSize((current) => (current === state.pageSize ? current : state.pageSize));
+    },
     initialFilters: INITIAL_FILTERS,
     rowDensity: "comfortable",
     pinnedColumns: { left: ["requestCode"], right: ["actions"] },
@@ -642,6 +674,7 @@ export function RequestListScreen() {
     setDraftFilter: <K extends keyof RequestFilters>(key: K, value: RequestFilters[K]) =>
       setDraftFilters((prev) => ({ ...prev, [key]: value })),
     applyFilters: () => {
+      setPageIndex(0);
       setAppliedFilters((prev) => ({ ...draftFilters, search: prev.search }));
     },
     cancelDraftFilters: () => {
@@ -649,6 +682,7 @@ export function RequestListScreen() {
       setIsFilterPanelOpen(false);
     },
     clearFilters: () => {
+      setPageIndex(0);
       setDraftFilters(INITIAL_FILTERS);
       setAppliedFilters(INITIAL_FILTERS);
     },
@@ -752,6 +786,7 @@ export function RequestListScreen() {
       <FilterSearchInput
         onChange={(value) => {
           f.setDraftFilter("search", value);
+          setPageIndex(0);
           setAppliedFilters((prev) => ({ ...prev, search: value }));
         }}
         placeholder={t("filters.searchPlaceholder")}
@@ -803,11 +838,10 @@ export function RequestListScreen() {
         label={t("filters.status")}
         minWidth={170}
         onChange={(value) => f.setDraftFilter("status", value)}
-        options={[
-          { value: "Open", label: t("status.Open") },
-          { value: "In Progress", label: t("status.In Progress") },
-          { value: "On Hold", label: t("status.On Hold") },
-        ]}
+        options={REQUEST_STATUS_FILTER_OPTIONS.map((status) => ({
+          value: status,
+          label: t(`statusApi.${status}`),
+        }))}
         sx={{ width: 170, minWidth: 170, maxWidth: 170, flex: "0 0 170px" }}
         value={f.draftFilters.status}
       />
@@ -873,14 +907,13 @@ export function RequestListScreen() {
       submitLabel={t("actions.submitRequest")}
       title={t("actions.newRequest")}
     >
-      <RequestIntakeScreen
+      <RequestIntakeView
         modal
         onSuccess={(createdRequest) => {
+          setPageIndex(0);
           setRows((current) => [mapServiceRequestToRow(createdRequest, assigneesById), ...current]);
           createDialog.close();
-          if (appliedFilters.search.trim()) {
-            void loadRequests(appliedFilters.search);
-          }
+          void loadRequests();
         }}
       />
     </FormDialog>
@@ -905,8 +938,8 @@ export function RequestListScreen() {
       {loadError ? (
         <Alert
           action={
-            <Button color="inherit" onClick={() => void loadRequests(appliedFilters.search)} size="small">
-              Retry
+            <Button color="inherit" onClick={() => void loadRequests()} size="small">
+              {t("actions.retry")}
             </Button>
           }
           severity="error"
@@ -952,7 +985,7 @@ export function RequestListScreen() {
                       mr: 0,
                     },
                     ...(isEnglishLocale && {
-                      "& .MuiTab-root:nth-of-type(1)": { width: 132 },
+                      "& .MuiTab-root:nth-of-type(1)": { width: 142 },
                       "& .MuiTab-root:nth-of-type(2)": { width: 168 },
                       "& .MuiTab-root:nth-of-type(3)": { width: 130 },
                       "& .MuiTab-root:nth-of-type(4)": { width: 106 },

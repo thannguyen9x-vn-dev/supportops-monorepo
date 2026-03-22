@@ -5,6 +5,7 @@ import { Button } from "@mui/material";
 import { type Control, type UseFormHandleSubmit } from "react-hook-form";
 
 import { TextInputField } from "@supportops/ui-form";
+import { buildPasswordRules } from "@/lib/validation/passwordPolicy";
 
 import type { PasswordFormValues, SubmitState } from "../settings.types";
 
@@ -19,6 +20,12 @@ type PasswordFormProps = {
 
 export function PasswordForm({ control, handleSubmit, onSubmit, submitState }: PasswordFormProps) {
   const t = useTranslations("pages.settings");
+  const passwordRules = buildPasswordRules<PasswordFormValues, "newPassword">({
+    required: t("validation.required"),
+    min: t("validation.passwordMin"),
+    max: t("validation.passwordMax"),
+    format: t("validation.passwordFormat"),
+  });
 
   return (
     <section className={styles.card}>
@@ -41,7 +48,14 @@ export function PasswordForm({ control, handleSubmit, onSubmit, submitState }: P
           name="newPassword"
           placeholder={t("password.placeholders.newPassword")}
           type="password"
-          rules={{ required: t("validation.required") }}
+          rules={{
+            ...passwordRules,
+            validate: {
+              ...passwordRules.validate,
+              notSameAsCurrent: (value: string, values: PasswordFormValues) =>
+                value !== (values.currentPassword ?? "") || t("validation.passwordSameAsCurrent"),
+            },
+          }}
         />
         <TextInputField
           control={control}
@@ -58,7 +72,7 @@ export function PasswordForm({ control, handleSubmit, onSubmit, submitState }: P
 
         <div className={styles.formActions}>
           <Button size="medium" disabled={submitState === "saving"} type="submit" variant="contained">
-            {submitState === "saving" ? t("action.saving") : t("action.savePassword")}
+            {submitState === "saving" ? t("action.saving") : t("action.updatePassword")}
           </Button>
         </div>
       </form>

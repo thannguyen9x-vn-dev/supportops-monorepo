@@ -1103,7 +1103,10 @@ function getStickyStyle(pinned, offsetLeft, offsetRight, background, zIndex, isB
     left: pinned === "left" ? offsetLeft : void 0,
     right: pinned === "right" ? offsetRight : void 0,
     zIndex,
-    background,
+    // Use an opaque base + transparent overlay so scrolled content doesn't
+    // bleed through the semi-transparent hover/selected palette colours.
+    backgroundColor: "var(--mui-palette-background-paper)",
+    backgroundImage: `linear-gradient(${background}, ${background})`,
     boxShadow: isBoundary ? pinned === "left" ? "6px 0 10px -2px rgba(0,0,0,0.14)" : "-6px 0 10px -2px rgba(0,0,0,0.14)" : pinned === "left" ? "2px 0 4px -2px rgba(0,0,0,0.08)" : "-2px 0 4px -2px rgba(0,0,0,0.08)"
   };
 }
@@ -1139,6 +1142,7 @@ function DataTable({
   const [dragOverColumnId, setDragOverColumnId] = react.useState(null);
   const visibleColumns = table.getVisibleLeafColumns();
   const rowHeight = ROW_HEIGHT[rowDensity];
+  const headerBg = "var(--mui-palette-background-paper)";
   const tableMinWidth = visibleColumns.reduce((sum, col) => sum + col.getSize(), 0);
   return /* @__PURE__ */ jsxRuntime.jsxs(
     "div",
@@ -1205,7 +1209,7 @@ function DataTable({
                         {
                           style: {
                             borderBottom: "1px solid var(--mui-palette-divider)",
-                            background: "var(--mui-palette-action-hover)"
+                            background: headerBg
                           },
                           children: table.getHeaderGroups().map((headerGroup) => /* @__PURE__ */ jsxRuntime.jsx("tr", { children: headerGroup.headers.map((header, headerIndex) => {
                             const pinned = header.column.getIsPinned();
@@ -1256,78 +1260,102 @@ function DataTable({
                                     pinned,
                                     header.column.getStart("left"),
                                     header.column.getAfter("right"),
-                                    "var(--mui-palette-action-hover)",
+                                    headerBg,
                                     3,
                                     isBoundary
                                   )
                                 },
                                 children: useInnerWrapper ? (
                                   // Inner div owns flex layout — <th> stays as table-cell (never set display:flex on <th>)
-                                  /* @__PURE__ */ jsxRuntime.jsxs("div", { style: { display: "flex", alignItems: "center", height: "100%", padding: canReorder ? "0 0 0 4px" : "0 0 0 16px" }, children: [
-                                    canReorder && /* @__PURE__ */ jsxRuntime.jsx(
-                                      "div",
-                                      {
-                                        draggable: true,
-                                        onDragStart: () => {
-                                          dragColumnId.current = header.column.id;
-                                        },
-                                        title: "Drag to reorder",
-                                        style: {
-                                          flexShrink: 0,
-                                          display: "flex",
-                                          alignItems: "center",
-                                          padding: "0 6px",
-                                          cursor: "grab",
-                                          color: "var(--mui-palette-action-active)",
-                                          opacity: 0.35,
-                                          userSelect: "none"
-                                        },
-                                        onMouseEnter: (e) => {
-                                          e.currentTarget.style.opacity = "0.7";
-                                        },
-                                        onMouseLeave: (e) => {
-                                          e.currentTarget.style.opacity = "0.35";
-                                        },
-                                        children: /* @__PURE__ */ jsxRuntime.jsxs("svg", { width: "10", height: "16", viewBox: "0 0 10 16", fill: "currentColor", "aria-hidden": "true", children: [
-                                          /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "3", cy: "4.5", r: "1.2" }),
-                                          /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "7", cy: "4.5", r: "1.2" }),
-                                          /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "3", cy: "8", r: "1.2" }),
-                                          /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "7", cy: "8", r: "1.2" }),
-                                          /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "3", cy: "11.5", r: "1.2" }),
-                                          /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "7", cy: "11.5", r: "1.2" })
-                                        ] })
-                                      }
-                                    ),
-                                    /* @__PURE__ */ jsxRuntime.jsx("div", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }, children: header.isPlaceholder ? null : reactTable.flexRender(header.column.columnDef.header, header.getContext()) }),
-                                    enableColumnResizing && header.column.getCanResize() && /* @__PURE__ */ jsxRuntime.jsx(
-                                      "div",
-                                      {
-                                        draggable: false,
-                                        onMouseDown: (e) => {
-                                          e.stopPropagation();
-                                          header.getResizeHandler()(e);
-                                        },
-                                        onTouchStart: header.getResizeHandler(),
-                                        style: {
-                                          width: 4,
-                                          alignSelf: "stretch",
-                                          flexShrink: 0,
-                                          cursor: "col-resize",
-                                          background: header.column.getIsResizing() ? "var(--mui-palette-primary-main)" : "var(--mui-palette-divider)",
-                                          opacity: header.column.getIsResizing() ? 1 : 0,
-                                          userSelect: "none",
-                                          touchAction: "none",
-                                          transition: "opacity 0.15s"
-                                        },
-                                        onMouseEnter: (e) => {
-                                          e.currentTarget.style.opacity = "1";
-                                        },
-                                        onMouseLeave: (e) => {
-                                          if (!header.column.getIsResizing()) e.currentTarget.style.opacity = "0";
-                                        }
-                                      }
-                                    )
-                                  ] })
+                                  /* @__PURE__ */ jsxRuntime.jsxs(
+                                    "div",
+                                    {
+                                      style: {
+                                        display: "flex",
+                                        alignItems: "center",
+                                        height: "100%",
+                                        padding: canReorder ? isLastColumn ? "0 8px 0 4px" : "0 0 0 4px" : isLastColumn ? "0 8px 0 16px" : "0 0 0 16px"
+                                      },
+                                      children: [
+                                        canReorder && /* @__PURE__ */ jsxRuntime.jsx(
+                                          "div",
+                                          {
+                                            draggable: true,
+                                            onDragStart: () => {
+                                              dragColumnId.current = header.column.id;
+                                            },
+                                            title: "Drag to reorder",
+                                            style: {
+                                              flexShrink: 0,
+                                              display: "flex",
+                                              alignItems: "center",
+                                              padding: "0 6px",
+                                              cursor: "grab",
+                                              color: "var(--mui-palette-action-active)",
+                                              opacity: 0.35,
+                                              userSelect: "none"
+                                            },
+                                            onMouseEnter: (e) => {
+                                              e.currentTarget.style.opacity = "0.7";
+                                            },
+                                            onMouseLeave: (e) => {
+                                              e.currentTarget.style.opacity = "0.35";
+                                            },
+                                            children: /* @__PURE__ */ jsxRuntime.jsxs("svg", { width: "10", height: "16", viewBox: "0 0 10 16", fill: "currentColor", "aria-hidden": "true", children: [
+                                              /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "3", cy: "4.5", r: "1.2" }),
+                                              /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "7", cy: "4.5", r: "1.2" }),
+                                              /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "3", cy: "8", r: "1.2" }),
+                                              /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "7", cy: "8", r: "1.2" }),
+                                              /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "3", cy: "11.5", r: "1.2" }),
+                                              /* @__PURE__ */ jsxRuntime.jsx("circle", { cx: "7", cy: "11.5", r: "1.2" })
+                                            ] })
+                                          }
+                                        ),
+                                        /* @__PURE__ */ jsxRuntime.jsx(
+                                          "div",
+                                          {
+                                            style: {
+                                              flex: 1,
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                              whiteSpace: "nowrap",
+                                              minWidth: 0,
+                                              paddingRight: enableColumnResizing && header.column.getCanResize() ? 12 : 0
+                                            },
+                                            children: header.isPlaceholder ? null : reactTable.flexRender(header.column.columnDef.header, header.getContext())
+                                          }
+                                        ),
+                                        enableColumnResizing && header.column.getCanResize() && /* @__PURE__ */ jsxRuntime.jsx(
+                                          "div",
+                                          {
+                                            draggable: false,
+                                            onMouseDown: (e) => {
+                                              e.stopPropagation();
+                                              header.getResizeHandler()(e);
+                                            },
+                                            onTouchStart: header.getResizeHandler(),
+                                            style: {
+                                              width: 4,
+                                              alignSelf: "stretch",
+                                              flexShrink: 0,
+                                              cursor: "col-resize",
+                                              background: header.column.getIsResizing() ? "var(--mui-palette-primary-main)" : "var(--mui-palette-divider)",
+                                              opacity: header.column.getIsResizing() ? 1 : 0,
+                                              userSelect: "none",
+                                              touchAction: "none",
+                                              transition: "opacity 0.15s"
+                                            },
+                                            onMouseEnter: (e) => {
+                                              e.currentTarget.style.opacity = "1";
+                                            },
+                                            onMouseLeave: (e) => {
+                                              if (!header.column.getIsResizing()) e.currentTarget.style.opacity = "0";
+                                            }
+                                          }
+                                        )
+                                      ]
+                                    }
+                                  )
                                 ) : header.isPlaceholder ? null : reactTable.flexRender(header.column.columnDef.header, header.getContext())
                               },
                               header.id
@@ -1346,7 +1374,7 @@ function DataTable({
                         const isDirty = highlightDirtyRows && dirtyRowIds?.has(row.id);
                         const isSelected = row.getIsSelected();
                         const isHovered = hoveredRowId === row.id;
-                        const rowBg = isSelected ? "var(--mui-palette-action-selected)" : isHovered && onRowClick ? "var(--mui-palette-action-hover)" : isDirty ? "rgba(234, 179, 8, 0.05)" : "var(--mui-palette-background-paper)";
+                        const rowBg = isSelected ? "var(--mui-palette-action-selected)" : isHovered ? "var(--mui-palette-action-hover)" : isDirty ? "rgba(234, 179, 8, 0.05)" : "var(--mui-palette-background-paper)";
                         return /* @__PURE__ */ jsxRuntime.jsx(
                           "tr",
                           {
@@ -1378,6 +1406,7 @@ function DataTable({
                                     textAlign: isLastColumn ? "right" : "left",
                                     borderRight: isLastColumn ? "none" : "1px solid var(--mui-palette-divider)",
                                     borderBottom: "1px solid var(--mui-palette-divider)",
+                                    background: rowBg,
                                     ...getStickyStyle(
                                       pinned,
                                       cell.column.getStart("left"),
@@ -1637,6 +1666,7 @@ function FormDialog({
   subtitle,
   children,
   onSubmit,
+  formId,
   submitLabel = "Save",
   cancelLabel = "Cancel",
   submitDisabled = false,
@@ -1645,7 +1675,7 @@ function FormDialog({
 }) {
   const [loading, setLoading] = react.useState(false);
   const handleSubmit = react.useCallback(async () => {
-    if (loading || submitDisabled) return;
+    if (!onSubmit || loading || submitDisabled) return;
     try {
       setLoading(true);
       await onSubmit();
@@ -1672,11 +1702,12 @@ function FormDialog({
           "button",
           {
             className: "rounded bg-blue-600 px-3 py-1.5 text-sm text-white disabled:opacity-60",
-            disabled: loading || submitDisabled,
-            onClick: () => {
+            disabled: loading || submitDisabled || !onSubmit && !formId,
+            form: formId,
+            onClick: onSubmit ? () => {
               void handleSubmit();
-            },
-            type: "button",
+            } : void 0,
+            type: formId ? "submit" : "button",
             children: loading ? "Saving..." : submitLabel
           }
         )

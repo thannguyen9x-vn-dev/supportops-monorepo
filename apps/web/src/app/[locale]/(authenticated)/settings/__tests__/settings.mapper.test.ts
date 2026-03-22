@@ -49,6 +49,7 @@ function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
     timezone: "UTC",
     locale: "en",
     role: "TENANT_ADMIN",
+    joinedAt: null,
     ...overrides
   };
 }
@@ -187,10 +188,10 @@ describe("toUpdateProfileRequest", () => {
     expect(result.phone).toBe("+1 2025551234");
   });
 
-  it("returns empty phone string when nationalNumber is empty", () => {
+  it("omits phone when nationalNumber is empty", () => {
     const result = toUpdateProfileRequest({ ...baseFormValues, phoneNumber: "" });
 
-    expect(result.phone).toBe("");
+    expect(result).not.toHaveProperty("phone");
   });
 
   it("maps all other profile fields to the request shape", () => {

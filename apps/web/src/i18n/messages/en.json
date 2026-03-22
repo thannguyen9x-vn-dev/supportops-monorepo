@@ -185,6 +185,7 @@
     "notificationsAriaLabel": "Notifications",
     "userMenuAriaLabel": "Open user menu",
     "profile": "Profile",
+    "settings": "Settings",
     "signOut": "Sign out"
   },
   "pages": {
@@ -248,6 +249,11 @@
     "reportsComingSoon": "Reports - coming soon",
     "reportsOverviewComingSoon": "Reports overview - coming soon",
     "reportsPerformanceComingSoon": "Reports performance - coming soon",
+    "accessDenied": {
+      "title": "Access denied",
+      "description": "You do not have permission to access this page.",
+      "goToDashboard": "Go to dashboard"
+    },
     "projects": {
       "state": {
         "loading": "Loading products...",
@@ -425,6 +431,13 @@
           "backToList": "Back to requests",
           "title": "Office AC leaking at Floor 5 - Meeting Room C",
           "subtitle": "Last updated {updatedAgo} · Requested by {requester} ({role})",
+          "requestedBy": "Requested by {requester} ({role})",
+          "requestedByLabel": "Requested by",
+          "lastUpdated": "Last updated {updatedAgo}",
+          "lastUpdatedLabel": "Last updated",
+          "copyCodeAriaLabel": "Copy request code",
+          "copyCodeSuccess": "Copied request code",
+          "copyCodeError": "Unable to copy request code",
           "updatedMinutesAgo": "{minutes} min ago",
           "breadcrumbs": {
             "requests": "Requests"
@@ -432,6 +445,15 @@
           "meta": {
             "inProgress": "In progress"
           }
+        },
+        "overview": {
+          "title": "Request overview",
+          "serviceType": "Service type",
+          "category": "Category",
+          "location": "Location",
+          "asset": "Asset",
+          "createdAt": "Created at",
+          "description": "Description"
         },
         "statusLabels": {
           "DRAFT": "Draft",
@@ -505,7 +527,7 @@
         "reload": "Reload",
         "update": "Update",
         "saveChanges": "Save changes",
-        "savePassword": "Save password",
+        "updatePassword": "Update password",
         "saving": "Saving...",
         "savePreferences": "Save preferences"
       },
@@ -567,6 +589,32 @@
           "selectYearAriaLabel": "Select year"
         }
       },
+      "organizationAccess": {
+        "title": "Organization and access",
+        "description": "View your operational context in this workspace.",
+        "fields": {
+          "organization": "Organization",
+          "role": "Role",
+          "department": "Department",
+          "teamQueue": "Team / Queue",
+          "joinedDate": "Joined date",
+          "permissionSummary": "Permission summary"
+        },
+        "teamQueueValue": "{department} queue",
+        "fallback": {
+          "organization": "Not available",
+          "department": "Unassigned",
+          "teamQueue": "No queue assigned",
+          "joinedDate": "Not available"
+        },
+        "permissionSummary": {
+          "EMPLOYEE": "Can create and track own requests.",
+          "OPS_COORDINATOR": "Can triage, assign, and coordinate cross-team requests.",
+          "TECHNICIAN": "Can execute assigned work and update progress.",
+          "TENANT_ADMIN": "Full workspace administration and policy configuration.",
+          "default": "Permissions follow your current role in this workspace."
+        }
+      },
       "password": {
         "title": "Email Settings",
         "currentPassword": "Current password",
@@ -589,50 +637,50 @@
       },
       "notifications": {
         "alertsTitle": "Alerts & Notifications",
-        "alertsDescription": "Get ServiceOps news, announcements and related updates.",
+        "alertsDescription": "Choose real-time operational alerts for your request workflow.",
         "emailTitle": "Email Settings",
-        "emailDescription": "Choose which emails ServiceOps should send you.",
+        "emailDescription": "Choose digest and email notifications for operational events.",
         "items": {
           "companyNews": {
-            "title": "Company News",
-            "description": "Get ServiceOps news, announcements, and product updates."
+            "title": "Assignment alerts",
+            "description": "Notify when requests are assigned or reassigned to you."
           },
           "accountActivity": {
-            "title": "Assignment Notifications",
-            "description": "Get notifications when new requests are assigned to you."
+            "title": "Status change updates",
+            "description": "Notify when tracked requests change status."
           },
           "meetupsNearYou": {
             "title": "SLA Risk Alerts",
-            "description": "Get alerts when requests are at risk of SLA breach."
+            "description": "Notify when requests are at risk or breached against SLA."
           },
           "newMessages": {
             "title": "Escalation Alerts",
-            "description": "Get notified when requests are escalated."
+            "description": "Notify when requests are escalated to your team or role."
           },
           "ratingReminders": {
-            "title": "Rating reminders",
-            "description": "Send an email reminding me to rate an item after a week."
+            "title": "Resolution reminders",
+            "description": "Send reminders for pending resolution confirmations."
           },
           "itemUpdateNotifications": {
-            "title": "Item update notifications",
-            "description": "Send an email when an item I have purchased is updated."
+            "title": "Request update digest",
+            "description": "Send periodic digests for updates on watched requests."
           },
           "itemCommentNotifications": {
-            "title": "Item comment notifications",
-            "description": "Send me an email when someone comments on one of my items."
+            "title": "Comment notifications",
+            "description": "Send an email when someone comments on requests you follow."
           },
           "buyerReviewNotifications": {
-            "title": "Buyer review notifications",
-            "description": "Send me an email when someone leaves a review with their rating"
+            "title": "Mention notifications",
+            "description": "Send an email when you are mentioned in request activity."
           }
         }
       },
       "tabs": {
         "ariaLabel": "Profile settings sections",
         "introLabel": "Settings Workspace",
-        "introTitle": "Manage your account settings",
-        "generalDescription": "Update your personal profile details that teammates can see.",
-        "notificationsDescription": "Choose which alerts and email updates you want to receive.",
+        "introTitle": "Manage your operations profile",
+        "generalDescription": "Update your profile and review organization access context.",
+        "notificationsDescription": "Control assignment, SLA, escalation, comment, and mention alerts.",
         "securityDescription": "Keep your account safe by updating your password regularly.",
         "sessionsDescription": "Review your active devices and sign out sessions you no longer use.",
         "general": "General",
@@ -663,7 +711,8 @@
         "passwordMin": "Password must be at least 10 characters",
         "passwordMax": "Password must be at most 32 characters",
         "passwordFormat": "Password must include uppercase, lowercase, number, and special character",
-        "passwordMismatch": "New passwords do not match"
+        "passwordMismatch": "New passwords do not match",
+        "passwordSameAsCurrent": "New password must be different from current password"
       },
       "countries": {
         "unitedStates": "United States",
@@ -823,6 +872,141 @@
           "expectedSla": "Expected SLA Resolution",
           "hours": "Hours",
           "visibility": "Visibility: Viewable by Facilities Team and your direct manager."
+        }
+      },
+      "settings": {
+        "workflow": {
+          "title": "Workflow Configuration",
+          "description": "Manage role-based status transitions for each service type.",
+          "states": {
+            "loading": "Loading workflow transitions...",
+            "empty": "No workflow transitions configured yet."
+          },
+          "feedback": {
+            "loadError": "Unable to load workflow transitions. Please try again.",
+            "saveSuccess": "Workflow transition saved successfully.",
+            "saveError": "Unable to save workflow transition.",
+            "deleteSuccess": "Workflow transition deleted successfully.",
+            "deleteError": "Unable to delete workflow transition."
+          },
+          "actions": {
+            "retry": "Retry",
+            "create": "Create",
+            "update": "Update",
+            "clear": "Clear",
+            "edit": "Edit",
+            "delete": "Delete",
+            "confirmDelete": "Delete this workflow transition?"
+          },
+          "form": {
+            "createTitle": "Add transition",
+            "editTitle": "Edit transition",
+            "fields": {
+              "serviceTypeCode": "Service Type Code",
+              "fromStatus": "From Status",
+              "toStatus": "To Status",
+              "allowedRoles": "Allowed Roles"
+            },
+            "placeholders": {
+              "allowedRoles": "TENANT_ADMIN, TEAM_LEADER, AGENT"
+            },
+            "validation": {
+              "serviceTypeCodeRequired": "Service type code is required.",
+              "statusRequired": "From and to status are required.",
+              "allowedRolesRequired": "At least one allowed role is required."
+            }
+          },
+          "table": {
+            "title": "Current transitions"
+          }
+        },
+        "sla": {
+          "title": "SLA Policies",
+          "description": "Configure response and resolution time targets by service type.",
+          "states": {
+            "loading": "Loading SLA policies...",
+            "empty": "No SLA policies configured yet.",
+            "permissionDenied": "You do not have permission to manage SLA policies."
+          },
+          "feedback": {
+            "loadError": "Unable to load SLA policies. Please try again.",
+            "saveSuccess": "SLA policy saved successfully.",
+            "saveError": "Unable to save SLA policy.",
+            "deleteSuccess": "SLA policy deleted successfully.",
+            "deleteError": "Unable to delete SLA policy."
+          },
+          "actions": {
+            "retry": "Retry",
+            "create": "Create",
+            "update": "Update",
+            "clear": "Clear",
+            "edit": "Edit",
+            "delete": "Delete",
+            "confirmDelete": "Delete this SLA policy?"
+          },
+          "form": {
+            "createTitle": "Add SLA policy",
+            "editTitle": "Edit SLA policy",
+            "fields": {
+              "serviceTypeCode": "Service Type Code",
+              "responseMinutes": "Response Minutes",
+              "resolutionMinutes": "Resolution Minutes",
+              "escalationAfterMinutes": "Escalation After Minutes"
+            },
+            "validation": {
+              "serviceTypeCodeRequired": "Service type code is required.",
+              "minutesPositive": "Minutes must be greater than 0."
+            }
+          },
+          "table": {
+            "title": "Current SLA policies"
+          }
+        },
+        "serviceTypes": {
+          "title": "Service Types",
+          "description": "Configure service categories and map them to workflow and SLA defaults.",
+          "states": {
+            "loading": "Loading service types...",
+            "empty": "No service types configured yet.",
+            "permissionDenied": "You do not have permission to manage service types."
+          },
+          "feedback": {
+            "loadError": "Unable to load service types. Please try again.",
+            "saveSuccess": "Service type saved successfully.",
+            "saveError": "Unable to save service type.",
+            "deleteSuccess": "Service type deleted successfully.",
+            "deleteError": "Unable to delete service type."
+          },
+          "actions": {
+            "retry": "Retry",
+            "create": "Create",
+            "update": "Update",
+            "clear": "Clear",
+            "edit": "Edit",
+            "delete": "Delete",
+            "confirmDelete": "Delete this service type?"
+          },
+          "form": {
+            "createTitle": "Add service type",
+            "editTitle": "Edit service type",
+            "fields": {
+              "code": "Code",
+              "name": "Name",
+              "workflowName": "Workflow Name",
+              "slaPolicyId": "SLA Policy ID",
+              "isActive": "Active"
+            },
+            "validation": {
+              "codeRequired": "Code is required.",
+              "nameRequired": "Name is required.",
+              "duplicateCode": "A service type with this code already exists."
+            }
+          },
+          "table": {
+            "title": "Current service types",
+            "active": "Active",
+            "inactive": "Inactive"
+          }
         }
       }
     }

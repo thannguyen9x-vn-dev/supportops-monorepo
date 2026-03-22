@@ -62,13 +62,16 @@ export class UserResponseDto {
   @ApiProperty({ nullable: true })
   lastLoginAt!: string | null;
 
+  @ApiProperty({ nullable: true })
+  joinedAt!: string | null;
+
   @ApiProperty()
   createdAt!: string;
 
   @ApiProperty()
   updatedAt!: string;
 
-  static from(user: User, roleCode: SystemRoleCode): UserResponseDto {
+  static from(user: User, roleCode: SystemRoleCode, joinedAt: Date | null): UserResponseDto {
     return {
       id: user.id,
       tenantId: user.tenantId,
@@ -89,6 +92,7 @@ export class UserResponseDto {
       locale: user.locale,
       isActive: user.isActive,
       lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
+      joinedAt: joinedAt?.toISOString() ?? null,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };

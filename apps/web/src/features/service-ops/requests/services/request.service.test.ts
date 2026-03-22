@@ -8,10 +8,18 @@ jest.mock("@/lib/api", () => {
       ASSIGNEES: "/requests/assignees",
       CREATE: "/requests",
       DETAIL: (id: string) => `/requests/${id}`,
+      WORKFLOW: (id: string) => `/requests/${id}/workflow`,
       STATUS: (id: string) => `/requests/${id}/status`,
       COMMENTS: (id: string) => `/requests/${id}/comments`,
       WORK_LOG: (id: string) => `/requests/${id}/work-log`,
       ASSIGN: (id: string) => `/requests/${id}/assign`,
+      UNASSIGN: (id: string) => `/requests/${id}/unassign`,
+    },
+    WORK_LOGS: {
+      LIST: (requestId: string) => `/requests/${requestId}/work-logs`,
+    },
+    ASSIGNMENTS: {
+      LIST: "/assignments",
     },
   } as const;
 
@@ -55,6 +63,11 @@ describe("requestService", () => {
     expect(mockGet).toHaveBeenCalledWith("/requests/req-1");
   });
 
+  it("calls workflow detail endpoint", async () => {
+    await requestService.detailWorkflow("req-1");
+    expect(mockGet).toHaveBeenCalledWith("/requests/req-1/workflow");
+  });
+
   it("calls assignees endpoint", async () => {
     await requestService.listAssignees();
     expect(mockGet).toHaveBeenCalledWith("/requests/assignees", { cache: "no-store" });
@@ -70,6 +83,17 @@ describe("requestService", () => {
     expect(mockPost).toHaveBeenCalledWith("/requests/req-1/comments", { body: "hello", visibility: "PUBLIC" });
   });
 
+  it("calls comments list endpoint with default pagination", async () => {
+    await requestService.listComments("req-1");
+    expect(mockGet).toHaveBeenCalledWith("/requests/req-1/comments", {
+      params: {
+        page: 1,
+        size: 100,
+        visibility: undefined,
+      },
+    });
+  });
+
   it("calls work-log endpoint with payload", async () => {
     await requestService.addWorkLog("req-1", { content: "investigated", minutesSpent: 30 });
     expect(mockPost).toHaveBeenCalledWith("/requests/req-1/work-log", {
@@ -78,8 +102,34 @@ describe("requestService", () => {
     });
   });
 
+  it("calls work-logs list endpoint", async () => {
+    await requestService.listWorkLogs("req-1");
+    expect(mockGet).toHaveBeenCalledWith("/requests/req-1/work-logs", {
+      params: {
+        page: 1,
+        size: 100,
+      },
+    });
+  });
+
   it("calls assign endpoint with payload", async () => {
     await requestService.assign("req-1", { assigneeId: "user-1" });
     expect(mockPatch).toHaveBeenCalledWith("/requests/req-1/assign", { assigneeId: "user-1" });
+  });
+
+  it("calls unassign endpoint", async () => {
+    await requestService.unassign("req-1");
+    expect(mockPatch).toHaveBeenCalledWith("/requests/req-1/unassign");
+  });
+
+  it("calls assignment history endpoint", async () => {
+    await requestService.listAssignmentHistory("req-1");
+    expect(mockGet).toHaveBeenCalledWith("/assignments", {
+      params: {
+        requestId: "req-1",
+        page: 1,
+        size: 100,
+      },
+    });
   });
 });

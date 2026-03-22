@@ -29,16 +29,24 @@
   gap: 8px;
 }
 
+.userMenuWrap {
+  margin-left: 10px;
+}
+
 .languageButton {
   height: 32px;
   min-width: 58px;
-  border-radius: 999px;
+  border-radius: 6px !important;
   border: 1px solid var(--mui-palette-divider);
   padding: 0 8px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   color: var(--mui-palette-text-primary);
+  overflow: hidden;
+  position: relative;
+  isolation: isolate;
+  transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease;
 }
 
 .languageCode {
@@ -50,9 +58,25 @@
 .themeButton {
   height: 32px;
   width: 32px;
-  border-radius: 999px;
+  border-radius: 6px !important;
   border: 1px solid var(--mui-palette-divider);
   color: var(--mui-palette-text-primary);
+  overflow: hidden;
+  position: relative;
+  isolation: isolate;
+  transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease;
+}
+
+.notificationButton {
+  height: 38px;
+  width: 38px;
+  border-radius: 6px !important;
+  border: 1px solid var(--mui-palette-divider) !important;
+  color: var(--mui-palette-text-primary) !important;
+  overflow: hidden;
+  position: relative;
+  isolation: isolate;
+  transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease !important;
 }
 
 .search {
@@ -73,18 +97,91 @@
 
 .userButton {
   height: 38px;
-  border-radius: 999px;
+  width: 38px;
+  border-radius: 999px !important;
   border: 1px solid var(--mui-palette-divider);
-  padding: 0 8px 0 4px;
+  padding: 2px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   color: var(--mui-palette-text-primary);
+  overflow: hidden;
+  position: relative;
+  isolation: isolate;
+  transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease;
 }
 
 .userButtonName {
   font-size: 14px;
   font-weight: 600;
+}
+
+.languageButton::before,
+.themeButton::before,
+.notificationButton::before,
+.userButton::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: transparent;
+  transition: background-color 0.16s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.languageButton > *,
+.themeButton > *,
+.notificationButton > *,
+.userButton > * {
+  position: relative;
+  z-index: 1;
+}
+
+.languageButton:hover,
+.themeButton:hover,
+.notificationButton:hover,
+.userButton:hover {
+  border-color: var(--mui-palette-primary-main);
+  box-shadow: 0 4px 10px -6px rgba(21, 21, 21, 0.35);
+  transform: translateY(-1px);
+}
+
+.languageButton:hover::before,
+.themeButton:hover::before,
+.notificationButton:hover::before,
+.userButton:hover::before {
+  background: var(--mui-palette-action-hover);
+  background: color-mix(in oklab, var(--mui-palette-primary-main) 10%, transparent);
+}
+
+.languageButton:active,
+.themeButton:active,
+.notificationButton:active,
+.userButton:active {
+  transform: translateY(0);
+}
+
+.languageButton:active::before,
+.themeButton:active::before,
+.notificationButton:active::before,
+.userButton:active::before {
+  background: color-mix(in oklab, var(--mui-palette-primary-main) 16%, transparent);
+}
+
+.languageButton .MuiTouchRipple-root,
+.themeButton .MuiTouchRipple-root,
+.notificationButton .MuiTouchRipple-root,
+.userButton .MuiTouchRipple-root {
+  border-radius: inherit;
+}
+
+.languageButton:focus-visible,
+.themeButton:focus-visible,
+.notificationButton:focus-visible,
+.userButton:focus-visible {
+  outline: 2px solid var(--mui-palette-primary-main);
+  outline-offset: 2px;
 }
 
 @media (max-width: 900px) {
@@ -100,6 +197,10 @@
 
   .userButtonName {
     display: none;
+  }
+
+  .userMenuWrap {
+    margin-left: 8px;
   }
 }
 

@@ -2,8 +2,8 @@
 
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import LastPageIcon from "@mui/icons-material/LastPage";
-import { Avatar } from "@mui/material";
 import { IconButton } from "@mui/material";
+import { Avatar } from "@supportops/ui-avatar";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -70,7 +70,7 @@ export function Sidebar() {
   const { user } = useAuth();
   const t = useTranslations();
   const roleLabel = user?.role.replace("_", " ") ?? "";
-  const profileHref = `/${locale}/settings`;
+  const profileHref = `/${locale}/account/profile`;
   const isProfileActive = pathname === profileHref;
   const filteredNavigation = filterNavigationByRole(navigationConfig, user?.role);
 
@@ -142,22 +142,28 @@ export function Sidebar() {
           ))}
         </nav>
 
-        {!isCollapsed ? (
-          <Link
-            href={profileHref}
-            className={[styles.footer, isProfileActive ? styles.footerActive : ""].join(" ")}
-            aria-label={t("header.profile")}
-            title={t("header.profile")}
-          >
-            <Avatar src={user?.avatarUrl ?? undefined} sx={{ width: 36, height: 36 }}>
-              {`${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.trim() || "U"}
-            </Avatar>
-            <div className={styles.userInfo}>
-              <p className={styles.userName}>{`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "-"}</p>
-              <p className={styles.userRole}>{roleLabel}</p>
-            </div>
-          </Link>
-        ) : null}
+        <Link
+          href={profileHref}
+          className={[
+            styles.footer,
+            isCollapsed ? styles.footerCollapsed : "",
+            isProfileActive ? styles.footerActive : "",
+          ].join(" ")}
+          aria-label={t("header.profile")}
+          title={t("header.profile")}
+        >
+          <Avatar
+            dimension={36}
+            name={`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || undefined}
+            ring
+            ringVariant="neutral"
+            src={user?.avatarUrl ?? undefined}
+          />
+          <div className={styles.userInfo}>
+            <p className={styles.userName}>{`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "-"}</p>
+            <p className={styles.userRole}>{roleLabel}</p>
+          </div>
+        </Link>
       </aside>
     </>
   );

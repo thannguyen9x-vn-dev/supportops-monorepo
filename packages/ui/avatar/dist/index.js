@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
 import MuiAvatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
 import { jsxs, jsx } from 'react/jsx-runtime';
 
 // src/Avatar.tsx
@@ -46,7 +47,14 @@ function Avatar({
   dimension,
   className,
   sx,
-  imgProps
+  imgProps,
+  ring = false,
+  ringVariant = "neutral",
+  status,
+  ringShape,
+  ringColor = "default",
+  ringWidth = 2,
+  ringOffset = 2
 }) {
   const [hasImageError, setHasImageError] = useState(false);
   useEffect(() => {
@@ -71,7 +79,22 @@ function Avatar({
     setHasImageError(true);
     imgProps?.onError?.(event);
   };
-  return /* @__PURE__ */ jsxs(
+  const resolvedRingColor = useMemo(() => {
+    if (ringVariant === "status") {
+      if (status === "active") return "var(--mui-palette-success-main)";
+      if (status === "inactive") return "var(--mui-palette-grey-400, var(--mui-palette-divider))";
+      return "var(--mui-palette-divider)";
+    }
+    if (ringColor === "active") return "var(--mui-palette-success-main)";
+    if (ringColor === "inactive") return "var(--mui-palette-grey-400, var(--mui-palette-divider))";
+    if (ringColor === "default") return "var(--mui-palette-divider)";
+    return ringColor;
+  }, [ringColor, ringVariant, status]);
+  const resolvedRingShape = ringShape ?? (variant === "circular" ? "circular" : "rounded");
+  const resolvedRingRadius = resolvedRingShape === "circular" ? "50%" : `${Math.max(8, Math.round(px * 0.2))}px`;
+  const ringLayer = Math.max(0, ringWidth + ringOffset);
+  const outerSize = px + ringLayer * 2;
+  const avatarNode = /* @__PURE__ */ jsxs(
     MuiAvatar,
     {
       alt: alt ?? name,
@@ -90,6 +113,28 @@ function Avatar({
         !showImage && initials ? initials : null,
         !showImage && !initials ? /* @__PURE__ */ jsx(PersonOutlineRoundedIcon, { sx: { fontSize: Math.round(px * 0.52) } }) : null
       ]
+    }
+  );
+  if (!ring) {
+    return avatarNode;
+  }
+  return /* @__PURE__ */ jsx(
+    Box,
+    {
+      component: "span",
+      sx: {
+        alignItems: "center",
+        backgroundColor: "background.paper",
+        border: `${ringWidth}px solid ${resolvedRingColor}`,
+        borderRadius: resolvedRingRadius,
+        boxSizing: "border-box",
+        display: "inline-flex",
+        height: outerSize,
+        justifyContent: "center",
+        p: `${ringOffset}px`,
+        width: outerSize
+      },
+      children: avatarNode
     }
   );
 }

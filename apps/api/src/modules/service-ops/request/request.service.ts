@@ -23,9 +23,18 @@ import { CreateRequestDto, CreateRequestMode } from './dto/create-request.dto';
 import { CreateRequestCommentDto } from './dto/create-request-comment.dto';
 import { CreateRequestWorkLogDto } from './dto/create-request-work-log.dto';
 import { RequestCommentResponseDto } from './dto/request-comment-response.dto';
+import { RequestCommentQueryDto } from './dto/request-comment-query.dto';
 import { RequestAssigneeResponseDto } from './dto/request-assignee-response.dto';
 import { RequestQueryDto } from './dto/request-query.dto';
 import { RequestResponseDto } from './dto/request-response.dto';
+import {
+  RequestWorkflowActivityDto,
+  RequestWorkflowActorDto,
+  RequestWorkflowAttachmentDto,
+  RequestWorkflowAssignmentHistoryDto,
+  RequestWorkflowDetailResponseDto,
+  RequestWorkflowSlaRecordDto,
+} from './dto/request-workflow-detail-response.dto';
 import { RequestWorkLogResponseDto } from './dto/request-work-log-response.dto';
 import { UpdateRequestStatusDto } from './dto/update-request-status.dto';
 
@@ -37,6 +46,11 @@ type RequestWithServiceType = Prisma.ServiceRequestGetPayload<{
         name: true;
       };
     };
+    queue: {
+      select: {
+        name: true;
+      };
+    };
   };
 }>;
 
@@ -44,6 +58,7 @@ type RequestWithServiceType = Prisma.ServiceRequestGetPayload<{
 export class RequestService {
   private static readonly ASSIGNMENT_SLA_MINUTES = 30;
   private static readonly RESOLUTION_SLA_MINUTES = 8 * 60;
+  private static readonly ESCALATION_AFTER_MINUTES = 60;
   private static readonly ASSIGNABLE_ROLE_CODES = ['TECHNICIAN', 'OPS_COORDINATOR'] as const;
 
   constructor(private readonly prisma: PrismaService) {}
@@ -80,6 +95,11 @@ export class RequestService {
           serviceType: {
             select: {
               code: true,
+              name: true,
+            },
+          },
+          queue: {
+            select: {
               name: true,
             },
           },
@@ -241,6 +261,126 @@ export class RequestService {
     return RequestResponseDto.from(request);
   }
 
+  async detailWorkflow(
+    tenantId: string,
+    requesterId: string,
+    permissions: string[],
+    requestId: string,
+  ): Promise<RequestWorkflowDetailResponseDto> {
+    const request = await this.findRequestById(tenantId, requesterId, permissions, requestId);
+    const canReadInternal = permissions.includes('comment.read.internal');
+
+    const commentWhere: Prisma.RequestCommentWhereInput = canReadInternal
+      ? { tenantId, requestId }
+      : {
+          OR: [
+            { tenantId, requestId, visibility: CommentVisibility.PUBLIC },
+            { tenantId, requestId, authorId: requesterId },
+          ],
+        };
+
+    const [comments, workLogs, assignmentHistory, slaRecords, activities, attachments] = await this.prisma.$transaction([
+      this.prisma.requestComment.findMany({
+        where: commentWhere,
+        orderBy: { createdAt: 'asc' },
+      }),
+      this.prisma.workLog.findMany({
+        where: { tenantId, requestId },
+        orderBy: { createdAt: 'asc' },
+      }),
+      this.prisma.assignmentHistory.findMany({
+        where: { tenantId, requestId },
+        orderBy: { changedAt: 'desc' },
+      }),
+      this.prisma.slaRecord.findMany({
+        where: { tenantId, requestId },
+        orderBy: { updatedAt: 'desc' },
+      }),
+      this.prisma.requestActivity.findMany({
+        where: { tenantId, requestId },
+        orderBy: { createdAt: 'asc' },
+      }),
+      this.prisma.requestAttachment.findMany({
+        where: { tenantId, requestId },
+        include: {
+          uploadedFile: {
+            select: {
+              id: true,
+              fileName: true,
+              fileUrl: true,
+              mimeType: true,
+              sizeBytes: true,
+              uploadedById: true,
+              createdAt: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'asc' },
+      }),
+    ]);
+
+    const actorIds = new Set<string>();
+    actorIds.add(request.requesterId);
+    if (request.assigneeId) {
+      actorIds.add(request.assigneeId);
+    }
+
+    comments.forEach((item) => actorIds.add(item.authorId));
+    workLogs.forEach((item) => actorIds.add(item.authorId));
+    assignmentHistory.forEach((item) => {
+      actorIds.add(item.changedById);
+      if (item.fromAssigneeId) actorIds.add(item.fromAssigneeId);
+      if (item.toAssigneeId) actorIds.add(item.toAssigneeId);
+    });
+    activities.forEach((item) => {
+      if (item.actorId) actorIds.add(item.actorId);
+    });
+    attachments.forEach((item) => {
+      actorIds.add(item.uploadedFile.uploadedById);
+    });
+
+    const actors =
+      actorIds.size > 0
+        ? await this.prisma.user.findMany({
+            where: {
+              tenantId,
+              id: {
+                in: Array.from(actorIds),
+              },
+            },
+          })
+        : [];
+
+    const serviceTypeCode = request.serviceType?.code ?? 'GENERAL';
+    const queueLabel = request.queue?.name ?? null;
+    const tags = [
+      `service:${serviceTypeCode.toLowerCase()}`,
+      `status:${request.status.toLowerCase()}`,
+      `priority:${request.priority.toLowerCase()}`,
+      `channel:${request.sourceChannel.toLowerCase()}`,
+      ...(request.locationId ? [`location:${request.locationId.toLowerCase()}`] : []),
+      ...(request.assetId ? [`asset:${request.assetId.toLowerCase()}`] : []),
+      ...(request.isInternalOnly ? ['visibility:internal'] : ['visibility:public']),
+    ];
+    const escalationRules = [
+      `If overdue > ${RequestService.ESCALATION_AFTER_MINUTES} min, move to WAITING_EXTERNAL_VENDOR and notify OPS_COORDINATOR (${serviceTypeCode}).`,
+    ];
+
+    return {
+      request: RequestResponseDto.from(request),
+      comments: comments.map((item) => RequestCommentResponseDto.from(item)),
+      workLogs: workLogs.map((item) => RequestWorkLogResponseDto.from(item)),
+      assignmentHistory: assignmentHistory.map((item) => RequestWorkflowAssignmentHistoryDto.from(item)),
+      slaRecords: slaRecords.map((item) => RequestWorkflowSlaRecordDto.from(item)),
+      activities: activities.map((item) => RequestWorkflowActivityDto.from(item)),
+      attachments: attachments.map((item) => RequestWorkflowAttachmentDto.from(item)),
+      actors: actors.map((item) => RequestWorkflowActorDto.from(item)),
+      queueLabel,
+      tags,
+      escalationRules,
+    };
+  }
+
   async listAssignees(tenantId: string): Promise<RequestAssigneeResponseDto[]> {
     const members = await this.prisma.membership.findMany({
       where: {
@@ -263,6 +403,7 @@ export class RequestService {
             fullName: true,
             firstName: true,
             lastName: true,
+            avatarUrl: true,
           },
         },
       },
@@ -280,6 +421,7 @@ export class RequestService {
         email: member.user.email,
         fullName: member.user.fullName?.trim() || fallbackName || member.user.email,
         roleCode: member.roleCode,
+        avatarUrl: member.user.avatarUrl ?? null,
       });
     });
   }
@@ -478,6 +620,48 @@ export class RequestService {
     });
 
     return RequestCommentResponseDto.from(created);
+  }
+
+  async listComments(
+    tenantId: string,
+    actorId: string,
+    permissions: string[],
+    requestId: string,
+    query: RequestCommentQueryDto,
+  ): Promise<{ data: RequestCommentResponseDto[]; meta: PageMeta }> {
+    await this.findRequestById(tenantId, actorId, permissions, requestId);
+
+    const page = query.page ?? 1;
+    const size = query.size ?? 20;
+    const skip = (page - 1) * size;
+
+    const canReadInternal = permissions.includes('comment.read.internal');
+    const visibilityFilter: Prisma.RequestCommentWhereInput[] = canReadInternal
+      ? [{ requestId, tenantId }]
+      : [
+          { requestId, tenantId, visibility: CommentVisibility.PUBLIC },
+          { requestId, tenantId, authorId: actorId },
+        ];
+
+    const where: Prisma.RequestCommentWhereInput = {
+      OR: visibilityFilter,
+      ...(query.visibility ? { visibility: query.visibility } : {}),
+    };
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.requestComment.findMany({
+        where,
+        orderBy: { createdAt: 'asc' },
+        skip,
+        take: size,
+      }),
+      this.prisma.requestComment.count({ where }),
+    ]);
+
+    return {
+      data: items.map((item) => RequestCommentResponseDto.from(item)),
+      meta: pageMetaOf({ page, size, total }),
+    };
   }
 
   async addWorkLog(
@@ -705,6 +889,108 @@ export class RequestService {
     return RequestResponseDto.from(updated);
   }
 
+  async unassign(
+    tenantId: string,
+    actorId: string,
+    permissions: string[],
+    requestId: string,
+  ): Promise<RequestResponseDto> {
+    const request = await this.findRequestById(tenantId, actorId, permissions, requestId);
+
+    if (!request.assigneeId) {
+      return RequestResponseDto.from(request);
+    }
+
+    if (!permissions.includes('request.reassign')) {
+      throw new ForbiddenException('You do not have permission to unassign this request');
+    }
+
+    const nextStatus = this.resolveStatusOnUnassign(request.status);
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const updatedRequest = await tx.serviceRequest.update({
+        where: { id: request.id },
+        data: {
+          assigneeId: null,
+          ...(nextStatus ? { status: nextStatus } : {}),
+        },
+        include: {
+          serviceType: {
+            select: {
+              code: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      await tx.assignmentHistory.create({
+        data: {
+          tenantId,
+          requestId: request.id,
+          fromAssigneeId: request.assigneeId,
+          toAssigneeId: null,
+          changedById: actorId,
+          reason: 'Request unassigned',
+        },
+      });
+
+      await tx.requestActivity.create({
+        data: {
+          tenantId,
+          requestId: request.id,
+          type: RequestActivityType.REASSIGNED,
+          title: 'Request unassigned',
+          description: `Assignee removed from ${request.assigneeId}`,
+          actorId,
+          metadata: {
+            fromAssigneeId: request.assigneeId,
+            toAssigneeId: null,
+          },
+        },
+      });
+
+      if (nextStatus && nextStatus !== request.status) {
+        await tx.requestActivity.create({
+          data: {
+            tenantId,
+            requestId: request.id,
+            type: RequestActivityType.STATUS_CHANGED,
+            title: `Status changed: ${request.status} -> ${nextStatus}`,
+            description: 'Status moved after unassignment',
+            actorId,
+            metadata: {
+              from: request.status,
+              to: nextStatus,
+            },
+          },
+        });
+      }
+
+      await tx.auditLog.create({
+        data: {
+          tenantId,
+          requestId: request.id,
+          entityType: 'REQUEST',
+          entityId: request.id,
+          action: 'REQUEST_UNASSIGNED',
+          actorId,
+          beforeData: {
+            assigneeId: request.assigneeId,
+            status: request.status,
+          },
+          afterData: {
+            assigneeId: null,
+            status: nextStatus ?? request.status,
+          },
+        },
+      });
+
+      return updatedRequest;
+    });
+
+    return RequestResponseDto.from(updated);
+  }
+
   private async findRequestById(
     tenantId: string,
     requesterId: string,
@@ -721,6 +1007,11 @@ export class RequestService {
         serviceType: {
           select: {
             code: true,
+            name: true,
+          },
+        },
+        queue: {
+          select: {
             name: true,
           },
         },
@@ -825,6 +1116,18 @@ export class RequestService {
   private resolveStatusOnAssign(status: RequestStatus): RequestStatus | null {
     if (status === RequestStatus.SUBMITTED || status === RequestStatus.TRIAGE || status === RequestStatus.REOPENED) {
       return RequestStatus.ASSIGNED;
+    }
+
+    return null;
+  }
+
+  private resolveStatusOnUnassign(status: RequestStatus): RequestStatus | null {
+    if (
+      status === RequestStatus.ASSIGNED ||
+      status === RequestStatus.IN_PROGRESS ||
+      status === RequestStatus.WAITING_EXTERNAL_VENDOR
+    ) {
+      return RequestStatus.TRIAGE;
     }
 
     return null;

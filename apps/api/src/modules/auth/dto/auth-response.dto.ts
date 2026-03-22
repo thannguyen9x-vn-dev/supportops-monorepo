@@ -23,6 +23,7 @@ export class AuthResponseDto {
     firstName: string;
     lastName: string;
     role: SystemRoleCode;
+    joinedAt: string | null;
   };
 
   @ApiProperty({ required: false })

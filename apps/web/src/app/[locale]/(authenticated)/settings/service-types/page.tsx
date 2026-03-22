@@ -1,15 +1,5 @@
-import { getTranslations } from "next-intl/server";
+import { ServiceTypesSettingsView } from "@/features/service-ops/settings/components/ServiceTypesSettingsView";
 
-import { ServiceOpsPlaceholder } from "@/features/service-ops/components/ServiceOpsPlaceholder";
-
-export default async function ServiceTypeSettingsPage() {
-  const t = await getTranslations("pages.serviceOps");
-
-  return (
-    <ServiceOpsPlaceholder
-      title={t("serviceTypes.title")}
-      description={t("serviceTypes.description")}
-      phase={t("phase4")}
-    />
-  );
+export default function ServiceTypeSettingsPage() {
+  return <ServiceTypesSettingsView />;
 }

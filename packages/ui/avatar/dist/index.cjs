@@ -3,12 +3,14 @@
 var react = require('react');
 var PersonOutlineRoundedIcon = require('@mui/icons-material/PersonOutlineRounded');
 var MuiAvatar = require('@mui/material/Avatar');
+var Box = require('@mui/material/Box');
 var jsxRuntime = require('react/jsx-runtime');
 
 function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
 var PersonOutlineRoundedIcon__default = /*#__PURE__*/_interopDefault(PersonOutlineRoundedIcon);
 var MuiAvatar__default = /*#__PURE__*/_interopDefault(MuiAvatar);
+var Box__default = /*#__PURE__*/_interopDefault(Box);
 
 // src/Avatar.tsx
 
@@ -53,7 +55,14 @@ function Avatar({
   dimension,
   className,
   sx,
-  imgProps
+  imgProps,
+  ring = false,
+  ringVariant = "neutral",
+  status,
+  ringShape,
+  ringColor = "default",
+  ringWidth = 2,
+  ringOffset = 2
 }) {
   const [hasImageError, setHasImageError] = react.useState(false);
   react.useEffect(() => {
@@ -78,7 +87,22 @@ function Avatar({
     setHasImageError(true);
     imgProps?.onError?.(event);
   };
-  return /* @__PURE__ */ jsxRuntime.jsxs(
+  const resolvedRingColor = react.useMemo(() => {
+    if (ringVariant === "status") {
+      if (status === "active") return "var(--mui-palette-success-main)";
+      if (status === "inactive") return "var(--mui-palette-grey-400, var(--mui-palette-divider))";
+      return "var(--mui-palette-divider)";
+    }
+    if (ringColor === "active") return "var(--mui-palette-success-main)";
+    if (ringColor === "inactive") return "var(--mui-palette-grey-400, var(--mui-palette-divider))";
+    if (ringColor === "default") return "var(--mui-palette-divider)";
+    return ringColor;
+  }, [ringColor, ringVariant, status]);
+  const resolvedRingShape = ringShape ?? (variant === "circular" ? "circular" : "rounded");
+  const resolvedRingRadius = resolvedRingShape === "circular" ? "50%" : `${Math.max(8, Math.round(px * 0.2))}px`;
+  const ringLayer = Math.max(0, ringWidth + ringOffset);
+  const outerSize = px + ringLayer * 2;
+  const avatarNode = /* @__PURE__ */ jsxRuntime.jsxs(
     MuiAvatar__default.default,
     {
       alt: alt ?? name,
@@ -97,6 +121,28 @@ function Avatar({
         !showImage && initials ? initials : null,
         !showImage && !initials ? /* @__PURE__ */ jsxRuntime.jsx(PersonOutlineRoundedIcon__default.default, { sx: { fontSize: Math.round(px * 0.52) } }) : null
       ]
+    }
+  );
+  if (!ring) {
+    return avatarNode;
+  }
+  return /* @__PURE__ */ jsxRuntime.jsx(
+    Box__default.default,
+    {
+      component: "span",
+      sx: {
+        alignItems: "center",
+        backgroundColor: "background.paper",
+        border: `${ringWidth}px solid ${resolvedRingColor}`,
+        borderRadius: resolvedRingRadius,
+        boxSizing: "border-box",
+        display: "inline-flex",
+        height: outerSize,
+        justifyContent: "center",
+        p: `${ringOffset}px`,
+        width: outerSize
+      },
+      children: avatarNode
     }
   );
 }
