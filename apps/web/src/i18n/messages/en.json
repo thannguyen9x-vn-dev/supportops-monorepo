@@ -847,6 +847,141 @@
           "hours": "Hours",
           "visibility": "Visibility: Viewable by Facilities Team and your direct manager."
         }
+      },
+      "settings": {
+        "workflow": {
+          "title": "Workflow Configuration",
+          "description": "Manage role-based status transitions for each service type.",
+          "states": {
+            "loading": "Loading workflow transitions...",
+            "empty": "No workflow transitions configured yet."
+          },
+          "feedback": {
+            "loadError": "Unable to load workflow transitions. Please try again.",
+            "saveSuccess": "Workflow transition saved successfully.",
+            "saveError": "Unable to save workflow transition.",
+            "deleteSuccess": "Workflow transition deleted successfully.",
+            "deleteError": "Unable to delete workflow transition."
+          },
+          "actions": {
+            "retry": "Retry",
+            "create": "Create",
+            "update": "Update",
+            "clear": "Clear",
+            "edit": "Edit",
+            "delete": "Delete",
+            "confirmDelete": "Delete this workflow transition?"
+          },
+          "form": {
+            "createTitle": "Add transition",
+            "editTitle": "Edit transition",
+            "fields": {
+              "serviceTypeCode": "Service Type Code",
+              "fromStatus": "From Status",
+              "toStatus": "To Status",
+              "allowedRoles": "Allowed Roles"
+            },
+            "placeholders": {
+              "allowedRoles": "TENANT_ADMIN, TEAM_LEADER, AGENT"
+            },
+            "validation": {
+              "serviceTypeCodeRequired": "Service type code is required.",
+              "statusRequired": "From and to status are required.",
+              "allowedRolesRequired": "At least one allowed role is required."
+            }
+          },
+          "table": {
+            "title": "Current transitions"
+          }
+        },
+        "sla": {
+          "title": "SLA Policies",
+          "description": "Configure response and resolution time targets by service type.",
+          "states": {
+            "loading": "Loading SLA policies...",
+            "empty": "No SLA policies configured yet.",
+            "permissionDenied": "You do not have permission to manage SLA policies."
+          },
+          "feedback": {
+            "loadError": "Unable to load SLA policies. Please try again.",
+            "saveSuccess": "SLA policy saved successfully.",
+            "saveError": "Unable to save SLA policy.",
+            "deleteSuccess": "SLA policy deleted successfully.",
+            "deleteError": "Unable to delete SLA policy."
+          },
+          "actions": {
+            "retry": "Retry",
+            "create": "Create",
+            "update": "Update",
+            "clear": "Clear",
+            "edit": "Edit",
+            "delete": "Delete",
+            "confirmDelete": "Delete this SLA policy?"
+          },
+          "form": {
+            "createTitle": "Add SLA policy",
+            "editTitle": "Edit SLA policy",
+            "fields": {
+              "serviceTypeCode": "Service Type Code",
+              "responseMinutes": "Response Minutes",
+              "resolutionMinutes": "Resolution Minutes",
+              "escalationAfterMinutes": "Escalation After Minutes"
+            },
+            "validation": {
+              "serviceTypeCodeRequired": "Service type code is required.",
+              "minutesPositive": "Minutes must be greater than 0."
+            }
+          },
+          "table": {
+            "title": "Current SLA policies"
+          }
+        },
+        "serviceTypes": {
+          "title": "Service Types",
+          "description": "Configure service categories and map them to workflow and SLA defaults.",
+          "states": {
+            "loading": "Loading service types...",
+            "empty": "No service types configured yet.",
+            "permissionDenied": "You do not have permission to manage service types."
+          },
+          "feedback": {
+            "loadError": "Unable to load service types. Please try again.",
+            "saveSuccess": "Service type saved successfully.",
+            "saveError": "Unable to save service type.",
+            "deleteSuccess": "Service type deleted successfully.",
+            "deleteError": "Unable to delete service type."
+          },
+          "actions": {
+            "retry": "Retry",
+            "create": "Create",
+            "update": "Update",
+            "clear": "Clear",
+            "edit": "Edit",
+            "delete": "Delete",
+            "confirmDelete": "Delete this service type?"
+          },
+          "form": {
+            "createTitle": "Add service type",
+            "editTitle": "Edit service type",
+            "fields": {
+              "code": "Code",
+              "name": "Name",
+              "workflowName": "Workflow Name",
+              "slaPolicyId": "SLA Policy ID",
+              "isActive": "Active"
+            },
+            "validation": {
+              "codeRequired": "Code is required.",
+              "nameRequired": "Name is required.",
+              "duplicateCode": "A service type with this code already exists."
+            }
+          },
+          "table": {
+            "title": "Current service types",
+            "active": "Active",
+            "inactive": "Inactive"
+          }
+        }
       }
     }
   }

@@ -847,6 +847,141 @@
           "hours": "Giờ",
           "visibility": "Hiển thị với đội Facilities và quản lý trực tiếp của bạn."
         }
+      },
+      "settings": {
+        "workflow": {
+          "title": "Cấu hình workflow",
+          "description": "Quản lý luồng chuyển trạng thái theo vai trò cho từng loại dịch vụ.",
+          "states": {
+            "loading": "Đang tải cấu hình workflow...",
+            "empty": "Chưa có transition workflow nào."
+          },
+          "feedback": {
+            "loadError": "Không thể tải workflow transitions. Vui lòng thử lại.",
+            "saveSuccess": "Lưu workflow transition thành công.",
+            "saveError": "Không thể lưu workflow transition.",
+            "deleteSuccess": "Xóa workflow transition thành công.",
+            "deleteError": "Không thể xóa workflow transition."
+          },
+          "actions": {
+            "retry": "Thử lại",
+            "create": "Tạo",
+            "update": "Cập nhật",
+            "clear": "Xóa nhập liệu",
+            "edit": "Sửa",
+            "delete": "Xóa",
+            "confirmDelete": "Xóa workflow transition này?"
+          },
+          "form": {
+            "createTitle": "Thêm transition",
+            "editTitle": "Sửa transition",
+            "fields": {
+              "serviceTypeCode": "Mã loại dịch vụ",
+              "fromStatus": "Từ trạng thái",
+              "toStatus": "Sang trạng thái",
+              "allowedRoles": "Vai trò được phép"
+            },
+            "placeholders": {
+              "allowedRoles": "TENANT_ADMIN, TEAM_LEADER, AGENT"
+            },
+            "validation": {
+              "serviceTypeCodeRequired": "Mã loại dịch vụ là bắt buộc.",
+              "statusRequired": "Bắt buộc nhập trạng thái nguồn và đích.",
+              "allowedRolesRequired": "Cần ít nhất một vai trò được phép."
+            }
+          },
+          "table": {
+            "title": "Danh sách transition hiện tại"
+          }
+        },
+        "sla": {
+          "title": "Chính sách SLA",
+          "description": "Cấu hình mục tiêu thời gian phản hồi và xử lý theo loại dịch vụ.",
+          "states": {
+            "loading": "Đang tải chính sách SLA...",
+            "empty": "Chưa có chính sách SLA nào.",
+            "permissionDenied": "Bạn không có quyền quản lý chính sách SLA."
+          },
+          "feedback": {
+            "loadError": "Không thể tải chính sách SLA. Vui lòng thử lại.",
+            "saveSuccess": "Lưu chính sách SLA thành công.",
+            "saveError": "Không thể lưu chính sách SLA.",
+            "deleteSuccess": "Xóa chính sách SLA thành công.",
+            "deleteError": "Không thể xóa chính sách SLA."
+          },
+          "actions": {
+            "retry": "Thử lại",
+            "create": "Tạo",
+            "update": "Cập nhật",
+            "clear": "Xóa nhập liệu",
+            "edit": "Sửa",
+            "delete": "Xóa",
+            "confirmDelete": "Xóa chính sách SLA này?"
+          },
+          "form": {
+            "createTitle": "Thêm chính sách SLA",
+            "editTitle": "Sửa chính sách SLA",
+            "fields": {
+              "serviceTypeCode": "Mã loại dịch vụ",
+              "responseMinutes": "Phút phản hồi",
+              "resolutionMinutes": "Phút xử lý",
+              "escalationAfterMinutes": "Phút trước khi escalation"
+            },
+            "validation": {
+              "serviceTypeCodeRequired": "Mã loại dịch vụ là bắt buộc.",
+              "minutesPositive": "Số phút phải lớn hơn 0."
+            }
+          },
+          "table": {
+            "title": "Danh sách chính sách SLA"
+          }
+        },
+        "serviceTypes": {
+          "title": "Loại dịch vụ",
+          "description": "Cấu hình nhóm dịch vụ và map sang workflow/SLA mặc định.",
+          "states": {
+            "loading": "Đang tải loại dịch vụ...",
+            "empty": "Chưa có loại dịch vụ nào.",
+            "permissionDenied": "Bạn không có quyền quản lý loại dịch vụ."
+          },
+          "feedback": {
+            "loadError": "Không thể tải loại dịch vụ. Vui lòng thử lại.",
+            "saveSuccess": "Lưu loại dịch vụ thành công.",
+            "saveError": "Không thể lưu loại dịch vụ.",
+            "deleteSuccess": "Xóa loại dịch vụ thành công.",
+            "deleteError": "Không thể xóa loại dịch vụ."
+          },
+          "actions": {
+            "retry": "Thử lại",
+            "create": "Tạo",
+            "update": "Cập nhật",
+            "clear": "Xóa nhập liệu",
+            "edit": "Sửa",
+            "delete": "Xóa",
+            "confirmDelete": "Xóa loại dịch vụ này?"
+          },
+          "form": {
+            "createTitle": "Thêm loại dịch vụ",
+            "editTitle": "Sửa loại dịch vụ",
+            "fields": {
+              "code": "Mã",
+              "name": "Tên",
+              "workflowName": "Tên workflow",
+              "slaPolicyId": "Mã SLA policy",
+              "isActive": "Đang hoạt động"
+            },
+            "validation": {
+              "codeRequired": "Mã là bắt buộc.",
+              "nameRequired": "Tên là bắt buộc.",
+              "duplicateCode": "Đã tồn tại loại dịch vụ với mã này."
+            }
+          },
+          "table": {
+            "title": "Danh sách loại dịch vụ",
+            "active": "Đang hoạt động",
+            "inactive": "Ngừng hoạt động"
+          }
+        }
       }
     }
   }

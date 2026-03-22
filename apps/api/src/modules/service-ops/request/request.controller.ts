@@ -80,7 +80,7 @@ export class RequestController {
 
   @Get(':id/workflow')
   @Permissions({ any: ['request.read.all', 'request.read.own'] })
-  @ApiOperation({ summary: 'Get request workflow aggregate for detail screen' })
+  @ApiOperation({ summary: 'Get request workflow aggregate for detail view' })
   workflowDetail(
     @CurrentTenant() tenantId: string,
     @CurrentUser('sub') requesterId: string,
