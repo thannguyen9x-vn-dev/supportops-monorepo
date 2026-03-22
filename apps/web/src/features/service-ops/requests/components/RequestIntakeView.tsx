@@ -20,6 +20,7 @@ import type { CreateServiceRequestInput, ServiceRequest } from "@supportops/type
 import { DEFAULT_FILE_UPLOAD_CONFIG } from "@supportops/types";
 import { SelectOptionField, TextAreaField, TextInputField } from "@supportops/ui-form";
 import { FileUploadField, type UploadedFileInfo } from "@supportops/ui-file-upload";
+import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
 import { Controller, useForm, useWatch, type Control } from "react-hook-form";
@@ -45,10 +46,11 @@ type RequestIntakeFormValues = {
   preferredContact: string;
 };
 
+type RequestSubmitMode = "draft" | "submit";
 
 export const REQUEST_INTAKE_FORM_ID = "create-request-form";
 
-type RequestIntakeScreenProps = {
+type RequestIntakeViewProps = {
   modal?: boolean;
   onSuccess?: (createdRequest: ServiceRequest) => void;
 };
@@ -120,12 +122,16 @@ function RequestSummaryCard({ control }: { control: Control<RequestIntakeFormVal
   );
 }
 
-export function RequestIntakeScreen({ modal = false, onSuccess }: RequestIntakeScreenProps = {}) {
+export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeViewProps = {}) {
   const t = useTranslations("pages.serviceOps.requestCreateForm");
+  const router = useRouter();
+  const params = useParams<{ locale?: string }>();
+  const locale = params?.locale ?? "en";
   const toast = useToast();
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFileInfo[]>([]);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const {
     control,
@@ -151,30 +157,26 @@ export function RequestIntakeScreen({ modal = false, onSuccess }: RequestIntakeS
       file: { file: File },
       onProgress: (event: { progress: number }) => void,
     ): Promise<UploadedFileInfo> => {
-      // Simulate progress
       const files = [file.file];
-
-      for (let i = 0; i <= 100; i += 20) {
-        onProgress({ progress: i });
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
+      onProgress({ progress: 20 });
 
       const uploadedFiles = await fileService.uploadFiles(files);
       const uploadedFile = uploadedFiles[0];
       if (!uploadedFile) {
-        throw new Error("Upload failed: no file returned");
+        throw new Error(t("errors.uploadNoFileReturned"));
       }
+      onProgress({ progress: 100 });
       return uploadedFile;
     },
-    [],
+    [t],
   );
 
-  const onSubmit = async (values: RequestIntakeFormValues) => {
+  const submitRequest = async (values: RequestIntakeFormValues, mode: RequestSubmitMode) => {
     setSubmitMessage(null);
     setSubmitError(null);
 
     const payload: CreateServiceRequestInput = {
-      mode: "submit",
+      mode,
       serviceTypeCode: values.serviceType,
       title: values.title.trim(),
       description: values.description.trim(),
@@ -202,27 +204,33 @@ export function RequestIntakeScreen({ modal = false, onSuccess }: RequestIntakeS
 
     try {
       const { data } = await requestService.create(payload);
-      toast.success(t("submitSuccess"));
+      const successMessage = mode === "draft" ? t("draftSaved") : t("submitSuccess");
+      toast.success(successMessage);
+      setSubmitMessage(successMessage);
 
       if (modal) {
         onSuccess?.(data);
-      }
-    } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.error.message);
         return;
       }
 
-      setSubmitError("Unable to submit request. Please try again.");
+      if (mode === "submit") {
+        router.push(`/${locale}/requests/${data.id}`);
+      }
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSubmitError(error.error.message || t(mode === "draft" ? "errors.draftFailed" : "errors.submitFailed"));
+        return;
+      }
+
+      setSubmitError(t(mode === "draft" ? "errors.draftFailed" : "errors.submitFailed"));
     }
   };
 
-  const onSaveDraft = () => {
-    setSubmitMessage(t("draftSaved"));
-  };
+  const onSubmit = handleSubmit(async (values) => submitRequest(values, "submit"));
+  const onSaveDraft = handleSubmit(async (values) => submitRequest(values, "draft"));
 
   const formContent = (
-    <Stack component="form" id={modal ? REQUEST_INTAKE_FORM_ID : undefined} noValidate onSubmit={handleSubmit(onSubmit)} spacing={2.5}>
+    <Stack component="form" id={modal ? REQUEST_INTAKE_FORM_ID : undefined} noValidate onSubmit={onSubmit} spacing={2.5}>
       <SelectOptionField
         control={control}
         disableClearable
@@ -240,21 +248,35 @@ export function RequestIntakeScreen({ modal = false, onSuccess }: RequestIntakeS
 
       <TextInputField
         control={control}
-        helperText={errors.title ? t("validation.titleRequired") : t("hints.title")}
+        helperText={errors.title ? errors.title.message : t("hints.title")}
         label={t("fields.title")}
         name="title"
         placeholder={t("placeholders.title")}
-        rules={{ required: t("validation.titleRequired") }}
+        rules={{
+          required: t("validation.titleRequired"),
+          validate: (value) => value.trim().length > 0 || t("validation.titleRequired"),
+          maxLength: {
+            value: 255,
+            message: t("validation.titleTooLong"),
+          },
+        }}
       />
 
       <TextAreaField
         control={control}
-        helperText={t("hints.description")}
+        helperText={errors.description ? errors.description.message : t("hints.description")}
         label={t("fields.description")}
         minRows={4}
         name="description"
         placeholder={t("placeholders.description")}
-        rules={{ required: t("validation.required") }}
+        rules={{
+          required: t("validation.descriptionRequired"),
+          validate: (value) => value.trim().length > 0 || t("validation.descriptionRequired"),
+          maxLength: {
+            value: 5000,
+            message: t("validation.descriptionTooLong"),
+          },
+        }}
       />
 
       <SelectOptionField
@@ -357,6 +379,11 @@ export function RequestIntakeScreen({ modal = false, onSuccess }: RequestIntakeS
         maxFiles={DEFAULT_FILE_UPLOAD_CONFIG.maxFiles}
         maxFileSizeBytes={DEFAULT_FILE_UPLOAD_CONFIG.maxFileSizeBytes}
         onChange={setUploadedFiles}
+        onUploadError={() => {
+          setUploadError(t("errors.uploadFailed"));
+          toast.error(t("errors.uploadFailed"));
+        }}
+        onUploadSuccess={() => setUploadError(null)}
         uploadFn={handleFileUpload}
         value={uploadedFiles}
       />
@@ -365,7 +392,7 @@ export function RequestIntakeScreen({ modal = false, onSuccess }: RequestIntakeS
         <>
           <Divider />
           <Stack direction="row" spacing={1.5}>
-            <Button disabled={isSubmitting} onClick={onSaveDraft} variant="outlined">
+            <Button disabled={isSubmitting} onClick={() => void onSaveDraft()} type="button" variant="outlined">
               {t("actions.saveDraft")}
             </Button>
             <Button disabled={isSubmitting} type="submit" variant="contained">
@@ -375,6 +402,7 @@ export function RequestIntakeScreen({ modal = false, onSuccess }: RequestIntakeS
           {submitMessage ? <Alert severity="success">{submitMessage}</Alert> : null}
         </>
       ) : null}
+      {uploadError ? <Alert severity="error">{uploadError}</Alert> : null}
       {submitError ? <Alert severity="error">{submitError}</Alert> : null}
     </Stack>
   );

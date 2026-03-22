@@ -24,7 +24,7 @@ import { RequestHeaderActions } from "./header/RequestHeaderActions";
 import { RequestSummary } from "./header/RequestSummary";
 import styles from "./request-detail-screen.module.css";
 
-export function RequestDetailScreen({ requestId }: DetailProps) {
+export function RequestDetailView({ requestId }: DetailProps) {
   const { locale } = useParams<{ locale: string }>();
   const t = useTranslations("pages.requests.detail");
   const detail = useRequestDetail(requestId);
