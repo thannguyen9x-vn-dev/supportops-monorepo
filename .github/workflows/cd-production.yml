@@ -62,7 +62,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: apps/api-nest/Dockerfile
+          file: apps/api/Dockerfile
           push: true
           tags: |
             ${{ steps.meta.outputs.api_image }}
@@ -83,7 +83,7 @@ jobs:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.PROD_SSH_KEY }}
-          source: "docker-compose.prod.yml,deploy/nginx/templates/supportops.conf.template"
+          source: "docker-compose.prod.yml,deploy/nginx/templates/supportops.conf.template,deploy/deploy-prod.sh,deploy/smoke-test.sh"
           target: ${{ secrets.PROD_DEPLOY_PATH }}
           strip_components: 0
           overwrite: true
@@ -117,16 +117,12 @@ jobs:
           envs: WEB_IMAGE,API_IMAGE,APP_DOMAIN,API_DOMAIN,APP_ORIGIN,API_ORIGIN,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,FILE_SIGNING_SECRET,GHCR_USERNAME,GHCR_TOKEN,MAIL_ENABLED,MAIL_PROVIDER,MAIL_DAILY_LIMIT,MAIL_FROM_EMAIL,MAIL_FROM_NAME,RESEND_API_KEY
           script_stop: true
           script: |
-            set -eu
+            set -Eeuo pipefail
             DEPLOY_PATH="${{ secrets.PROD_DEPLOY_PATH }}"
             mkdir -p "${DEPLOY_PATH}/deploy/nginx/certs" "${DEPLOY_PATH}/deploy/nginx/www"
             cd "${DEPLOY_PATH}"
 
-            if [ -f .env.prod ]; then
-              cp .env.prod .env.prod.rollback
-            fi
-
-            cat > .env.prod <<EOF
+            cat > .env.prod <<EOF_ENV
             APP_DOMAIN=${APP_DOMAIN}
             API_DOMAIN=${API_DOMAIN}
             APP_ORIGIN=${APP_ORIGIN}
@@ -144,28 +140,9 @@ jobs:
             RESEND_API_KEY=${RESEND_API_KEY:-}
             WEB_IMAGE=${WEB_IMAGE}
             API_IMAGE=${API_IMAGE}
-            EOF
+            EOF_ENV
 
+            chmod +x deploy/deploy-prod.sh deploy/smoke-test.sh
             echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
-            docker compose -f docker-compose.prod.yml --env-file .env.prod pull
 
-            docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm api pnpm --filter @supportops/api-nest exec prisma migrate deploy
-            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
-
-            if ! curl -fsS -H "Host: ${APP_DOMAIN}" "http://127.0.0.1/" >/dev/null; then
-              if [ -f .env.prod.rollback ]; then
-                cp .env.prod.rollback .env.prod
-                docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
-              fi
-              exit 1
-            fi
-
-            if ! curl -fsS -H "Host: ${API_DOMAIN}" "http://127.0.0.1/api/v1/health" >/dev/null; then
-              if [ -f .env.prod.rollback ]; then
-                cp .env.prod.rollback .env.prod
-                docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
-              fi
-              exit 1
-            fi
-
-            rm -f .env.prod.rollback
+            DEPLOY_PATH="${DEPLOY_PATH}" ENV_FILE=.env.prod ./deploy/deploy-prod.sh
