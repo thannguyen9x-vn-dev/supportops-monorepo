@@ -2,6 +2,7 @@ import { Logger, UnprocessableEntityException, ValidationPipe } from '@nestjs/co
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import helmet from 'helmet';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { setupSwagger } from './config/swagger.config';
@@ -13,6 +14,12 @@ async function bootstrap(): Promise<void> {
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('app.port', 8081);
+
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' }, // allow static file serving
+    }),
+  );
 
   app.setGlobalPrefix('api/v1');
   app.enableCors({

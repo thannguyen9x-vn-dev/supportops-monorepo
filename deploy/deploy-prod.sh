@@ -29,7 +29,7 @@ rollback() {
   if [ "${HAS_ROLLBACK}" -eq 1 ] && [ -f "${ENV_FILE}.rollback" ]; then
     log "Deploy failed. Rolling back env file and restarting previous stack"
     cp "${ENV_FILE}.rollback" "${ENV_FILE}"
-    docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d --remove-orphans || true
+    docker compose -p supportops_prod -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d --remove-orphans || true
   fi
   exit "${code}"
 }
@@ -41,15 +41,15 @@ if [ -f "${ENV_FILE}" ]; then
 fi
 
 log "Pulling images"
-docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" pull
+docker compose -p supportops_prod -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" pull
 
 if [ "${RUN_MIGRATIONS}" = "1" ]; then
   log "Running database migrations"
-  docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" run --rm api sh -lc "${API_MIGRATE_CMD}"
+  docker compose -p supportops_prod -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" run --rm api sh -lc "${API_MIGRATE_CMD}"
 fi
 
 log "Starting services"
-docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d --remove-orphans
+docker compose -p supportops_prod -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d --remove-orphans
 
 set -a
 # shellcheck disable=SC1090

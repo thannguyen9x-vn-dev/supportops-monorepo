@@ -300,7 +300,7 @@ export class AuthService {
       return;
     }
 
-    const code = this.generateSixDigitCode();
+    const code = this.generateOtpCode();
     const codeHash = this.hashToken(code);
     const ttlSeconds = this.configService.get<number>('auth.passwordResetCodeTtlSeconds', 600);
     const resetUrl = this.buildResetPasswordUrl(user.email);
@@ -561,8 +561,8 @@ export class AuthService {
     return createHash('sha256').update(rawToken).digest('hex');
   }
 
-  private generateSixDigitCode(): string {
-    return randomInt(0, 1_000_000).toString().padStart(6, '0');
+  private generateOtpCode(): string {
+    return randomInt(0, 100_000_000).toString().padStart(8, '0');
   }
 
   private async issueEmailVerificationToken(user: User): Promise<void> {

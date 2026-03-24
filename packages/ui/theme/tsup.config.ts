@@ -1,4 +1,5 @@
 import {defineConfig} from 'tsup'
+import {readFileSync, writeFileSync} from 'fs'
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -17,4 +18,10 @@ export default defineConfig({
     '@emotion/react',
     '@emotion/styled',
   ],
+  async onSuccess() {
+    for (const file of ['dist/index.js', 'dist/index.cjs']) {
+      const content = readFileSync(file, 'utf8')
+      writeFileSync(file, '"use client";\n' + content)
+    }
+  },
 })

@@ -5,6 +5,7 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import AltRouteOutlinedIcon from "@mui/icons-material/AltRouteOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
+import HandymanOutlinedIcon from "@mui/icons-material/HandymanOutlined";
 
 import type { NavGroup } from "../types";
 
@@ -17,6 +18,12 @@ export const navigationConfig: NavGroup[] = [
         href: "/requests/list",
         icon: <AssignmentOutlinedIcon fontSize="small" />,
         badge: 3,
+        allowedRoles: ["EMPLOYEE", "OPS_COORDINATOR", "TECHNICIAN", "TENANT_ADMIN"],
+      },
+      {
+        label: "nav.assets",
+        href: "/assets/list",
+        icon: <HandymanOutlinedIcon fontSize="small" />,
         allowedRoles: ["EMPLOYEE", "OPS_COORDINATOR", "TECHNICIAN", "TENANT_ADMIN"],
       },
       {

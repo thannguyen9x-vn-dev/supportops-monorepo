@@ -401,7 +401,7 @@ export function DataTable<T>({
                         rowClassName?.(row.original),
                       )}
                       style={{
-                        background: rowBg,
+                        backgroundColor: rowBg,
                         cursor: onRowClick ? "pointer" : undefined,
                         transition: "background-color 0.15s ease",
                       }}
@@ -427,7 +427,7 @@ export function DataTable<T>({
                               textAlign: isLastColumn ? "right" : "left",
                               borderRight: isLastColumn ? "none" : "1px solid var(--mui-palette-divider)",
                               borderBottom: "1px solid var(--mui-palette-divider)",
-                              background: rowBg,
+                              backgroundColor: rowBg,
                               ...getStickyStyle(
                                 pinned,
                                 cell.column.getStart("left"),
