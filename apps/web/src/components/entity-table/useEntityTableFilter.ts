@@ -32,6 +32,7 @@ export function useEntityTableFilter<TFilters extends object>({
 
   // A filter is "active" if any key differs from the initial value.
   const hasActiveFilters = useMemo(() => {
+    if (!appliedFilters || !initialFilters) return false;
     return (Object.keys(appliedFilters) as (keyof TFilters)[]).some(
       (key) => appliedFilters[key] !== initialFilters[key],
     );

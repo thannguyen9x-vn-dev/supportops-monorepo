@@ -1,4 +1,5 @@
 import {
+  AssetStatus,
   CommentVisibility,
   MembershipStatus,
   PrismaClient,
@@ -51,6 +52,7 @@ const permissions: Array<{ code: string; description: string }> = [
   { code: 'user.deactivate', description: 'Deactivate tenant users.' },
   { code: 'role.manage', description: 'Change membership roles.' },
   { code: 'audit.read', description: 'Read audit logs.' },
+  { code: 'asset.manage', description: 'Create, update and delete assets and asset types.' },
 ];
 
 const rolePermissionMap: Record<string, string[]> = {
@@ -140,6 +142,7 @@ type DemoRequestSeed = {
   requester: DemoAccount['key'];
   assignee?: DemoAccount['key'];
   locationId: string;
+  assetCode?: string;
   impactLevel: RequestImpactLevel;
   urgency: RequestUrgency;
   slaHealth: SlaHealth;
@@ -152,15 +155,15 @@ type DemoRequestSeed = {
 
 const demoRequests: DemoRequestSeed[] = [
   { title: 'Printer queue blocked on 5th floor', description: 'Shared printer hangs after receiving large PDF jobs.', status: RequestStatus.SUBMITTED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'IT_SUPPORT', requester: 'employee', locationId: 'HQ-5F', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 160 },
-  { title: 'Main lobby AC not cooling', description: 'Front desk reported room temp above 29C since morning.', status: RequestStatus.SUBMITTED, priority: RequestPriority.HIGH, serviceTypeCode: 'HVAC', requester: 'employee', locationId: 'HQ-LOBBY', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.AT_RISK, hoursAgo: 154 },
-  { title: 'Network packet loss in meeting room B', description: 'Video calls unstable during board meetings.', status: RequestStatus.SUBMITTED, priority: RequestPriority.HIGH, serviceTypeCode: 'IT_SUPPORT', requester: 'coordinator', locationId: 'HQ-3F-B', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 148 },
-  { title: 'Water leak under pantry sink', description: 'Standing water found near pantry cabinet area.', status: RequestStatus.TRIAGE, priority: RequestPriority.HIGH, serviceTypeCode: 'PLUMBING', requester: 'employee', assignee: 'coordinator', locationId: 'HQ-2F-PANTRY', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.AT_RISK, hoursAgo: 142, hasPublicComment: true },
+  { title: 'Main lobby AC not cooling', description: 'Front desk reported room temp above 29C since morning.', status: RequestStatus.SUBMITTED, priority: RequestPriority.HIGH, serviceTypeCode: 'HVAC', requester: 'employee', locationId: 'HQ-LOBBY', assetCode: 'HVAC-HQ-001', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.AT_RISK, hoursAgo: 154 },
+  { title: 'Network packet loss in meeting room B', description: 'Video calls unstable during board meetings.', status: RequestStatus.SUBMITTED, priority: RequestPriority.HIGH, serviceTypeCode: 'IT_SUPPORT', requester: 'coordinator', locationId: 'HQ-3F-B', assetCode: 'NET-HQ-002', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 148 },
+  { title: 'Water leak under pantry sink', description: 'Standing water found near pantry cabinet area.', status: RequestStatus.TRIAGE, priority: RequestPriority.HIGH, serviceTypeCode: 'PLUMBING', requester: 'employee', assignee: 'coordinator', locationId: 'HQ-2F-PANTRY', assetCode: 'PLB-HQ-001', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.AT_RISK, hoursAgo: 142, hasPublicComment: true },
   { title: 'Door access reader intermittent failure', description: 'RFID reader at server room misses valid badges.', status: RequestStatus.TRIAGE, priority: RequestPriority.MEDIUM, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'admin', assignee: 'coordinator', locationId: 'HQ-1F-SERVER', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 136 },
-  { title: 'Emergency lighting battery replacement', description: 'Quarterly inspection failed in east corridor.', status: RequestStatus.ASSIGNED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'ELECTRICAL', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-4F-EAST', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 130, hasPublicComment: true },
+  { title: 'Emergency lighting battery replacement', description: 'Quarterly inspection failed in east corridor.', status: RequestStatus.ASSIGNED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'ELECTRICAL', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-4F-EAST', assetCode: 'ELEC-HQ-001', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 130, hasPublicComment: true },
   { title: 'Wi-Fi dead zone near cafeteria', description: 'Signal drops below usable threshold during lunch peak.', status: RequestStatus.ASSIGNED, priority: RequestPriority.HIGH, serviceTypeCode: 'IT_SUPPORT', requester: 'employee', assignee: 'technician', locationId: 'HQ-CAFETERIA', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.AT_RISK, hoursAgo: 124 },
   { title: 'Ceiling stain inspection request', description: 'Potential condensation leak near HR office.', status: RequestStatus.ASSIGNED, priority: RequestPriority.LOW, serviceTypeCode: 'HVAC', requester: 'employee', assignee: 'technician', locationId: 'HQ-3F-HR', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 118 },
   { title: 'CRM app timeout during customer lookup', description: 'Response latency exceeds 15 seconds after login.', status: RequestStatus.IN_PROGRESS, priority: RequestPriority.HIGH, serviceTypeCode: 'IT_SUPPORT', requester: 'employee', assignee: 'technician', locationId: 'HQ-6F-SALES', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.AT_RISK, hoursAgo: 112, hasPublicComment: true, hasInternalNote: true, hasWorkLog: true },
-  { title: 'Chiller vibration anomaly', description: 'Building management system flags sustained vibration spikes.', status: RequestStatus.IN_PROGRESS, priority: RequestPriority.URGENT, serviceTypeCode: 'HVAC', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-BASEMENT', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.CRITICAL, slaHealth: SlaHealth.BREACHED, hoursAgo: 106, hasPublicComment: true, hasInternalNote: true, hasWorkLog: true },
+  { title: 'Chiller vibration anomaly', description: 'Building management system flags sustained vibration spikes.', status: RequestStatus.IN_PROGRESS, priority: RequestPriority.URGENT, serviceTypeCode: 'HVAC', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-BASEMENT', assetCode: 'HVAC-HQ-001', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.CRITICAL, slaHealth: SlaHealth.BREACHED, hoursAgo: 106, hasPublicComment: true, hasInternalNote: true, hasWorkLog: true },
   { title: 'Restroom exhaust fan replacement', description: 'Motor noise and reduced airflow on 7th floor.', status: RequestStatus.IN_PROGRESS, priority: RequestPriority.MEDIUM, serviceTypeCode: 'ELECTRICAL', requester: 'employee', assignee: 'technician', locationId: 'HQ-7F-RESTROOM', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 100, hasPublicComment: true, hasWorkLog: true },
   { title: 'Desktop endpoint protection reinstall', description: 'Security agent crashed after forced OS update.', status: RequestStatus.IN_PROGRESS, priority: RequestPriority.HIGH, serviceTypeCode: 'IT_SUPPORT', requester: 'admin', assignee: 'technician', locationId: 'HQ-8F-SECURITY', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 94, hasPublicComment: true, hasWorkLog: true },
   { title: 'Vendor dispatch for main pump failure', description: 'Internal team cannot replace custom pump component.', status: RequestStatus.WAITING_EXTERNAL_VENDOR, priority: RequestPriority.URGENT, serviceTypeCode: 'PLUMBING', requester: 'coordinator', assignee: 'coordinator', locationId: 'HQ-UTILITY', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.CRITICAL, slaHealth: SlaHealth.BREACHED, hoursAgo: 88, hasPublicComment: true, escalated: true },
@@ -405,6 +408,106 @@ async function main(): Promise<void> {
     });
   }
 
+  // ─── Asset Types ───────────────────────────────────────────────────────────
+  const assetTypeDefinitions = [
+    { name: 'HVAC Equipment', category: 'Mechanical', description: 'Heating, ventilation, and air conditioning units.' },
+    { name: 'Electrical Panel', category: 'Electrical', description: 'Main and sub electrical distribution panels.' },
+    { name: 'Plumbing Fixture', category: 'Plumbing', description: 'Sinks, drains, pumps, and plumbing fittings.' },
+    { name: 'Network Hardware', category: 'IT', description: 'Routers, switches, access points, and cabling.' },
+    { name: 'General Equipment', category: 'Facilities', description: 'Miscellaneous facilities and operations equipment.' },
+  ];
+
+  const assetTypesByName = new Map<string, { id: string }>();
+  for (const def of assetTypeDefinitions) {
+    const created = await prisma.assetType.upsert({
+      where: { tenantId_name: { tenantId: tenant.id, name: def.name } },
+      update: { category: def.category, description: def.description },
+      create: { tenantId: tenant.id, ...def },
+      select: { id: true, name: true },
+    });
+    assetTypesByName.set(def.name, { id: created.id });
+  }
+
+  // ─── Assets ────────────────────────────────────────────────────────────────
+  const assetDefinitions = [
+    {
+      assetCode: 'HVAC-HQ-001',
+      name: 'Main Lobby Chiller Unit',
+      assetTypeName: 'HVAC Equipment',
+      locationId: 'HQ-BASEMENT',
+      status: AssetStatus.ACTIVE,
+      model: 'Carrier AquaEdge 19DV',
+      responsibleTeam: 'Facilities',
+    },
+    {
+      assetCode: 'HVAC-HQ-002',
+      name: 'Floor 5 AHU System',
+      assetTypeName: 'HVAC Equipment',
+      locationId: 'HQ-5F',
+      status: AssetStatus.UNDER_MAINTENANCE,
+      model: 'Daikin FXAQ',
+      responsibleTeam: 'Facilities',
+    },
+    {
+      assetCode: 'NET-HQ-001',
+      name: 'Core Network Switch - HQ',
+      assetTypeName: 'Network Hardware',
+      locationId: 'HQ-NOC',
+      status: AssetStatus.ACTIVE,
+      model: 'Cisco Catalyst 9300',
+      responsibleTeam: 'IT Operations',
+    },
+    {
+      assetCode: 'NET-HQ-002',
+      name: 'Meeting Room B AP Cluster',
+      assetTypeName: 'Network Hardware',
+      locationId: 'HQ-3F-B',
+      status: AssetStatus.ACTIVE,
+      model: 'Aruba AP-635',
+      responsibleTeam: 'IT Operations',
+    },
+    {
+      assetCode: 'PLB-HQ-001',
+      name: 'Pantry Sink & Drain Unit',
+      assetTypeName: 'Plumbing Fixture',
+      locationId: 'HQ-2F-PANTRY',
+      status: AssetStatus.OUT_OF_SERVICE,
+      model: 'Elkay LRAD332260',
+      responsibleTeam: 'Facilities',
+    },
+    {
+      assetCode: 'ELEC-HQ-001',
+      name: 'East Corridor Emergency Lighting Panel',
+      assetTypeName: 'Electrical Panel',
+      locationId: 'HQ-4F-EAST',
+      status: AssetStatus.ACTIVE,
+      model: 'Eaton PRL3a',
+      responsibleTeam: 'Facilities',
+    },
+  ];
+
+  const assetsByCode = new Map<string, { id: string }>();
+  // Clear existing assets to allow clean upsert
+  await prisma.asset.deleteMany({ where: { tenantId: tenant.id } });
+  for (const def of assetDefinitions) {
+    const assetType = assetTypesByName.get(def.assetTypeName);
+    if (!assetType) continue;
+    const created = await prisma.asset.create({
+      data: {
+        tenantId: tenant.id,
+        assetCode: def.assetCode,
+        name: def.name,
+        assetTypeId: assetType.id,
+        locationId: def.locationId,
+        status: def.status,
+        model: def.model,
+        responsibleTeam: def.responsibleTeam,
+      },
+      select: { id: true, assetCode: true },
+    });
+    assetsByCode.set(def.assetCode, { id: created.id });
+  }
+
   await prisma.$transaction(async (tx) => {
     await tx.requestAttachment.deleteMany({ where: { tenantId: tenant.id } });
     await tx.workLog.deleteMany({ where: { tenantId: tenant.id } });
@@ -459,6 +562,8 @@ async function main(): Promise<void> {
         : null;
     const closedAt = seed.status === RequestStatus.CLOSED || seed.status === RequestStatus.REOPENED ? addMinutes(createdAt, 7 * 60) : null;
 
+    const assetId = seed.assetCode ? (assetsByCode.get(seed.assetCode)?.id ?? null) : null;
+
     const request = await prisma.serviceRequest.create({
       data: {
         tenantId: tenant.id,
@@ -471,7 +576,7 @@ async function main(): Promise<void> {
         impactLevel: seed.impactLevel,
         urgency: seed.urgency,
         locationId: seed.locationId,
-        assetId: null,
+        assetId,
         requesterId: requester.id,
         assigneeId: assignee?.id ?? null,
         sourceChannel: SourceChannel.WEB,
@@ -721,6 +826,8 @@ async function main(): Promise<void> {
       `Tenant slug: supportops-demo`,
       `Demo password: ${DEMO_PASSWORD}`,
       `Users: ${demoAccounts.map((account) => account.email).join(', ')}`,
+      `Asset types: ${assetTypeDefinitions.length}`,
+      `Assets: ${assetDefinitions.length}`,
       `Service requests: ${demoRequests.length}`,
     ].join('\n'),
   );

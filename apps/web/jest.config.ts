@@ -15,10 +15,10 @@ const config: Config = {
   setupFilesAfterEnv: ["<rootDir>/__tests__/setup/jest.setup.ts"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
-    "^@supportops/types$": "<rootDir>/../../packages/types/src",
-    "^@supportops/ui$": "<rootDir>/../../packages/ui/src",
-    "^@supportops/ui-theme$": "<rootDir>/../../packages/ui/theme/src",
-    "^@supportops/ui-form$": "<rootDir>/../../packages/ui/form/src",
+    "^@supportops/types$": "<rootDir>/../../packages/types/dist",
+    "^@supportops/ui$": "<rootDir>/../../packages/ui/dist",
+    "^@supportops/ui-theme$": "<rootDir>/../../packages/ui/theme/dist",
+    "^@supportops/ui-form$": "<rootDir>/../../packages/ui/form/dist",
     "^@supportops/ui-avatar$": "<rootDir>/../../packages/ui/avatar/dist",
     "^@supportops/ui-file-upload$": "<rootDir>/../../packages/ui/file-upload/dist",
     // until-async is ESM-only ("type": "module") which Jest's CJS mode cannot process.

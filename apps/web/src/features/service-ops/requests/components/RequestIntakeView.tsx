@@ -2,10 +2,12 @@
 
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   Card,
   CardContent,
+  CircularProgress,
   Divider,
   FormControl,
   FormControlLabel,
@@ -14,9 +16,10 @@ import {
   Radio,
   RadioGroup,
   Stack,
+  TextField,
   Typography,
 } from "@mui/material";
-import type { CreateServiceRequestInput, ServiceRequest } from "@supportops/types";
+import type { Asset, CreateServiceRequestInput, ServiceRequest } from "@supportops/types";
 import { DEFAULT_FILE_UPLOAD_CONFIG } from "@supportops/types";
 import { SelectOptionField, TextAreaField, TextInputField } from "@supportops/ui-form";
 import { FileUploadField, type UploadedFileInfo } from "@supportops/ui-file-upload";
@@ -24,6 +27,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch, type Control } from "react-hook-form";
+
+import { assetService } from "@/features/service-ops/assets/services/asset.service";
 
 import styles from "./request-intake-screen.module.css";
 import { requestService } from "../services/request.service";
@@ -146,6 +151,8 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [serviceTypeOptions, setServiceTypeOptions] = useState(DEFAULT_SERVICE_TYPE_OPTIONS);
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [loadingAssets, setLoadingAssets] = useState(false);
 
   const {
     control,
@@ -155,6 +162,8 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
     defaultValues: DEFAULT_VALUES,
     mode: "onTouched",
   });
+
+  const watchedLocation = useWatch({ control, name: "location" });
 
   useEffect(() => {
     let isMounted = true;
@@ -183,6 +192,29 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoadingAssets(true);
+
+    const loadAssets = async () => {
+      try {
+        const query = watchedLocation ? { locationId: watchedLocation } : undefined;
+        const { data } = await assetService.list(query);
+        if (isMounted) setAssets(data);
+      } catch {
+        // Non-critical — asset selector degrades gracefully.
+      } finally {
+        if (isMounted) setLoadingAssets(false);
+      }
+    };
+
+    void loadAssets();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [watchedLocation]);
 
   const priorityOptions = useMemo(
     () => [
@@ -396,11 +428,36 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
         </Grid>
       </Grid>
 
-      <TextInputField
+      <Controller
         control={control}
-        label={t("fields.assetId")}
         name="assetId"
-        placeholder={t("placeholders.assetId")}
+        render={({ field }) => (
+          <Autocomplete
+            getOptionLabel={(opt) => `${opt.name} (${opt.assetCode})`}
+            isOptionEqualToValue={(opt, val) => opt.id === val.id}
+            loading={loadingAssets}
+            onChange={(_, newValue) => field.onChange(newValue?.id ?? "")}
+            options={assets}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                InputProps={{
+                  ...params.InputProps,
+                  endAdornment: (
+                    <>
+                      {loadingAssets ? <CircularProgress size={16} /> : null}
+                      {params.InputProps.endAdornment}
+                    </>
+                  ),
+                }}
+                label={t("fields.assetId")}
+                placeholder={t("placeholders.assetId")}
+                size="small"
+              />
+            )}
+            value={assets.find((a) => a.id === field.value) ?? null}
+          />
+        )}
       />
 
       <FileUploadField

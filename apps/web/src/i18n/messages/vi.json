@@ -169,6 +169,7 @@
     "reportsPerformance": "Hiệu suất",
     "settings": "Cài đặt",
     "requests": "Yêu cầu",
+    "assets": "Tài sản",
     "workflowConfig": "Cấu hình workflow",
     "slaPolicy": "Chính sách SLA",
     "serviceTypes": "Loại dịch vụ"
@@ -714,6 +715,161 @@
       }
     },
     "serviceOps": {
+      "assets": {
+        "list": {
+          "title": "Tài sản",
+          "subtitle": "Theo dõi và quản lý tài sản, thiết bị vận hành trong các cơ sở của bạn.",
+          "newAsset": "Tạo tài sản",
+          "emptyState": "Chưa có tài sản nào. Tạo mới để bắt đầu.",
+          "filters": {
+            "searchPlaceholder": "Tìm theo tên hoặc mã tài sản",
+            "status": "Trạng thái",
+            "assetType": "Loại tài sản",
+            "location": "Vị trí",
+            "all": "Tất cả"
+          },
+          "columns": {
+            "assetCode": "Mã",
+            "name": "Tên tài sản",
+            "assetType": "Loại",
+            "location": "Vị trí",
+            "status": "Trạng thái",
+            "openRequests": "Yêu cầu mở",
+            "updatedAt": "Cập nhật lúc",
+            "actions": "Thao tác"
+          },
+          "statusLabels": {
+            "ACTIVE": "Đang hoạt động",
+            "UNDER_MAINTENANCE": "Đang bảo trì",
+            "OUT_OF_SERVICE": "Ngừng hoạt động",
+            "RETIRED": "Đã ngưng sử dụng"
+          }
+        },
+        "detail": {
+          "backToList": "Quay lại danh sách tài sản",
+          "overview": "Tổng quan tài sản",
+          "linkedRequests": "Yêu cầu liên kết",
+          "noRequests": "Chưa có yêu cầu nào liên kết với tài sản này.",
+          "openRequestCount": "{count} đang mở",
+          "fields": {
+            "assetCode": "Mã tài sản",
+            "assetType": "Loại tài sản",
+            "location": "Vị trí",
+            "status": "Trạng thái",
+            "serialNumber": "Số serial",
+            "model": "Model",
+            "assignedDepartment": "Phòng ban phụ trách",
+            "responsibleTeam": "Đội phụ trách",
+            "installedAt": "Ngày lắp đặt",
+            "description": "Mô tả"
+          },
+          "actions": {
+            "edit": "Chỉnh sửa",
+            "delete": "Xóa tài sản",
+            "confirmDelete": "Bạn có chắc muốn xóa tài sản này không?"
+          },
+          "feedback": {
+            "loading": "Đang tải tài sản...",
+            "loadError": "Không thể tải chi tiết tài sản.",
+            "deleteSuccess": "Đã xóa tài sản.",
+            "deleteError": "Không thể xóa tài sản."
+          }
+        },
+        "form": {
+          "createTitle": "Tạo tài sản mới",
+          "editTitle": "Chỉnh sửa tài sản",
+          "sections": {
+            "basic": "Thông tin cơ bản",
+            "operational": "Thông tin vận hành"
+          },
+          "fields": {
+            "assetCode": "Mã tài sản *",
+            "name": "Tên tài sản *",
+            "assetType": "Loại tài sản *",
+            "location": "Vị trí *",
+            "status": "Trạng thái",
+            "serialNumber": "Số serial",
+            "model": "Model",
+            "assignedDepartment": "Phòng ban phụ trách",
+            "responsibleTeam": "Đội phụ trách",
+            "installedAt": "Ngày lắp đặt",
+            "description": "Mô tả"
+          },
+          "placeholders": {
+            "assetCode": "VD: HVAC-HQ-001",
+            "name": "VD: Máy lạnh sảnh chính",
+            "location": "VD: HQ-BASEMENT",
+            "serialNumber": "VD: SN-2024-XXXX",
+            "model": "VD: Carrier AquaEdge 19DV",
+            "assignedDepartment": "VD: Cơ sở vật chất",
+            "responsibleTeam": "VD: Đội Cơ sở vật chất",
+            "description": "Mô tả tài sản này..."
+          },
+          "validation": {
+            "assetCodeRequired": "Mã tài sản là bắt buộc.",
+            "nameRequired": "Tên tài sản là bắt buộc.",
+            "assetTypeRequired": "Loại tài sản là bắt buộc.",
+            "locationRequired": "Vị trí là bắt buộc."
+          },
+          "actions": {
+            "create": "Tạo tài sản",
+            "save": "Lưu thay đổi",
+            "cancel": "Hủy"
+          },
+          "feedback": {
+            "createSuccess": "Đã tạo tài sản thành công.",
+            "createError": "Không thể tạo tài sản.",
+            "updateSuccess": "Đã cập nhật tài sản thành công.",
+            "updateError": "Không thể cập nhật tài sản.",
+            "loadTypesError": "Không thể tải loại tài sản."
+          }
+        },
+        "assetTypes": {
+          "title": "Loại tài sản",
+          "description": "Quản lý các danh mục thiết bị và tài sản.",
+          "states": {
+            "loading": "Đang tải loại tài sản...",
+            "empty": "Chưa có loại tài sản nào.",
+            "permissionDenied": "Bạn không có quyền quản lý loại tài sản."
+          },
+          "feedback": {
+            "loadError": "Không thể tải loại tài sản.",
+            "saveSuccess": "Đã lưu loại tài sản.",
+            "saveError": "Không thể lưu loại tài sản.",
+            "deleteSuccess": "Đã xóa loại tài sản.",
+            "deleteError": "Không thể xóa loại tài sản."
+          },
+          "actions": {
+            "create": "Tạo",
+            "update": "Cập nhật",
+            "clear": "Xóa form",
+            "edit": "Sửa",
+            "delete": "Xóa",
+            "confirmDelete": "Xóa loại tài sản này?"
+          },
+          "form": {
+            "createTitle": "Thêm loại tài sản",
+            "editTitle": "Sửa loại tài sản",
+            "fields": {
+              "name": "Tên",
+              "category": "Danh mục",
+              "description": "Mô tả"
+            },
+            "validation": {
+              "nameRequired": "Tên là bắt buộc."
+            }
+          },
+          "table": {
+            "title": "Danh sách loại tài sản hiện tại"
+          }
+        },
+        "picker": {
+          "label": "Tài sản (tùy chọn)",
+          "placeholder": "Chọn tài sản",
+          "noOptions": "Không tìm thấy tài sản cho vị trí này.",
+          "loading": "Đang tải tài sản..."
+        }
+      },
       "phase1": "Giai đoạn 1",
       "phase3": "Giai đoạn 3",
       "phase4": "Giai đoạn 4",

@@ -25,6 +25,7 @@
     "clean:all": "pnpm clean && pnpm clean:types && rm -rf node_modules && pnpm -r exec rm -rf node_modules",
     "lint": "pnpm -r lint",
     "lint:ci": "pnpm --filter @supportops/api exec eslint \"src/**/*.ts\" --max-warnings=0 && pnpm --filter @supportops/worker exec eslint \"src/**/*.{js,ts}\" --max-warnings=0 && pnpm --filter @supportops/types exec eslint \"src/**/*.ts\" --max-warnings=0 && pnpm --filter @supportops/ui exec eslint . --max-warnings=0 && pnpm --filter @supportops/web exec eslint . --max-warnings=0",
+    "preflight:push": "pnpm lint && pnpm typecheck && pnpm audit --audit-level=high",
     "lint:fix": "pnpm -r lint --fix",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
@@ -37,6 +38,16 @@
   "config": {
     "commitizen": {
       "path": "cz-conventional-changelog"
+    }
+  },
+  "pnpm": {
+    "overrides": {
+      "effect": "^3.20.0",
+      "flatted": "^3.4.2",
+      "immutable": "3.8.3",
+      "minimatch@^3.0.0": "3.1.4",
+      "minimatch@^9.0.0": "9.0.7",
+      "rollup": "^4.59.0"
     }
   },
   "dependencies": {

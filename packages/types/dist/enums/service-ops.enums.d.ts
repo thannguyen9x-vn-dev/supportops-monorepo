@@ -14,4 +14,6 @@ export declare const SLA_HEALTHS: readonly ["ON_TRACK", "AT_RISK", "BREACHED"];
 export type SlaHealth = (typeof SLA_HEALTHS)[number];
 export declare const SLA_TYPES: readonly ["ASSIGNMENT", "RESOLUTION"];
 export type SlaType = (typeof SLA_TYPES)[number];
+export declare const ASSET_STATUSES: readonly ["ACTIVE", "UNDER_MAINTENANCE", "OUT_OF_SERVICE", "RETIRED"];
+export type AssetStatus = (typeof ASSET_STATUSES)[number];
 //# sourceMappingURL=service-ops.enums.d.ts.map

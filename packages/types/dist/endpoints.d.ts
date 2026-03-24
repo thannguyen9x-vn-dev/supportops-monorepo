@@ -112,7 +112,16 @@ export declare const ENDPOINTS: {
     };
     readonly ASSETS: {
         readonly LIST: "/assets";
+        readonly CREATE: "/assets";
         readonly DETAIL: (id: string) => string;
+        readonly UPDATE: (id: string) => string;
+        readonly DELETE: (id: string) => string;
+    };
+    readonly ASSET_TYPES: {
+        readonly LIST: "/asset-types";
+        readonly CREATE: "/asset-types";
+        readonly UPDATE: (id: string) => string;
+        readonly DELETE: (id: string) => string;
     };
     readonly WORK_LOGS: {
         readonly LIST: (requestId: string) => string;

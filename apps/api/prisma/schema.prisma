@@ -101,6 +101,13 @@ enum MembershipStatus {
   REMOVED
 }
 
+enum AssetStatus {
+  ACTIVE
+  UNDER_MAINTENANCE
+  OUT_OF_SERVICE
+  RETIRED
+}
+
 model Tenant {
   id                         String              @id @default(uuid())
   name                       String
@@ -127,6 +134,8 @@ model Tenant {
   requestQueues              RequestQueue[]
   auditLogs                  AuditLog[]
   requestSequences           RequestSequence[]
+  assetTypes                 AssetType[]
+  assets                     Asset[]
 
   @@index([status])
 }
@@ -461,6 +470,7 @@ model ServiceRequest {
   requester         User                @relation("ServiceRequestRequester", fields: [requesterId], references: [id], onDelete: Restrict)
   assignee          User?               @relation("ServiceRequestAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
   queue             RequestQueue?       @relation(fields: [tenantId, queueId], references: [tenantId, id], onDelete: Restrict)
+  asset             Asset?              @relation(fields: [assetId], references: [id], onDelete: SetNull)
   activities        RequestActivity[]
   comments          RequestComment[]
   attachments       RequestAttachment[]
@@ -608,4 +618,45 @@ model RequestSequence {
   tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@id([tenantId, year])
+}
+
+model AssetType {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  category    String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assets      Asset[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model Asset {
+  id                 String      @id @default(uuid())
+  tenantId           String
+  assetCode          String
+  name               String
+  assetTypeId        String
+  locationId         String
+  status             AssetStatus @default(ACTIVE)
+  serialNumber       String?
+  model              String?
+  assignedDepartment String?
+  responsibleTeam    String?
+  installedAt        DateTime?
+  description        String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  tenant             Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assetType          AssetType   @relation(fields: [assetTypeId], references: [id], onDelete: Restrict)
+  requests           ServiceRequest[]
+
+  @@unique([tenantId, assetCode])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, assetTypeId])
 }

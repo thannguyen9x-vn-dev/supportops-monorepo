@@ -82,7 +82,7 @@ jobs:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}
           key: ${{ secrets.STAGING_SSH_KEY }}
-          source: "docker-compose.prod.yml,deploy/nginx/templates/supportops.conf.template,deploy/deploy-prod.sh,deploy/smoke-test.sh"
+          source: "docker-compose.staging.yml,deploy/nginx/templates/supportops.conf.template,deploy/deploy-staging.sh,deploy/smoke-test.sh"
           target: ${{ secrets.STAGING_DEPLOY_PATH }}
           strip_components: 0
           overwrite: true
@@ -121,7 +121,7 @@ jobs:
             mkdir -p "${DEPLOY_PATH}/deploy/nginx/certs" "${DEPLOY_PATH}/deploy/nginx/www"
             cd "${DEPLOY_PATH}"
 
-            cat > .env.prod <<EOF_ENV
+            cat > .env.staging <<EOF_ENV
             APP_DOMAIN=${APP_DOMAIN}
             API_DOMAIN=${API_DOMAIN}
             APP_ORIGIN=${APP_ORIGIN}
@@ -141,7 +141,7 @@ jobs:
             API_IMAGE=${API_IMAGE}
             EOF_ENV
 
-            chmod +x deploy/deploy-prod.sh deploy/smoke-test.sh
+            chmod +x deploy/deploy-staging.sh deploy/smoke-test.sh
             echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
-            DEPLOY_PATH="${DEPLOY_PATH}" ENV_FILE=.env.prod ./deploy/deploy-prod.sh
+            DEPLOY_PATH="${DEPLOY_PATH}" ENV_FILE=.env.staging ./deploy/deploy-staging.sh

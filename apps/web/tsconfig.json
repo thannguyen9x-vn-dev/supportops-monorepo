@@ -6,27 +6,14 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@supportops/types": ["../../packages/types/src"],
-      "@supportops/ui": ["../../packages/ui/src"],
-      "@supportops/ui-theme": ["../../packages/ui/theme/src"],
-      "@supportops/ui-form": ["../../packages/ui/form/src"],
+      "@supportops/types": ["../../packages/types/dist"],
+      "@supportops/ui": ["../../packages/ui/dist"],
+      "@supportops/ui-form": ["../../packages/ui/form/dist"],
       "@supportops/ui-avatar": ["../../packages/ui/avatar/dist"],
       "@supportops/ui-file-upload": ["../../packages/ui/file-upload/dist"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    "src",
-    "../../packages/types/src/**/*",
-    "../../packages/ui/src/**/*",
-    "../../packages/ui/theme/src/types/theme.d.ts"
-  ],
-  "exclude": [
-    "../../packages/ui/src/**/__tests__/**/*",
-    "../../packages/ui/src/**/*.test.ts",
-    "../../packages/ui/src/**/*.test.tsx",
-    "../../packages/ui/src/test-utils/**/*"
-  ],
+  "include": ["next-env.d.ts", "src"],
   "references": [
     { "path": "../../packages/ui/theme" },
     { "path": "../../packages/ui/form" }

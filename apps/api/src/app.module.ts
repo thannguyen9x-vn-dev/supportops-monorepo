@@ -2,6 +2,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import appConfig from './config/app.config';
@@ -48,6 +49,13 @@ import { PrismaModule } from './prisma/prisma.module';
       load: [appConfig, authConfig, databaseConfig, fileConfig, jwtConfig, mailConfig],
     }),
     EventEmitterModule.forRoot(),
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60_000, // 1 minute window
+        limit: 100,  // 100 requests per window (general)
+      },
+    ]),
     PrismaModule,
     // TeamOps core layer
     TenantCoreModule,
@@ -73,6 +81,7 @@ import { PrismaModule } from './prisma/prisma.module';
     DashboardModule,
   ],
   providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },

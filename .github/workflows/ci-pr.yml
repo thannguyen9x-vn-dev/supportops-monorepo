@@ -36,6 +36,9 @@ jobs:
       - name: Generate Prisma client (api)
         run: pnpm --filter @supportops/api prisma:generate
 
+      - name: Build types package
+        run: pnpm --filter @supportops/types build
+
       - name: Typecheck
         run: |
           pnpm typecheck

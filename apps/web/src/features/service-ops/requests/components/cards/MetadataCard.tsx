@@ -1,4 +1,6 @@
-import { Box, Chip, Stack, Typography } from "@mui/material";
+import { Box, Chip, Link, Stack, Typography } from "@mui/material";
+import NextLink from "next/link";
+import { useParams } from "next/navigation";
 
 import { SectionCard } from "@/components/section-card";
 
@@ -11,6 +13,7 @@ export function MetadataCard({
   request: RequestDetail;
   visibility: SectionVisibility;
 }) {
+  const { locale } = useParams<{ locale: string }>();
   const rows: Array<{ key: string; label: string; value?: string; editable?: boolean; minAccess: MetadataAccessLevel }> = [
     { key: "tenant", label: "Tenant", value: request.metadata.tenantName, minAccess: "BASIC" },
     { key: "serviceType", label: "Service type", value: request.metadata.serviceType, minAccess: "BASIC" },
@@ -51,7 +54,13 @@ export function MetadataCard({
           <Box key={row.key}>
             <Typography color="text.secondary" variant="body2">{row.label}</Typography>
             <Stack alignItems="center" direction="row" justifyContent="space-between" spacing={1}>
-              <Typography>{row.value ?? "-"}</Typography>
+              {row.key === "asset" && row.value ? (
+                <Link component={NextLink} href={`/${locale}/assets/${row.value}`} underline="hover" variant="body1">
+                  {row.value}
+                </Link>
+              ) : (
+                <Typography>{row.value ?? "-"}</Typography>
+              )}
               {row.editable ? <Chip color="primary" label="Editable" size="small" variant="outlined" /> : null}
             </Stack>
           </Box>

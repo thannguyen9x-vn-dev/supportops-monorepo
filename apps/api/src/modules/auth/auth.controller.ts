@@ -1,5 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Req, Res, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
@@ -29,6 +30,7 @@ export class AuthController {
   ) {}
 
   @Public()
+  @Throttle({ default: { ttl: 3_600_000, limit: 5 } }) // 5 registrations per hour per IP
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register tenant and user, then require email verification' })
@@ -46,6 +48,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { ttl: 3_600_000, limit: 3 } }) // 3 resends per hour per IP
   @Post('resend-verification-email')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Resend account email verification link' })
@@ -55,6 +58,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { ttl: 900_000, limit: 10 } }) // 10 attempts per 15 minutes per IP
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with tenant + email + password' })
@@ -116,6 +120,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { ttl: 3_600_000, limit: 5 } }) // 5 requests per hour per IP
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Request reset password OTP code' })
@@ -125,6 +130,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { ttl: 900_000, limit: 10 } }) // 10 attempts per 15 minutes per IP
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reset password by email and OTP code' })

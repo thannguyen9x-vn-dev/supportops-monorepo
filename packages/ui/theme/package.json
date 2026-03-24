@@ -7,11 +7,11 @@
   
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/types.d.ts",
   
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/types.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
       "default": "./dist/index.js"
@@ -31,7 +31,7 @@
   
   "scripts": {
     "dev": "tsup --watch",
-    "build": "tsup",
+    "build": "tsup && cp src/types/theme.d.ts dist/theme.d.ts && printf '/// <reference path=\"./theme.d.ts\" />\\nexport * from \"./index\"\\n' > dist/types.d.ts && cp dist/types.d.ts dist/types.d.cts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ."
   },

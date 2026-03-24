@@ -30,7 +30,16 @@ export const SERVICE_OPS_ENDPOINTS = {
   },
   ASSETS: {
     LIST: "/assets",
+    CREATE: "/assets",
     DETAIL: (id: string) => `/assets/${id}`,
+    UPDATE: (id: string) => `/assets/${id}`,
+    DELETE: (id: string) => `/assets/${id}`,
+  },
+  ASSET_TYPES: {
+    LIST: "/asset-types",
+    CREATE: "/asset-types",
+    UPDATE: (id: string) => `/asset-types/${id}`,
+    DELETE: (id: string) => `/asset-types/${id}`,
   },
   WORK_LOGS: {
     LIST: (requestId: string) => `/requests/${requestId}/work-logs`,
