@@ -16,6 +16,8 @@ ENV_FILE="${ENV_FILE:-.env.prod}"
 RUN_MIGRATIONS="${RUN_MIGRATIONS:-1}"
 API_MIGRATE_CMD="${API_MIGRATE_CMD:-pnpm --filter @supportops/api exec prisma migrate deploy}"
 SMOKE_SCRIPT="${SMOKE_SCRIPT:-deploy/smoke-test.sh}"
+SMOKE_PORT="${SMOKE_PORT:-80}"
+CERTBOT_EMAIL="${CERTBOT_EMAIL:-}"
 
 cd "${DEPLOY_PATH}"
 
@@ -40,6 +42,19 @@ if [ -f "${ENV_FILE}" ]; then
   HAS_ROLLBACK=1
 fi
 
+# Source env file early to get domain vars for cert init
+set -a
+# shellcheck disable=SC1090
+source "${ENV_FILE}"
+set +a
+
+if [ -n "${CERTBOT_EMAIL:-}" ]; then
+  DEPLOY_PATH="${DEPLOY_PATH}" COMPOSE_FILE="${COMPOSE_FILE}" ENV_FILE="${ENV_FILE}" \
+    "${DEPLOY_PATH}/deploy/init-letsencrypt.sh"
+else
+  log "CERTBOT_EMAIL not set — skipping certificate init"
+fi
+
 log "Pulling images"
 docker compose -p supportops_prod -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" pull
 
@@ -51,13 +66,8 @@ fi
 log "Starting services"
 docker compose -p supportops_prod -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d --remove-orphans
 
-set -a
-# shellcheck disable=SC1090
-source "${ENV_FILE}"
-set +a
-
 log "Running smoke tests"
-"${SMOKE_SCRIPT}"
+SMOKE_PORT="${SMOKE_PORT}" "${SMOKE_SCRIPT}"
 
 rm -f "${ENV_FILE}.rollback"
 trap - ERR

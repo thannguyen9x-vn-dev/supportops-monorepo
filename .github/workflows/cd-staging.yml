@@ -56,6 +56,8 @@ jobs:
           tags: |
             ${{ steps.meta.outputs.web_image }}
             ${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}:staging-latest
+          build-args: |
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.STAGING_API_ORIGIN }}/api/v1
 
       - name: Build and push api image
         uses: docker/build-push-action@v6
