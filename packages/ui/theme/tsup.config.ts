@@ -23,5 +23,6 @@ export default defineConfig({
       const content = readFileSync(file, 'utf8')
       writeFileSync(file, '"use client";\n' + content)
     }
+
   },
 })

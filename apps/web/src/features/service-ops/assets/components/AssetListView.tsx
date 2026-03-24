@@ -39,6 +39,12 @@ const STATUS_COLOR: Record<AssetStatus, "success" | "warning" | "error" | "defau
   RETIRED: "default",
 };
 
+interface AssetListFilters {
+  search: string;
+  status: AssetStatus | "";
+  assetTypeId: string;
+}
+
 export function AssetListView() {
   const t = useTranslations("pages.serviceOps.assets.list");
   const router = useRouter();
@@ -57,7 +63,7 @@ export function AssetListView() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<AssetStatus | "">("");
   const [assetTypeFilter, setAssetTypeFilter] = useState<string>("");
-  const pageSize = 20;
+  const [pageSize, setPageSize] = useState(20);
 
   // Debounce search
   useEffect(() => {
@@ -83,7 +89,7 @@ export function AssetListView() {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, statusFilter, assetTypeFilter, t]);
+  }, [page, pageSize, debouncedSearch, statusFilter, assetTypeFilter, t]);
 
   useEffect(() => {
     void loadAssets();
@@ -143,10 +149,23 @@ export function AssetListView() {
     },
   ];
 
-  const table = useEntityTable({
+  const table = useEntityTable<Asset, AssetListFilters>({
     data: assets,
     columns,
-    onRowClick: (row) => router.push(`/${locale}/assets/${row.id}`),
+    rowId: (row) => row.id,
+    pageIndex: page - 1,
+    pageSize,
+    totalRows: total,
+    serverSide: true,
+    onTableStateChange: (state) => {
+      setPage(state.pageIndex + 1);
+      setPageSize(state.pageSize);
+    },
+    initialFilters: {
+      search: "",
+      status: "",
+      assetTypeId: "",
+    },
   });
 
   return (
@@ -229,12 +248,7 @@ export function AssetListView() {
         ) : (
           <EntityTable
             entityTable={table}
-            pagination={{
-              page,
-              pageSize,
-              total,
-              onPageChange: setPage,
-            }}
+            onRowClick={(row) => router.push(`/${locale}/assets/${row.id}`)}
           />
         )}
       </Stack>

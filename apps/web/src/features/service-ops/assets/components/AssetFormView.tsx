@@ -17,7 +17,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import type { Asset, AssetStatus, AssetType } from "@supportops/types";
+import type { AssetStatus, AssetType } from "@supportops/types";
 import { ASSET_STATUSES } from "@supportops/types";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";

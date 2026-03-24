@@ -25,6 +25,7 @@
     "@supportops/ui-file-upload": "workspace:*",
     "@supportops/ui-dialog": "workspace:*",
     "@supportops/ui-form": "workspace:*",
+    "@supportops/ui-theme": "workspace:*",
     "@tanstack/react-table": "^8.21.3",
     "currency.js": "^2.0.4",
     "date-fns": "^4.1.0",

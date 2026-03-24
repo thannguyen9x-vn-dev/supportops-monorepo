@@ -8,7 +8,6 @@
       "@/*": ["./src/*"],
       "@supportops/types": ["../../packages/types/dist"],
       "@supportops/ui": ["../../packages/ui/dist"],
-      "@supportops/ui-theme": ["../../packages/ui/theme/dist"],
       "@supportops/ui-form": ["../../packages/ui/form/dist"],
       "@supportops/ui-avatar": ["../../packages/ui/avatar/dist"],
       "@supportops/ui-file-upload": ["../../packages/ui/file-upload/dist"]
