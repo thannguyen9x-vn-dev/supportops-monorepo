@@ -122,23 +122,23 @@ jobs:
             cd "${DEPLOY_PATH}"
 
             cat > .env.staging <<EOF_ENV
-            APP_DOMAIN=${APP_DOMAIN}
-            API_DOMAIN=${API_DOMAIN}
-            APP_ORIGIN=${APP_ORIGIN}
-            API_ORIGIN=${API_ORIGIN}
-            POSTGRES_DB=${POSTGRES_DB}
-            POSTGRES_USER=${POSTGRES_USER}
-            POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-            JWT_SECRET=${JWT_SECRET}
-            FILE_SIGNING_SECRET=${FILE_SIGNING_SECRET}
-            MAIL_ENABLED=${MAIL_ENABLED:-false}
-            MAIL_PROVIDER=${MAIL_PROVIDER:-resend}
-            MAIL_DAILY_LIMIT=${MAIL_DAILY_LIMIT:-90}
-            MAIL_FROM_EMAIL=${MAIL_FROM_EMAIL:-onboarding@resend.dev}
-            MAIL_FROM_NAME=${MAIL_FROM_NAME:-SupportOps}
-            RESEND_API_KEY=${RESEND_API_KEY:-}
-            WEB_IMAGE=${WEB_IMAGE}
-            API_IMAGE=${API_IMAGE}
+            APP_DOMAIN="${APP_DOMAIN}"
+            API_DOMAIN="${API_DOMAIN}"
+            APP_ORIGIN="${APP_ORIGIN}"
+            API_ORIGIN="${API_ORIGIN}"
+            POSTGRES_DB="${POSTGRES_DB}"
+            POSTGRES_USER="${POSTGRES_USER}"
+            POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
+            JWT_SECRET="${JWT_SECRET}"
+            FILE_SIGNING_SECRET="${FILE_SIGNING_SECRET}"
+            MAIL_ENABLED="${MAIL_ENABLED:-false}"
+            MAIL_PROVIDER="${MAIL_PROVIDER:-resend}"
+            MAIL_DAILY_LIMIT="${MAIL_DAILY_LIMIT:-90}"
+            MAIL_FROM_EMAIL="${MAIL_FROM_EMAIL:-onboarding@resend.dev}"
+            MAIL_FROM_NAME="${MAIL_FROM_NAME:-SupportOps}"
+            RESEND_API_KEY="${RESEND_API_KEY:-}"
+            WEB_IMAGE="${WEB_IMAGE}"
+            API_IMAGE="${API_IMAGE}"
             EOF_ENV
 
             chmod +x deploy/deploy-staging.sh deploy/smoke-test.sh
