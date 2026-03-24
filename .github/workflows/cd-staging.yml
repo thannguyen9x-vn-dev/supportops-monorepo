@@ -82,7 +82,7 @@ jobs:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}
           key: ${{ secrets.STAGING_SSH_KEY }}
-          source: "docker-compose.staging.yml,deploy/nginx/templates/supportops.conf.template,deploy/deploy-staging.sh,deploy/smoke-test.sh"
+          source: "docker-compose.staging.yml,deploy/nginx/templates/supportops.conf.template,deploy/deploy-staging.sh,deploy/smoke-test.sh,deploy/init-letsencrypt.sh"
           target: ${{ secrets.STAGING_DEPLOY_PATH }}
           strip_components: 0
           overwrite: true
@@ -109,11 +109,12 @@ jobs:
           MAIL_FROM_EMAIL: ${{ secrets.STAGING_MAIL_FROM_EMAIL }}
           MAIL_FROM_NAME: ${{ secrets.STAGING_MAIL_FROM_NAME }}
           RESEND_API_KEY: ${{ secrets.STAGING_RESEND_API_KEY }}
+          CERTBOT_EMAIL: ${{ secrets.STAGING_CERTBOT_EMAIL }}
         with:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}
           key: ${{ secrets.STAGING_SSH_KEY }}
-          envs: WEB_IMAGE,API_IMAGE,APP_DOMAIN,API_DOMAIN,APP_ORIGIN,API_ORIGIN,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,FILE_SIGNING_SECRET,GHCR_USERNAME,GHCR_TOKEN,MAIL_ENABLED,MAIL_PROVIDER,MAIL_DAILY_LIMIT,MAIL_FROM_EMAIL,MAIL_FROM_NAME,RESEND_API_KEY
+          envs: WEB_IMAGE,API_IMAGE,APP_DOMAIN,API_DOMAIN,APP_ORIGIN,API_ORIGIN,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,FILE_SIGNING_SECRET,GHCR_USERNAME,GHCR_TOKEN,MAIL_ENABLED,MAIL_PROVIDER,MAIL_DAILY_LIMIT,MAIL_FROM_EMAIL,MAIL_FROM_NAME,RESEND_API_KEY,CERTBOT_EMAIL
           script_stop: true
           script: |
             set -Eeuo pipefail
@@ -141,7 +142,7 @@ jobs:
             API_IMAGE="${API_IMAGE}"
             EOF_ENV
 
-            chmod +x deploy/deploy-staging.sh deploy/smoke-test.sh
+            chmod +x deploy/deploy-staging.sh deploy/smoke-test.sh deploy/init-letsencrypt.sh
             echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
-            DEPLOY_PATH="${DEPLOY_PATH}" ENV_FILE=.env.staging ./deploy/deploy-staging.sh
+            DEPLOY_PATH="${DEPLOY_PATH}" ENV_FILE=.env.staging CERTBOT_EMAIL="${CERTBOT_EMAIL:-}" ./deploy/deploy-staging.sh

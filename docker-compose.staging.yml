@@ -100,8 +100,8 @@ services:
       api:
         condition: service_healthy
     ports:
-      - "8080:80"
-      - "8443:443"
+      - "80:80"
+      - "443:443"
     environment:
       APP_DOMAIN: ${APP_DOMAIN}
       API_DOMAIN: ${API_DOMAIN}
@@ -109,6 +109,16 @@ services:
       - ./deploy/nginx/templates:/etc/nginx/templates:ro
       - ./deploy/nginx/certs:/etc/nginx/certs:ro
       - ./deploy/nginx/www:/var/www/certbot:ro
+    networks:
+      - supportops_staging_net
+
+  certbot:
+    image: certbot/certbot:latest
+    restart: unless-stopped
+    volumes:
+      - ./deploy/nginx/certs:/etc/letsencrypt
+      - ./deploy/nginx/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
     networks:
       - supportops_staging_net
 

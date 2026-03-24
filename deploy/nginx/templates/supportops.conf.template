@@ -8,7 +8,25 @@ upstream supportops_api {
 
 server {
   listen 80;
+  server_name ${APP_DOMAIN} ${API_DOMAIN};
+
+  location /.well-known/acme-challenge/ {
+    root /var/www/certbot;
+  }
+
+  location / {
+    return 301 https://$host$request_uri;
+  }
+}
+
+server {
+  listen 443 ssl;
   server_name ${APP_DOMAIN};
+
+  ssl_certificate /etc/nginx/certs/live/${APP_DOMAIN}/fullchain.pem;
+  ssl_certificate_key /etc/nginx/certs/live/${APP_DOMAIN}/privkey.pem;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers off;
 
   location / {
     proxy_pass http://supportops_web;
@@ -22,8 +40,13 @@ server {
 }
 
 server {
-  listen 80;
+  listen 443 ssl;
   server_name ${API_DOMAIN};
+
+  ssl_certificate /etc/nginx/certs/live/${API_DOMAIN}/fullchain.pem;
+  ssl_certificate_key /etc/nginx/certs/live/${API_DOMAIN}/privkey.pem;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers off;
 
   location / {
     proxy_pass http://supportops_api;
