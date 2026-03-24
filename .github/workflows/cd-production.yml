@@ -57,6 +57,8 @@ jobs:
           tags: |
             ${{ steps.meta.outputs.web_image }}
             ${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}:prod-latest
+          build-args: |
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.PROD_API_ORIGIN }}/api/v1
 
       - name: Build and push api image
         uses: docker/build-push-action@v6
@@ -83,7 +85,7 @@ jobs:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.PROD_SSH_KEY }}
-          source: "docker-compose.prod.yml,deploy/nginx/templates/supportops.conf.template,deploy/deploy-prod.sh,deploy/smoke-test.sh"
+          source: "docker-compose.prod.yml,deploy/nginx/templates/supportops.conf.template,deploy/deploy-prod.sh,deploy/smoke-test.sh,deploy/init-letsencrypt.sh"
           target: ${{ secrets.PROD_DEPLOY_PATH }}
           strip_components: 0
           overwrite: true
@@ -111,11 +113,12 @@ jobs:
           MAIL_FROM_NAME: ${{ secrets.PROD_MAIL_FROM_NAME }}
           RESEND_API_KEY: ${{ secrets.PROD_RESEND_API_KEY }}
           REDIS_PASSWORD: ${{ secrets.PROD_REDIS_PASSWORD }}
+          CERTBOT_EMAIL: ${{ secrets.PROD_CERTBOT_EMAIL }}
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.PROD_SSH_KEY }}
-          envs: WEB_IMAGE,API_IMAGE,APP_DOMAIN,API_DOMAIN,APP_ORIGIN,API_ORIGIN,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,FILE_SIGNING_SECRET,GHCR_USERNAME,GHCR_TOKEN,MAIL_ENABLED,MAIL_PROVIDER,MAIL_DAILY_LIMIT,MAIL_FROM_EMAIL,MAIL_FROM_NAME,RESEND_API_KEY,REDIS_PASSWORD
+          envs: WEB_IMAGE,API_IMAGE,APP_DOMAIN,API_DOMAIN,APP_ORIGIN,API_ORIGIN,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,FILE_SIGNING_SECRET,GHCR_USERNAME,GHCR_TOKEN,MAIL_ENABLED,MAIL_PROVIDER,MAIL_DAILY_LIMIT,MAIL_FROM_EMAIL,MAIL_FROM_NAME,RESEND_API_KEY,REDIS_PASSWORD,CERTBOT_EMAIL
           script_stop: true
           script: |
             set -Eeuo pipefail
@@ -144,7 +147,7 @@ jobs:
             API_IMAGE=${API_IMAGE}
             EOF_ENV
 
-            chmod +x deploy/deploy-prod.sh deploy/smoke-test.sh
+            chmod +x deploy/deploy-prod.sh deploy/smoke-test.sh deploy/init-letsencrypt.sh
             echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
-            DEPLOY_PATH="${DEPLOY_PATH}" ENV_FILE=.env.prod ./deploy/deploy-prod.sh
+            DEPLOY_PATH="${DEPLOY_PATH}" ENV_FILE=.env.prod CERTBOT_EMAIL="${CERTBOT_EMAIL:-}" ./deploy/deploy-prod.sh
