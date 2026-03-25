@@ -909,7 +909,7 @@ async function main(): Promise<void> {
       'Seed completed.',
       `Tenant slug: supportops-demo`,
       `Demo email domain: ${DEMO_EMAIL_DOMAIN}`,
-      `Demo password: ${DEMO_PASSWORD}`,
+      `Demo password source: env(SEED_DEMO_PASSWORD)`,
       `Users: ${demoAccounts.map((account) => account.email).join(', ')}`,
       `Asset types: ${assetTypeDefinitions.length}`,
       `Assets: ${assetDefinitions.length}`,
