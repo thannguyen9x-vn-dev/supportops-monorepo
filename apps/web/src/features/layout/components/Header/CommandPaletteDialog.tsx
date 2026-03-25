@@ -4,6 +4,7 @@ import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import HandymanOutlinedIcon from "@mui/icons-material/HandymanOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import { alpha, Box, Chip, CircularProgress, Dialog, DialogContent, InputBase, List, ListItemButton, ListItemIcon, ListItemText, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import type { Theme } from "@mui/material/styles";
 import type { Asset, AssetStatus, ServiceRequest } from "@supportops/types";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
@@ -28,7 +29,7 @@ type Props = {
 function AssetStatusChip({ status }: { status: AssetStatus }) {
   const t = useTranslations("pages.assets.list");
 
-  const sx = (theme: Parameters<typeof alpha>[0] extends never ? never : Parameters<typeof alpha>[0]) => {
+  const sx = (theme: Theme) => {
     if (status === "ACTIVE") {
       return { borderColor: "transparent", backgroundColor: alpha(theme.palette.success.main, 0.14), color: theme.palette.success.dark };
     }

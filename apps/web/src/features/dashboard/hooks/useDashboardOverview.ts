@@ -6,7 +6,7 @@ import type { DashboardData, DashboardRequestTrendItem } from "@supportops/types
 
 import { dashboardService } from "@/features/dashboard/services/dashboard.service";
 
-type DashboardLoadState = "loading" | "ready" | "error";
+type DashboardLoadState = "loading" | "refreshing" | "ready" | "error";
 
 const INITIAL_STATE: DashboardData = {
   summary: {
@@ -52,7 +52,7 @@ export function useDashboardOverview() {
   }, []);
 
   const reload = useCallback(async () => {
-    setLoadState("loading");
+    setLoadState("refreshing");
     await fetchOverview();
   }, [fetchOverview]);
 

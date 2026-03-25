@@ -393,7 +393,7 @@ export function DashboardOverview() {
 
   return (
     <DashboardContent
-      isRefreshing={loadState === "loading"}
+      isRefreshing={loadState === "refreshing"}
       onRefresh={() => void reload()}
       recentActivity={data.recentActivity}
       summary={data.summary}
