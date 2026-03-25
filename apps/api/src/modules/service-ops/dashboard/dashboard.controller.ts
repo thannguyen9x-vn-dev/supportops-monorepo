@@ -5,6 +5,7 @@ import { CurrentTenant } from '../../../common/decorators/current-tenant.decorat
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Permissions } from '../../../common/decorators/permissions.decorator';
 import { DashboardRecentActivityResponseDto } from './dto/dashboard-recent-activity-response.dto';
+import { DashboardRequestTrendItemDto } from './dto/dashboard-request-trend-response.dto';
 import { DashboardSummaryResponseDto } from './dto/dashboard-summary-response.dto';
 import { DashboardService } from './dashboard.service';
 
@@ -23,6 +24,17 @@ export class DashboardController {
     @CurrentPermissions() permissions: string[],
   ): Promise<DashboardSummaryResponseDto> {
     return this.dashboardService.summary(tenantId, userId, permissions);
+  }
+
+  @Get('request-trend')
+  @Permissions({ any: ['request.read.all', 'request.read.own'] })
+  @ApiOperation({ summary: 'Get daily opened vs resolved request counts for the last 30 days' })
+  requestTrend(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser('sub') userId: string,
+    @CurrentPermissions() permissions: string[],
+  ): Promise<DashboardRequestTrendItemDto[]> {
+    return this.dashboardService.requestTrend(tenantId, userId, permissions);
   }
 
   @Get('recent-activity')

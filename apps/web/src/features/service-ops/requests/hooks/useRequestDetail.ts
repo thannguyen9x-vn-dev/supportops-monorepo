@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDialog } from "@supportops/ui";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useToast } from "@/features/common/toast/useToast";
 import { requestService } from "@/features/service-ops/requests/services/request.service";
 import { ApiError } from "@/lib/api";
 
@@ -30,6 +31,23 @@ import type {
 } from "../types";
 
 const DEFAULT_ROLE: UserRole = "EMPLOYEE";
+const HEADER_ACTION_SET: ReadonlySet<HeaderAction> = new Set([
+  "EDIT_DRAFT",
+  "SUBMIT",
+  "ASSIGN",
+  "REASSIGN",
+  "ASSIGN_TO_ME",
+  "START_PROGRESS",
+  "RESOLVE",
+  "CLOSE",
+  "REOPEN",
+  "ESCALATE",
+  "ADD_NOTE",
+]);
+
+function isHeaderAction(action: string): action is HeaderAction {
+  return HEADER_ACTION_SET.has(action as HeaderAction);
+}
 
 function formatBytes(sizeBytes: number): string {
   if (sizeBytes < 1024) return `${sizeBytes} B`;
@@ -88,6 +106,7 @@ function createEmptyRequestDetail(requestId: string, tenantName?: string): Reque
       isRequester: false,
       isAssignee: false,
     },
+    canAddWorkLog: false,
     overview: {
       serviceType: "-",
       category: "-",
@@ -103,7 +122,7 @@ function createEmptyRequestDetail(requestId: string, tenantName?: string): Reque
       escalationRules: [],
     },
     metadata: {
-      tenantName: tenantName ?? "-",
+      tenantName: tenantName?.trim() || "-",
       sourceChannel: undefined,
       impactLevel: undefined,
       urgency: undefined,
@@ -123,6 +142,7 @@ export function useRequestDetail(requestId: string) {
   const router = useRouter();
   const t = useTranslations("pages.requests.detail");
   const { user } = useAuth();
+  const toast = useToast();
   const assignDialog = useDialog();
 
   const role = user?.role ?? DEFAULT_ROLE;
@@ -138,15 +158,15 @@ export function useRequestDetail(requestId: string) {
   const [queueLabel, setQueueLabel] = useState<string | null>(null);
   const [workflowTags, setWorkflowTags] = useState<string[]>([]);
   const [escalationRules, setEscalationRules] = useState<string[]>([]);
+  const [canAddWorkLog, setCanAddWorkLog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [mutationError, setMutationError] = useState<string | null>(null);
-  const [mutationSuccess, setMutationSuccess] = useState<string | null>(null);
   const [reassignMode, setReassignMode] = useState(false);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [assignableUsers, setAssignableUsers] = useState<RequestAssignee[]>([]);
   const [selectedAssigneeId, setSelectedAssigneeId] = useState("");
+  const [headerActions, setHeaderActions] = useState<HeaderAction[]>([]);
 
   const isAccessDeniedError = useCallback((error: ApiError) => {
     if (error.status === 403) return true;
@@ -172,6 +192,8 @@ export function useRequestDetail(requestId: string) {
     setQueueLabel(null);
     setWorkflowTags([]);
     setEscalationRules([]);
+    setCanAddWorkLog(false);
+    setHeaderActions([]);
     try {
       const { data } = await requestService.detailWorkflow(requestId);
       setServiceRequest(data.request);
@@ -185,6 +207,8 @@ export function useRequestDetail(requestId: string) {
       setQueueLabel(data.queueLabel);
       setWorkflowTags(data.tags);
       setEscalationRules(data.escalationRules);
+      setCanAddWorkLog(data.canAddWorkLog ?? false);
+      setHeaderActions((data.allowedActions ?? []).filter(isHeaderAction));
     } catch (error) {
       if (error instanceof ApiError) {
         if (isAccessDeniedError(error)) {
@@ -210,9 +234,73 @@ export function useRequestDetail(requestId: string) {
     }
 
     const actorMap = new Map(actors.map((item) => [item.id, item] as const));
+
+    const resolveActorProfile = (
+      id: string | null | undefined,
+      actorType: RequestWorkflowActivity["actorType"] | undefined,
+    ): { name: string; email?: string; avatarUrl?: string | null } | undefined => {
+      if (actorType === "SYSTEM") {
+        return { name: "System" };
+      }
+
+      if (!id) return undefined;
+
+      const actor = actorMap.get(id);
+      if (!actor) {
+        return { name: "Unknown user" };
+      }
+
+      return {
+        name: actor.fullName || actor.email || "Unknown user",
+        email: actor.email || undefined,
+        avatarUrl: actor.avatarUrl,
+      };
+    };
+
     const resolveActorName = (id?: string | null): string | undefined => {
       if (!id) return undefined;
-      return actorMap.get(id)?.fullName ?? id;
+      const actor = actorMap.get(id);
+      return actor?.fullName || actor?.email || "Unknown user";
+    };
+
+    const readMetadataId = (metadata: Record<string, unknown> | null, key: string): string | null => {
+      const value = metadata?.[key];
+      return typeof value === "string" && value.trim().length > 0 ? value : null;
+    };
+
+    const replaceActorIdsInText = (text?: string | null): string | undefined => {
+      if (!text) return undefined;
+
+      let resolved = text;
+      actorMap.forEach((_, actorId) => {
+        const escapedId = actorId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        resolved = resolved.replace(new RegExp(escapedId, "g"), resolveActorName(actorId) ?? "Unknown user");
+      });
+
+      return resolved;
+    };
+
+    const resolveAssignmentDescription = (activity: RequestWorkflowActivity): string | undefined => {
+      if (!activity.description) return undefined;
+
+      if (activity.eventType !== "REQUEST_ASSIGNED" && activity.eventType !== "REQUEST_REASSIGNED") {
+        return replaceActorIdsInText(activity.description);
+      }
+
+      const fromAssigneeId = readMetadataId(activity.metadata, "fromAssigneeId");
+      const toAssigneeId = readMetadataId(activity.metadata, "toAssigneeId");
+      const fromAssigneeName = fromAssigneeId ? resolveActorName(fromAssigneeId) ?? "Unknown user" : "Unassigned";
+      const toAssigneeName = toAssigneeId ? resolveActorName(toAssigneeId) ?? "Unknown user" : "Unassigned";
+
+      if (activity.eventType === "REQUEST_REASSIGNED") {
+        return `Assignee updated from ${fromAssigneeName} to ${toAssigneeName}`;
+      }
+
+      if (toAssigneeId) {
+        return `Assigned to ${toAssigneeName}`;
+      }
+
+      return `Assignee removed from ${fromAssigneeName}`;
     };
 
     const sourcePriority = serviceRequest.priority as RequestPriority;
@@ -235,19 +323,25 @@ export function useRequestDetail(requestId: string) {
       from: resolveActorName(item.fromAssigneeId) ?? "Unassigned",
       to: resolveActorName(item.toAssigneeId) ?? "Unassigned",
       at: new Date(item.changedAt).toLocaleString(),
-      by: resolveActorName(item.changedById) ?? item.changedById,
+      by: resolveActorName(item.changedById) ?? "Unknown user",
     }));
 
-    const activityTimeline = activities.map((item) => ({
-      id: item.id,
-      type: mapActivityType(item.eventType),
-      title: item.title,
-      description: item.description ?? undefined,
-      actorName: resolveActorName(item.actorId),
-      actorType: item.actorType,
-      visibility: item.visibility,
-      createdAt: new Date(item.createdAt).toLocaleString(),
-    }));
+    const activityTimeline = activities.map((item) => {
+      const actorProfile = resolveActorProfile(item.actorId, item.actorType);
+
+      return {
+        id: item.id,
+        type: mapActivityType(item.eventType),
+        title: replaceActorIdsInText(item.title) ?? item.title,
+        description: resolveAssignmentDescription(item),
+        actorName: actorProfile?.name,
+        actorEmail: actorProfile?.email,
+        actorAvatarUrl: actorProfile?.avatarUrl,
+        actorType: item.actorType,
+        visibility: item.visibility,
+        createdAt: new Date(item.createdAt).toLocaleString(),
+      };
+    });
 
     const assignmentSlaRecord = slaRecords.find((item) => item.type === "ASSIGNMENT");
     const resolutionSlaRecord = slaRecords.find((item) => item.type === "RESOLUTION");
@@ -272,14 +366,14 @@ export function useRequestDetail(requestId: string) {
       updatedAtLabel: new Date(serviceRequest.updatedAt).toLocaleString(),
       requester: {
         id: serviceRequest.requesterId,
-        name: requesterProfile?.fullName ?? serviceRequest.requesterId,
+        name: requesterProfile?.fullName || requesterProfile?.email || "Unknown user",
         email: requesterProfile?.email,
         avatarUrl: requesterProfile?.avatarUrl,
       },
       assignee: serviceRequest.assigneeId
         ? {
             id: serviceRequest.assigneeId,
-            name: assigneeProfile?.fullName ?? serviceRequest.assigneeId,
+            name: assigneeProfile?.fullName || assigneeProfile?.email || "Unknown user",
             email: assigneeProfile?.email,
             avatarUrl: assigneeProfile?.avatarUrl,
             roleLabel: t("assignment.assigneeRole"),
@@ -289,6 +383,7 @@ export function useRequestDetail(requestId: string) {
         isRequester: serviceRequest.requesterId === user?.id,
         isAssignee: serviceRequest.assigneeId === user?.id,
       },
+      canAddWorkLog,
       overview: {
         serviceType: serviceRequest.serviceTypeName ?? serviceRequest.serviceTypeCode ?? serviceRequest.serviceTypeId,
         category: serviceRequest.serviceTypeCode ?? serviceRequest.serviceTypeId,
@@ -301,12 +396,12 @@ export function useRequestDetail(requestId: string) {
         id: item.id,
         fileName: item.fileName,
         fileSizeLabel: formatBytes(item.sizeBytes),
-        uploadedBy: resolveActorName(item.uploadedById) ?? item.uploadedById,
+        uploadedBy: resolveActorName(item.uploadedById) ?? "Unknown user",
         uploadedAt: new Date(item.createdAt).toLocaleString(),
         url: item.fileUrl,
       })),
       metadata: {
-        tenantName: user?.tenantName ?? "-",
+        tenantName: user?.tenantName?.trim() || serviceRequest.tenantId || "-",
         sourceChannel: serviceRequest.sourceChannel,
         impactLevel: serviceRequest.impactLevel,
         urgency: serviceRequest.urgency,
@@ -317,7 +412,7 @@ export function useRequestDetail(requestId: string) {
       },
       comments: comments.map((item) => ({
         id: item.id,
-        authorName: resolveActorName(item.authorId) ?? item.authorId,
+        authorName: resolveActorName(item.authorId) ?? "Unknown user",
         visibility: item.visibility,
         body: item.body,
         createdAt: new Date(item.createdAt).toLocaleString(),
@@ -328,8 +423,9 @@ export function useRequestDetail(requestId: string) {
         handoffHistory,
       },
       sla: {
-        assignmentSla: assignmentSlaRecord
+        assignmentSla: !serviceRequest.assigneeId && assignmentSlaRecord
           ? {
+              targetAt: assignmentSlaRecord.targetAt,
               targetMinutes: toTargetMinutes(assignmentSlaRecord.targetAt),
               remainingSeconds: toRemainingSeconds(assignmentSlaRecord.targetAt),
               state: mapSlaState(assignmentSlaRecord.health),
@@ -337,6 +433,7 @@ export function useRequestDetail(requestId: string) {
           : undefined,
         resolutionSla: resolutionSlaRecord
           ? {
+              targetAt: resolutionSlaRecord.targetAt,
               targetMinutes: toTargetMinutes(resolutionSlaRecord.targetAt),
               remainingSeconds: toRemainingSeconds(resolutionSlaRecord.targetAt),
               state: mapSlaState(resolutionSlaRecord.health),
@@ -346,7 +443,7 @@ export function useRequestDetail(requestId: string) {
       },
       auditSummary: [],
     };
-  }, [actors, assignmentHistory, attachments, comments, requestId, serviceRequest, slaRecords, t, user, activities, queueLabel, workflowTags, escalationRules]);
+  }, [actors, assignmentHistory, attachments, canAddWorkLog, comments, requestId, serviceRequest, slaRecords, t, user, activities, queueLabel, workflowTags, escalationRules]);
 
   const extractError = useCallback((error: unknown, fallback: string): string => {
     if (error instanceof ApiError) return error.error.message;
@@ -355,17 +452,15 @@ export function useRequestDetail(requestId: string) {
 
   const executeMutation = useCallback(async (runner: () => Promise<void>, successMessage: string) => {
     setIsSubmitting(true);
-    setMutationError(null);
-    setMutationSuccess(null);
     try {
       await runner();
-      setMutationSuccess(successMessage);
+      toast.success(successMessage);
     } catch (error) {
-      setMutationError(extractError(error, t("feedback.actionFailed")));
+      toast.error(extractError(error, t("feedback.actionFailed")));
     } finally {
       setIsSubmitting(false);
     }
-  }, [extractError, t]);
+  }, [extractError, t, toast]);
 
   const handleAssign = useCallback(async (reassign: boolean) => {
     if (!serviceRequest) return;
@@ -378,11 +473,11 @@ export function useRequestDetail(requestId: string) {
       const { data } = await requestService.listAssignees();
       setAssignableUsers(data);
     } catch (error) {
-      setMutationError(extractError(error, t("feedback.loadAssigneesError")));
+      toast.error(extractError(error, t("feedback.loadAssigneesError")));
     } finally {
       setIsLoadingUsers(false);
     }
-  }, [assignDialog, extractError, serviceRequest, t]);
+  }, [assignDialog, extractError, serviceRequest, t, toast]);
 
   const handleAssignToMe = useCallback(async () => {
     if (!serviceRequest || !user?.id) return;
@@ -450,7 +545,7 @@ export function useRequestDetail(requestId: string) {
       return;
     }
     if (action === "ADD_NOTE") {
-      setMutationSuccess(t("feedback.addNoteHint"));
+      toast.info(t("feedback.addNoteHint"));
       return;
     }
 
@@ -462,7 +557,7 @@ export function useRequestDetail(requestId: string) {
       setServiceRequest(data);
       await refreshDetail();
     }, t("feedback.statusUpdated"));
-  }, [executeMutation, handleAssign, handleAssignToMe, refreshDetail, serviceRequest, t]);
+  }, [executeMutation, handleAssign, handleAssignToMe, refreshDetail, serviceRequest, t, toast]);
 
   return {
     request,
@@ -471,8 +566,6 @@ export function useRequestDetail(requestId: string) {
     isLoading,
     isSubmitting,
     loadError,
-    mutationError,
-    mutationSuccess,
     reassignMode,
     isLoadingUsers,
     assignableUsers,
@@ -485,5 +578,6 @@ export function useRequestDetail(requestId: string) {
     handleAssignToMe,
     handleAssignConfirm,
     refreshDetail,
+    headerActions,
   };
 }

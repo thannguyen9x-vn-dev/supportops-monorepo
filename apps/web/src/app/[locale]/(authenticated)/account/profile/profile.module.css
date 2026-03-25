@@ -1,0 +1,376 @@
+.tabCard {
+  border: 1px solid var(--mui-palette-divider);
+  border-radius: var(--mui-radius-sm);
+  background: var(--mui-palette-background-paper);
+  overflow: hidden;
+}
+
+.tabIntro {
+  padding: 16px 16px 10px;
+}
+
+.tabEyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mui-palette-grey-600);
+}
+
+.tabIntroTitle {
+  margin: 6px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--mui-palette-grey-900);
+}
+
+.tabIntroDescription {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--mui-palette-grey-600);
+}
+
+.tabs {
+  min-height: 44px;
+  padding: 4px 8px 0;
+}
+
+.tabs :global(.MuiTabs-indicator) {
+  height: 3px;
+  border-radius: 999px;
+}
+
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tabPanelContent {
+  border-top: 1px solid var(--mui-palette-divider);
+  padding: 16px;
+}
+
+.card {
+  border: 1px solid var(--mui-palette-divider);
+  border-radius: var(--mui-radius-sm);
+  background: var(--mui-palette-background-paper);
+  padding: 16px;
+}
+
+.profileCard {
+  padding-top: 12px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--mui-palette-grey-800);
+  line-height: 1.2;
+}
+
+.sectionDescription {
+  margin: 0 0 8px;
+  color: var(--mui-palette-grey-500);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.userHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatarBlock {
+  width: 120px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  min-height: 120px;
+  width: 100%;
+}
+
+.avatarDialogPreview {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.userName {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--mui-palette-grey-800);
+}
+
+.userRole {
+  margin: 0;
+  color: var(--mui-palette-grey-500);
+  font-size: 14px;
+}
+
+.userStatusBadge {
+  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.active {
+  color: var(--mui-palette-success-dark);
+  background: rgba(var(--mui-palette-success-mainChannel) / 0.14);
+}
+
+.inactive {
+  color: var(--mui-palette-grey-700);
+  background: rgba(var(--mui-palette-grey-500Channel) / 0.2);
+}
+
+.userInfo :global(.MuiButton-root) {
+  margin-top: 8px;
+}
+
+.userEmail {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--mui-palette-grey-600);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.passwordGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.passwordRequirements {
+  grid-column: 2 / 3;
+  align-self: start;
+}
+
+.passwordRequirementsTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--mui-palette-grey-800);
+}
+
+.passwordRequirementsDescription {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--mui-palette-grey-500);
+}
+
+.passwordRequirementsList {
+  margin: 8px 0 0;
+  padding-left: 28px;
+  display: grid;
+  gap: 6px;
+  color: var(--mui-palette-grey-500);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.fullRow {
+  grid-column: 1 / -1;
+}
+
+.sectionAction {
+  flex-shrink: 0;
+}
+
+.aboutWork {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--mui-palette-grey-800);
+}
+
+.aboutWork strong {
+  font-weight: 700;
+}
+
+.accessGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.accessItem {
+  border: 1px solid var(--mui-palette-divider);
+  border-radius: var(--mui-radius-sm);
+  padding: 10px 12px;
+}
+
+.accessLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--mui-palette-grey-600);
+}
+
+.accessValue {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--mui-palette-grey-800);
+}
+
+.preferenceList {
+  display: flex;
+  flex-direction: column;
+}
+
+.preferenceItem {
+  padding-block: 14px;
+  border-top: 1px solid var(--mui-palette-divider);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.preferenceContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.preferenceTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--mui-palette-grey-800);
+}
+
+.preferenceDescription {
+  margin: 2px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--mui-palette-grey-500);
+}
+
+.formActions {
+  margin-top: 8px;
+  grid-column: 1 / -1;
+}
+
+.centeredState {
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.formActions :global(.MuiButton-root) {
+  text-transform: none;
+}
+
+.sessionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.sessionBody {
+  display: grid;
+  gap: 6px;
+}
+
+.sessionPrimary {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--mui-palette-grey-800);
+}
+
+.sessionMeta {
+  margin: 0;
+  font-size: 16px;
+  color: var(--mui-palette-grey-600);
+}
+
+@media (max-width: 900px) {
+  .accessGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.signOutOthersButton {
+  margin-top: 0;
+}
+
+.sessionList {
+  display: grid;
+  gap: 10px;
+}
+
+.sessionRow {
+  border: 1px solid var(--mui-palette-divider);
+  border-radius: 10px;
+  padding: 12px;
+  display: grid;
+  gap: 4px;
+}
+
+@media (max-width: 1200px) {
+  .formGrid,
+  .passwordGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .passwordRequirements {
+    grid-column: 1 / -1;
+  }
+
+  .sectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

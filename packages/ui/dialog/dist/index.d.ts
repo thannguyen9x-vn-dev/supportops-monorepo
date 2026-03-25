@@ -32,4 +32,24 @@ interface FormDialogProps {
 }
 declare function FormDialog({ dialog, title, children, formId, onSubmit, submitLabel, cancelLabel, submitDisabled, maxWidth, fullWidth, }: FormDialogProps): react_jsx_runtime.JSX.Element;
 
-export { type DialogControl, FormDialog, type FormDialogProps };
+interface ConfirmDialogProps {
+    /** Dialog open/close controller (e.g. from useDialog()) */
+    dialog: DialogControl;
+    /** Bold title shown inside the dialog */
+    title: ReactNode;
+    /** Optional descriptive text below the title */
+    description?: ReactNode;
+    /** Label for the confirm/action button (default: "Confirm") */
+    confirmLabel?: string;
+    /** Label for the cancel button (default: "Cancel") */
+    cancelLabel?: string;
+    /** Called when the user clicks the confirm button */
+    onConfirm: () => void | Promise<void>;
+    confirmDisabled?: boolean;
+    /** Controls the accent color of the icon and confirm button (default: "error") */
+    variant?: "error" | "warning" | "info";
+    maxWidth?: DialogProps["maxWidth"];
+}
+declare function ConfirmDialog({ dialog, title, description, confirmLabel, cancelLabel, onConfirm, confirmDisabled, variant, maxWidth, }: ConfirmDialogProps): react_jsx_runtime.JSX.Element;
+
+export { ConfirmDialog, type ConfirmDialogProps, type DialogControl, FormDialog, type FormDialogProps };

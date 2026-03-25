@@ -1,5 +1,6 @@
 import type {
   DashboardRecentActivityItem,
+  DashboardRequestTrendItem,
   DashboardSummary,
   DashboardKpi,
   DashboardTransaction,
@@ -15,6 +16,8 @@ export const dashboardService = {
   getSummary: () => apiClient.get<DashboardSummary>(ENDPOINTS.DASHBOARD.SUMMARY),
 
   getRecentActivity: () => apiClient.get<DashboardRecentActivityItem[]>(ENDPOINTS.DASHBOARD.RECENT_ACTIVITY),
+
+  getRequestTrend: () => apiClient.get<DashboardRequestTrendItem[]>(ENDPOINTS.DASHBOARD.REQUEST_TREND),
 
   getSalesSummary: (period: "day" | "month" | "year" = "day") =>
     apiClient.get<SalesSummary>(ENDPOINTS.DASHBOARD.SALES_SUMMARY, {

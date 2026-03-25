@@ -67,7 +67,15 @@ function resolveAssigneeProfile(
   }
 
   const assignee = assigneeMap[assigneeId];
-  const name = assignee?.fullName?.trim() || assigneeId;
+  const name = assignee?.fullName?.trim();
+
+  if (!name) {
+    return {
+      assigneeId,
+      assignee: "Assigned",
+      assigneeProfile: null,
+    };
+  }
 
   return {
     assigneeId,

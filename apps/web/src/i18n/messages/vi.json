@@ -176,6 +176,17 @@
   },
   "header": {
     "searchPlaceholder": "Tìm kiếm...",
+    "commandPalette": {
+      "noResults": "Không tìm thấy kết quả cho \"{query}\"",
+      "tabs": {
+        "requests": "Yêu cầu",
+        "assets": "Tài sản",
+        "requestsPlaceholder": "Tìm kiếm yêu cầu...",
+        "assetsPlaceholder": "Tìm kiếm tài sản...",
+        "requestsHint": "Nhập từ khóa để tìm kiếm yêu cầu",
+        "assetsHint": "Nhập từ khóa để tìm kiếm tài sản"
+      }
+    },
     "toggleNavigationAriaLabel": "Mở hoặc thu gọn menu điều hướng",
     "closeNavigationAriaLabel": "Đóng menu điều hướng",
     "languageMenuAriaLabel": "Mở menu ngôn ngữ",
@@ -185,6 +196,7 @@
     "userMenuAriaLabel": "Mở menu người dùng",
     "profile": "Hồ sơ",
     "settings": "Cài đặt",
+    "updatePassword": "Cập nhật mật khẩu",
     "signOut": "Đăng xuất"
   },
   "pages": {
@@ -378,6 +390,16 @@
           "createdAt": "Tạo lúc",
           "description": "Mô tả"
         },
+        "attachments": {
+          "title": "Tệp đính kèm",
+          "empty": "Không có tệp đính kèm.",
+          "view": "Xem",
+          "close": "Đóng",
+          "openInNewTab": "Mở tab mới",
+          "previewTitle": "Xem trước tệp đính kèm",
+          "previewNotSupported": "Không thể xem trước loại tệp này.",
+          "previewFallback": "Dùng \"Mở tab mới\" để xem hoặc tải tệp."
+        },
         "statusLabels": {
           "DRAFT": "Nháp",
           "SUBMITTED": "Đã gửi",
@@ -411,14 +433,32 @@
           "confirmAssign": "Phân công",
           "confirmReassign": "Phân công lại"
         },
+        "comments": {
+          "sectionTitle": "Bình luận",
+          "visibilityHint": "Người yêu cầu sẽ thấy trừ khi đánh dấu nội bộ",
+          "publicOnlyHint": "Chỉ bình luận công khai",
+          "empty": "Chưa có bình luận.",
+          "publicBadge": "Công khai",
+          "internalBadge": "Ghi chú nội bộ",
+          "addTitle": "THÊM BÌNH LUẬN",
+          "placeholder": "Nhập cập nhật... Dùng @ để nhắc tên đồng đội.",
+          "internalToggle": "Ghi chú nội bộ",
+          "submit": "Gửi",
+          "mention": {
+            "noResults": "Không tìm thấy người phù hợp."
+          }
+        },
         "workLog": {
           "sectionTitle": "NHẬT KÝ CÔNG VIỆC",
           "empty": "Chưa có nhật ký công việc.",
           "noDuration": "Không có thời lượng",
+          "durationMinutes": "{minutes} phút",
           "addTitle": "THÊM NHẬT KÝ CÔNG VIỆC",
           "placeholder": "Mô tả phần việc đã thực hiện...",
           "minutes": "Phút",
+          "minutesPlaceholder": "ví dụ: 15",
           "add": "Thêm",
+          "noPermission": "Bạn không có quyền thêm nhật ký công việc cho yêu cầu này.",
           "timelineTitle": "Đã thêm nhật ký công việc"
         },
         "feedback": {
@@ -674,7 +714,12 @@
         "byStatus": "Yêu cầu theo trạng thái",
         "byPriority": "Yêu cầu theo mức ưu tiên",
         "recentActivity": "Hoạt động gần đây",
-        "slaOverview": "Tổng quan sức khỏe SLA"
+        "slaOverview": "Tổng quan sức khỏe SLA",
+        "requestTrend": "Xu hướng yêu cầu (30 ngày qua)"
+      },
+      "trend": {
+        "opened": "Đã tạo",
+        "resolved": "Đã giải quyết"
       },
       "priority": {
         "LOW": "Thấp",
@@ -720,7 +765,21 @@
           "title": "Tài sản",
           "subtitle": "Theo dõi và quản lý tài sản, thiết bị vận hành trong các cơ sở của bạn.",
           "newAsset": "Tạo tài sản",
+          "loading": "Đang tải tài sản...",
+          "loadError": "Không thể tải danh sách tài sản. Vui lòng thử lại.",
           "emptyState": "Chưa có tài sản nào. Tạo mới để bắt đầu.",
+          "actions": {
+            "showFilters": "Hiện bộ lọc",
+            "hideFilters": "Ẩn bộ lọc",
+            "clear": "Xóa",
+            "apply": "Áp dụng",
+            "cancel": "Hủy",
+            "retry": "Thử lại",
+            "rowActions": {
+              "view": "Xem",
+              "edit": "Chỉnh sửa"
+            }
+          },
           "filters": {
             "searchPlaceholder": "Tìm theo tên hoặc mã tài sản",
             "status": "Trạng thái",
@@ -743,6 +802,13 @@
             "UNDER_MAINTENANCE": "Đang bảo trì",
             "OUT_OF_SERVICE": "Ngừng hoạt động",
             "RETIRED": "Đã ngưng sử dụng"
+          },
+          "pagination": {
+            "showing": "Hiển thị",
+            "rows": "Số dòng mỗi trang",
+            "outOf": "trên",
+            "previous": "Trang trước",
+            "next": "Trang sau"
           }
         },
         "detail": {
@@ -936,6 +1002,10 @@
           "preferredContact": "Nhập thông tin liên hệ",
           "assetId": "Nhập mã tài sản"
         },
+        "assetPicker": {
+          "loading": "Đang tải tài sản...",
+          "noOptions": "Không có tài sản phù hợp."
+        },
         "actions": {
           "saveDraft": "Lưu nháp",
           "submit": "Gửi yêu cầu"
@@ -976,7 +1046,8 @@
           "description": "Quản lý luồng chuyển trạng thái theo vai trò cho từng loại dịch vụ.",
           "states": {
             "loading": "Đang tải cấu hình workflow...",
-            "empty": "Chưa có transition workflow nào."
+            "empty": "Chưa có transition workflow nào.",
+            "permissionDenied": "Bạn không có quyền quản lý workflow transitions."
           },
           "feedback": {
             "loadError": "Không thể tải workflow transitions. Vui lòng thử lại.",
@@ -989,10 +1060,11 @@
             "retry": "Thử lại",
             "create": "Tạo",
             "update": "Cập nhật",
-            "clear": "Xóa nhập liệu",
+            "cancel": "Hủy",
             "edit": "Sửa",
             "delete": "Xóa",
-            "confirmDelete": "Xóa workflow transition này?"
+            "confirmDelete": "Xóa workflow transition này?",
+            "confirmDeleteDescription": "Hành động này không thể hoàn tác. Workflow transition sẽ bị xóa vĩnh viễn."
           },
           "form": {
             "createTitle": "Thêm transition",
@@ -1035,10 +1107,11 @@
             "retry": "Thử lại",
             "create": "Tạo",
             "update": "Cập nhật",
-            "clear": "Xóa nhập liệu",
+            "cancel": "Hủy",
             "edit": "Sửa",
             "delete": "Xóa",
-            "confirmDelete": "Xóa chính sách SLA này?"
+            "confirmDelete": "Xóa chính sách SLA này?",
+            "confirmDeleteDescription": "Hành động này không thể hoàn tác. Chính sách SLA sẽ bị xóa vĩnh viễn."
           },
           "form": {
             "createTitle": "Thêm chính sách SLA",
@@ -1077,10 +1150,11 @@
             "retry": "Thử lại",
             "create": "Tạo",
             "update": "Cập nhật",
-            "clear": "Xóa nhập liệu",
+            "cancel": "Hủy",
             "edit": "Sửa",
             "delete": "Xóa",
-            "confirmDelete": "Xóa loại dịch vụ này?"
+            "confirmDelete": "Xóa loại dịch vụ này?",
+            "confirmDeleteDescription": "Hành động này không thể hoàn tác. Loại dịch vụ sẽ bị xóa vĩnh viễn."
           },
           "form": {
             "createTitle": "Thêm loại dịch vụ",

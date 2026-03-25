@@ -12,6 +12,7 @@ type UseRequestListQueryProps = {
   appliedFilters: RequestFilters;
   assigneesById: Record<string, RequestAssignee>;
   debouncedSearch: string;
+  enabled: boolean;
   pageIndex: number;
   pageSize: number;
   t: (key: string) => string;
@@ -22,6 +23,7 @@ export function useRequestListQuery({
   appliedFilters,
   assigneesById,
   debouncedSearch,
+  enabled,
   pageIndex,
   pageSize,
   t,
@@ -33,6 +35,7 @@ export function useRequestListQuery({
   const [tabCounts, setTabCounts] = useState(INITIAL_TAB_COUNTS);
 
   const loadRequests = useCallback(async () => {
+    if (!enabled) return;
     setIsLoadingRows(true);
     setLoadError(null);
 
@@ -65,9 +68,10 @@ export function useRequestListQuery({
     } finally {
       setIsLoadingRows(false);
     }
-  }, [activeTabForQuery, appliedFilters, assigneesById, debouncedSearch, pageIndex, pageSize, t]);
+  }, [activeTabForQuery, appliedFilters, assigneesById, debouncedSearch, enabled, pageIndex, pageSize, t]);
 
   const loadTabCounts = useCallback(async () => {
+    if (!enabled) return;
     try {
       const selectedAssignee = Object.values(assigneesById).find(
         (assignee) => assignee.fullName?.trim() === appliedFilters.assignee,
@@ -94,20 +98,22 @@ export function useRequestListQuery({
     } catch {
       // keep previous counts
     }
-  }, [appliedFilters, assigneesById, debouncedSearch]);
+  }, [appliedFilters, assigneesById, debouncedSearch, enabled]);
 
   useEffect(() => {
+    if (!enabled) return;
     void loadRequests();
-  }, [loadRequests]);
+  }, [enabled, loadRequests]);
 
   useEffect(() => {
+    if (!enabled) return;
     void loadTabCounts();
-  }, [loadTabCounts]);
+  }, [enabled, loadTabCounts]);
 
   useEffect(() => {
-    if (Object.keys(assigneesById).length === 0) return;
+    if (!enabled || Object.keys(assigneesById).length === 0) return;
     setRows((currentRows) => remapRowsWithAssignees(currentRows, assigneesById));
-  }, [assigneesById]);
+  }, [assigneesById, enabled]);
 
   return {
     rows,

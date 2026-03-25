@@ -250,4 +250,6 @@ export interface RequestWorkflowDetail {
   queueLabel: string | null;
   tags: string[];
   escalationRules: string[];
+  allowedActions: string[];
+  canAddWorkLog: boolean;
 }

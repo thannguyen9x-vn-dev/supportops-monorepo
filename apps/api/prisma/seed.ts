@@ -18,7 +18,12 @@ import {
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
-const DEMO_PASSWORD = 'DemoPass123!';
+const DEMO_EMAIL_DOMAIN = process.env.SEED_DEMO_EMAIL_DOMAIN ?? 'supportops.dev';
+const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD ?? 'SupportOps@123';
+
+function toDemoEmail(localPart: string): string {
+  return `${localPart}@${DEMO_EMAIL_DOMAIN}`;
+}
 
 const roles: Array<{ code: string; name: string; description: string }> = [
   { code: 'EMPLOYEE', name: 'Employee', description: 'Requester role with own-request visibility.' },
@@ -97,7 +102,7 @@ type DemoAccount = {
 const demoAccounts: DemoAccount[] = [
   {
     key: 'admin',
-    email: 'admin@supportops-demo.com',
+    email: toDemoEmail('admin'),
     firstName: 'Tenant',
     lastName: 'Admin',
     roleCode: 'TENANT_ADMIN',
@@ -106,7 +111,7 @@ const demoAccounts: DemoAccount[] = [
   },
   {
     key: 'coordinator',
-    email: 'coordinator@supportops-demo.com',
+    email: toDemoEmail('coordinator'),
     firstName: 'Ops',
     lastName: 'Coordinator',
     roleCode: 'OPS_COORDINATOR',
@@ -115,7 +120,7 @@ const demoAccounts: DemoAccount[] = [
   },
   {
     key: 'technician',
-    email: 'technician@supportops-demo.com',
+    email: toDemoEmail('technician'),
     firstName: 'Field',
     lastName: 'Technician',
     roleCode: 'TECHNICIAN',
@@ -124,7 +129,7 @@ const demoAccounts: DemoAccount[] = [
   },
   {
     key: 'employee',
-    email: 'employee@supportops-demo.com',
+    email: toDemoEmail('employee'),
     firstName: 'Office',
     lastName: 'Employee',
     roleCode: 'EMPLOYEE',
@@ -173,6 +178,85 @@ const demoRequests: DemoRequestSeed[] = [
   { title: 'Lift sensor calibration completed', description: 'Post-maintenance calibration passed safety checks.', status: RequestStatus.CLOSED, priority: RequestPriority.HIGH, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'employee', assignee: 'technician', locationId: 'HQ-LIFT', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 64, hasPublicComment: true, hasWorkLog: true },
   { title: 'Duplicate request for pantry repaint cancelled', description: 'Request cancelled because work order already active.', status: RequestStatus.CANCELLED, priority: RequestPriority.LOW, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'employee', assignee: 'coordinator', locationId: 'HQ-2F-PANTRY', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 58, hasPublicComment: true },
   { title: 'Reopened: intermittent VPN disconnects', description: 'Issue recurred after previous closure, needs deeper analysis.', status: RequestStatus.REOPENED, priority: RequestPriority.HIGH, serviceTypeCode: 'IT_SUPPORT', requester: 'employee', assignee: 'technician', locationId: 'REMOTE', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.AT_RISK, hoursAgo: 52, hasPublicComment: true, hasInternalNote: true, hasWorkLog: true },
+
+  // ── Historical data for trend chart (days 8–30) ─────────────────────────────
+  // Day 8
+  { title: 'Keyboard and mouse unresponsive at workstation 12B', description: 'USB hub replaced, devices confirmed working.', status: RequestStatus.CLOSED, priority: RequestPriority.LOW, serviceTypeCode: 'IT_SUPPORT', requester: 'employee', assignee: 'technician', locationId: 'HQ-2F', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 192, hasWorkLog: true },
+  { title: 'Broken window latch in conference room C', description: 'Latch mechanism replaced and tested.', status: RequestStatus.CLOSED, priority: RequestPriority.LOW, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'employee', assignee: 'technician', locationId: 'HQ-4F-C', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 200 },
+  { title: 'Cold water tap dripping in executive washroom', description: 'Washer replaced, tap seal confirmed tight.', status: RequestStatus.RESOLVED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'PLUMBING', requester: 'admin', assignee: 'technician', locationId: 'HQ-8F-EXEC', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 208, hasWorkLog: true },
+  // Day 9
+  { title: 'Hallway lighting flickering on 3rd floor east wing', description: 'Ballast units replaced in east wing corridor.', status: RequestStatus.CLOSED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'ELECTRICAL', requester: 'employee', assignee: 'technician', locationId: 'HQ-3F-EAST', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 220, hasWorkLog: true },
+  { title: 'Badge printer out of ribbon in reception', description: 'Ribbon cartridge restocked, test print passed.', status: RequestStatus.RESOLVED, priority: RequestPriority.LOW, serviceTypeCode: 'IT_SUPPORT', requester: 'employee', assignee: 'technician', locationId: 'HQ-1F-RECEPTION', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 232 },
+  // Day 10
+  { title: 'Smoke detector false alarm on 6th floor', description: 'Sensor cleaned and sensitivity recalibrated.', status: RequestStatus.CLOSED, priority: RequestPriority.HIGH, serviceTypeCode: 'ELECTRICAL', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-6F', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 244, hasWorkLog: true },
+  { title: 'Pantry refrigerator not cooling properly', description: 'Refrigerant topped up, thermostat set correctly.', status: RequestStatus.RESOLVED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'HVAC', requester: 'employee', assignee: 'technician', locationId: 'HQ-5F-PANTRY', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 252, hasWorkLog: true },
+  { title: 'Desk phone no dial tone at sales desk 4', description: 'PBX port reset, handset replaced.', status: RequestStatus.CLOSED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'IT_SUPPORT', requester: 'employee', assignee: 'technician', locationId: 'HQ-6F-SALES', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 260 },
+  // Day 11
+  { title: 'Carpet tile loose near elevator lobby', description: 'Tile re-adhered and edges secured.', status: RequestStatus.CLOSED, priority: RequestPriority.LOW, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'employee', assignee: 'technician', locationId: 'HQ-2F-LOBBY', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 272 },
+  { title: 'Network switch port flapping in server room', description: 'SFP module replaced, port stable at 1Gbps.', status: RequestStatus.RESOLVED, priority: RequestPriority.HIGH, serviceTypeCode: 'IT_SUPPORT', requester: 'admin', assignee: 'technician', locationId: 'HQ-1F-SERVER', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 280, hasWorkLog: true },
+  // Day 12
+  { title: 'Outdoor signage lighting failure', description: 'Three exterior flood lamps replaced.', status: RequestStatus.CLOSED, priority: RequestPriority.LOW, serviceTypeCode: 'ELECTRICAL', requester: 'admin', assignee: 'technician', locationId: 'HQ-EXTERIOR', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 292 },
+  { title: 'Hot water heater tripping breaker in basement', description: 'Element replaced, breaker load confirmed within spec.', status: RequestStatus.RESOLVED, priority: RequestPriority.HIGH, serviceTypeCode: 'ELECTRICAL', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-BASEMENT', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 300, hasWorkLog: true },
+  { title: 'Email client crash on Windows 11 laptops', description: 'Profile rebuild and Outlook update resolved issue.', status: RequestStatus.CLOSED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'IT_SUPPORT', requester: 'employee', assignee: 'technician', locationId: 'HQ-7F', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 308, hasWorkLog: true },
+  // Day 13
+  { title: 'Air freshener dispenser unit not working', description: 'Battery pack replaced, motor functional.', status: RequestStatus.RESOLVED, priority: RequestPriority.LOW, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'employee', assignee: 'technician', locationId: 'HQ-3F-RESTROOM', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 320 },
+  { title: 'Backup generator test run failed', description: 'Fuel filter replaced and automatic transfer switch tested.', status: RequestStatus.CLOSED, priority: RequestPriority.HIGH, serviceTypeCode: 'ELECTRICAL', requester: 'admin', assignee: 'technician', locationId: 'HQ-UTILITY', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 328, hasWorkLog: true },
+  // Day 14
+  { title: 'Projector HDMI port damaged in board room', description: 'HDMI board replaced, all inputs confirmed functional.', status: RequestStatus.CLOSED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'IT_SUPPORT', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-10F-BOARD', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 340, hasWorkLog: true },
+  { title: 'Sink drain slow in ground floor washroom', description: 'Drain cleaned, flow rate normal.', status: RequestStatus.RESOLVED, priority: RequestPriority.LOW, serviceTypeCode: 'PLUMBING', requester: 'employee', assignee: 'technician', locationId: 'HQ-1F-RESTROOM', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 348 },
+  { title: 'VPN gateway throughput degraded', description: 'Firewall rule corrected, throughput restored to 800Mbps.', status: RequestStatus.CLOSED, priority: RequestPriority.HIGH, serviceTypeCode: 'IT_SUPPORT', requester: 'admin', assignee: 'technician', locationId: 'HQ-NOC', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 356, hasWorkLog: true },
+  // Day 15
+  { title: 'Motion sensor light not activating in parking deck', description: 'Sensor aligned and sensitivity adjusted.', status: RequestStatus.CLOSED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'ELECTRICAL', requester: 'employee', assignee: 'technician', locationId: 'HQ-PARKING', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 368 },
+  { title: 'Coffee machine error code E5 in 4th floor kitchen', description: 'Descaling cycle run and brew unit cleaned.', status: RequestStatus.RESOLVED, priority: RequestPriority.LOW, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'employee', assignee: 'technician', locationId: 'HQ-4F-KITCHEN', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 376 },
+  // Day 16
+  { title: 'IT asset inventory scan overdue', description: 'Full asset scan completed, 214 devices catalogued.', status: RequestStatus.CLOSED, priority: RequestPriority.LOW, serviceTypeCode: 'IT_SUPPORT', requester: 'admin', assignee: 'technician', locationId: 'HQ-NOC', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 388 },
+  { title: 'Fire hose cabinet door warped and won\'t latch', description: 'Cabinet door replaced, latch mechanism confirmed secure.', status: RequestStatus.CLOSED, priority: RequestPriority.HIGH, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-5F-STAIRWELL', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 396, hasWorkLog: true },
+  { title: 'Overhead AHU fan belt worn on floor 9', description: 'Belt replaced, AHU running within spec.', status: RequestStatus.RESOLVED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'HVAC', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-9F', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 404, hasWorkLog: true },
+  // Day 17
+  { title: 'Biometric attendance terminal offline', description: 'Firmware update applied, terminal back online.', status: RequestStatus.CLOSED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'IT_SUPPORT', requester: 'admin', assignee: 'technician', locationId: 'HQ-1F-ENTRANCE', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 416 },
+  { title: 'Broken venetian blind in CEO office', description: 'Blind unit replaced, slats aligned correctly.', status: RequestStatus.RESOLVED, priority: RequestPriority.LOW, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'admin', assignee: 'technician', locationId: 'HQ-10F-CEO', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 424 },
+  // Day 18
+  { title: 'Server room humidity sensor alarm', description: 'Humidifier setpoint corrected, RH within 45-55% range.', status: RequestStatus.CLOSED, priority: RequestPriority.HIGH, serviceTypeCode: 'HVAC', requester: 'admin', assignee: 'technician', locationId: 'HQ-1F-SERVER', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 436, hasWorkLog: true },
+  { title: 'Parking barrier arm stuck in raised position', description: 'Motor controller replaced, arm cycles correctly.', status: RequestStatus.RESOLVED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'employee', assignee: 'technician', locationId: 'HQ-PARKING', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 444 },
+  { title: 'SSL certificate expired on intranet portal', description: 'Certificate renewed and auto-renewal configured.', status: RequestStatus.CLOSED, priority: RequestPriority.HIGH, serviceTypeCode: 'IT_SUPPORT', requester: 'admin', assignee: 'technician', locationId: 'HQ-NOC', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 452, hasWorkLog: true },
+  // Day 19
+  { title: 'Water fountain not chilling on 2nd floor', description: 'Chiller thermostat replaced, water temp at 10°C.', status: RequestStatus.RESOLVED, priority: RequestPriority.LOW, serviceTypeCode: 'PLUMBING', requester: 'employee', assignee: 'technician', locationId: 'HQ-2F', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 464 },
+  { title: 'Printer paper jam recurring on floor 8', description: 'Feed roller replaced, jam sensor cleared.', status: RequestStatus.CLOSED, priority: RequestPriority.LOW, serviceTypeCode: 'IT_SUPPORT', requester: 'employee', assignee: 'technician', locationId: 'HQ-8F', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 472 },
+  // Day 20
+  { title: 'Stairwell emergency exit sign not lit', description: 'LED driver replaced, sign illuminated continuously.', status: RequestStatus.CLOSED, priority: RequestPriority.HIGH, serviceTypeCode: 'ELECTRICAL', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-STAIRWELL-W', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 484, hasWorkLog: true },
+  { title: 'Wireless presenter dongle lost in meeting room A', description: 'Replacement dongle issued and paired.', status: RequestStatus.RESOLVED, priority: RequestPriority.LOW, serviceTypeCode: 'IT_SUPPORT', requester: 'employee', assignee: 'technician', locationId: 'HQ-3F-A', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 492 },
+  { title: 'Condensate drain blocked on rooftop unit', description: 'Drain cleared, slope corrected to prevent pooling.', status: RequestStatus.CLOSED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'HVAC', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-ROOFTOP', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 500, hasWorkLog: true },
+  // Day 21
+  { title: 'Access control panel battery backup failure', description: 'Backup battery bank replaced, UPS runtime verified.', status: RequestStatus.CLOSED, priority: RequestPriority.HIGH, serviceTypeCode: 'ELECTRICAL', requester: 'admin', assignee: 'technician', locationId: 'HQ-1F-SERVER', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 512, hasWorkLog: true },
+  { title: 'Pantry hot water dispenser leaking at base', description: 'O-ring seal replaced, unit tested leak-free.', status: RequestStatus.RESOLVED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'PLUMBING', requester: 'employee', assignee: 'technician', locationId: 'HQ-6F-PANTRY', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 520 },
+  // Day 22
+  { title: 'CCTV camera offline at loading dock entrance', description: 'Camera replaced, NVR feed verified.', status: RequestStatus.CLOSED, priority: RequestPriority.HIGH, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'admin', assignee: 'technician', locationId: 'HQ-DOCK', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 532, hasWorkLog: true },
+  { title: 'Desk height-adjust motor not responding', description: 'Control box replaced on standing desk unit 22C.', status: RequestStatus.RESOLVED, priority: RequestPriority.LOW, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'employee', assignee: 'technician', locationId: 'HQ-7F', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 540 },
+  // Day 23
+  { title: 'UPS unit beeping in comms room floor 4', description: 'Battery replaced, self-test passed.', status: RequestStatus.CLOSED, priority: RequestPriority.HIGH, serviceTypeCode: 'ELECTRICAL', requester: 'admin', assignee: 'technician', locationId: 'HQ-4F-COMMS', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 556, hasWorkLog: true },
+  { title: 'Treadmill display broken in gym area', description: 'Display board replaced, calibration confirmed.', status: RequestStatus.RESOLVED, priority: RequestPriority.LOW, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'employee', assignee: 'technician', locationId: 'HQ-B1-GYM', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 564 },
+  // Day 24
+  { title: 'Boardroom AV system audio dropout', description: 'Audio matrix firmware updated, all channels stable.', status: RequestStatus.CLOSED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'IT_SUPPORT', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-10F-BOARD', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 580, hasWorkLog: true },
+  { title: 'Cold aisle containment door off track', description: 'Door re-hung and seals replaced in server room cold aisle.', status: RequestStatus.RESOLVED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'HVAC', requester: 'admin', assignee: 'technician', locationId: 'HQ-1F-SERVER', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 588 },
+  // Day 25
+  { title: 'Grease trap cleaning overdue in cafeteria kitchen', description: 'Trap pumped and cleaned, inspection certificate issued.', status: RequestStatus.CLOSED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'PLUMBING', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-CAFETERIA', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 604, hasWorkLog: true },
+  { title: 'Power socket damaged in open plan area 3F', description: 'Socket module replaced, earth continuity verified.', status: RequestStatus.RESOLVED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'ELECTRICAL', requester: 'employee', assignee: 'technician', locationId: 'HQ-3F', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 612 },
+  { title: 'Lobby digital display showing blank screen', description: 'Media player rebooted and display cable reseated.', status: RequestStatus.CLOSED, priority: RequestPriority.LOW, serviceTypeCode: 'IT_SUPPORT', requester: 'employee', assignee: 'technician', locationId: 'HQ-LOBBY', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 620 },
+  // Day 26
+  { title: 'Roof membrane inspection after heavy rain', description: 'Minor ponding areas patched, drainage cleared.', status: RequestStatus.CLOSED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-ROOFTOP', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 632, hasWorkLog: true },
+  { title: 'Network time sync failure on production servers', description: 'NTP configuration corrected across all servers.', status: RequestStatus.RESOLVED, priority: RequestPriority.HIGH, serviceTypeCode: 'IT_SUPPORT', requester: 'admin', assignee: 'technician', locationId: 'HQ-NOC', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 640, hasWorkLog: true },
+  // Day 27
+  { title: 'Revolving door sensor malfunction at main entrance', description: 'Presence sensor replaced, door speed recalibrated.', status: RequestStatus.CLOSED, priority: RequestPriority.HIGH, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'employee', assignee: 'technician', locationId: 'HQ-MAIN-ENTRANCE', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 656, hasWorkLog: true },
+  { title: 'Expansion valve noise in penthouse HVAC', description: 'Valve replaced and refrigerant charge verified.', status: RequestStatus.RESOLVED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'HVAC', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-10F', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 664, hasWorkLog: true },
+  // Day 28
+  { title: 'Door intercom static noise at visitor reception', description: 'Intercom handset replaced, audio clear.', status: RequestStatus.CLOSED, priority: RequestPriority.LOW, serviceTypeCode: 'GENERAL_MAINTENANCE', requester: 'employee', assignee: 'technician', locationId: 'HQ-1F-RECEPTION', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 676 },
+  { title: 'ERP login page slow after patch deployment', description: 'JVM heap settings tuned, page load under 2s.', status: RequestStatus.RESOLVED, priority: RequestPriority.HIGH, serviceTypeCode: 'IT_SUPPORT', requester: 'admin', assignee: 'technician', locationId: 'HQ-NOC', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 684, hasWorkLog: true },
+  // Day 29
+  { title: 'Cooling tower water treatment chemicals low', description: 'Chemical dosing system refilled, water quality within spec.', status: RequestStatus.CLOSED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'HVAC', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-ROOFTOP', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 700, hasWorkLog: true },
+  { title: 'Label printer driver missing on finance PC', description: 'Driver reinstalled and test labels printed successfully.', status: RequestStatus.RESOLVED, priority: RequestPriority.LOW, serviceTypeCode: 'IT_SUPPORT', requester: 'employee', assignee: 'technician', locationId: 'HQ-9F-FINANCE', impactLevel: RequestImpactLevel.LOW, urgency: RequestUrgency.LOW, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 708 },
+  // Day 30
+  { title: 'Chilled water flow meter showing zero reading', description: 'Flow meter sensor replaced, readings normalised.', status: RequestStatus.CLOSED, priority: RequestPriority.HIGH, serviceTypeCode: 'HVAC', requester: 'coordinator', assignee: 'technician', locationId: 'HQ-BASEMENT', impactLevel: RequestImpactLevel.HIGH, urgency: RequestUrgency.HIGH, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 720, hasWorkLog: true },
+  { title: 'Wi-Fi AP hardware fault in basement car park', description: 'AP unit replaced and channels reconfigured.', status: RequestStatus.RESOLVED, priority: RequestPriority.MEDIUM, serviceTypeCode: 'IT_SUPPORT', requester: 'employee', assignee: 'technician', locationId: 'HQ-PARKING', impactLevel: RequestImpactLevel.MEDIUM, urgency: RequestUrgency.MEDIUM, slaHealth: SlaHealth.ON_TRACK, hoursAgo: 728, hasWorkLog: true },
 ];
 
 function subtractHours(base: Date, hours: number): Date {
@@ -824,6 +908,7 @@ async function main(): Promise<void> {
     [
       'Seed completed.',
       `Tenant slug: supportops-demo`,
+      `Demo email domain: ${DEMO_EMAIL_DOMAIN}`,
       `Demo password: ${DEMO_PASSWORD}`,
       `Users: ${demoAccounts.map((account) => account.email).join(', ')}`,
       `Asset types: ${assetTypeDefinitions.length}`,

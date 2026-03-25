@@ -66,6 +66,21 @@ fi
 log "Starting services"
 docker compose -p supportops_staging -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" up -d --remove-orphans
 
+# Auto-seed on first deploy if DB has no users
+USER_COUNT=$(docker compose -p supportops_staging -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" \
+  exec -T postgres psql -U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-supportops_staging}" \
+  -tAc 'SELECT COUNT(*) FROM "User";' 2>/dev/null || echo "error")
+
+if [ "${USER_COUNT}" = "0" ]; then
+  log "Empty database detected — running seed"
+  docker compose -p supportops_staging -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" \
+    run --rm api sh -lc "pnpm --filter @supportops/api exec prisma db seed"
+elif [ "${USER_COUNT}" = "error" ]; then
+  log "Could not check user count — skipping auto-seed"
+else
+  log "Database already has ${USER_COUNT} user(s) — skipping seed"
+fi
+
 log "Running smoke tests"
 SMOKE_PORT="${SMOKE_PORT}" "${SMOKE_SCRIPT}"
 

@@ -3,15 +3,15 @@
 import { Alert, Box, Button, CircularProgress, Grid, Stack, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useRef } from "react";
 
 import { EntityDetailLayout } from "@/components/entity-detail-layout";
 
 import { useRequestDetail } from "../hooks/useRequestDetail";
-import { getHeaderActions } from "../utils/requestActions";
 import { getSectionVisibility } from "../utils/requestAccess";
 import type { DetailProps } from "../types";
 import { ActivityTimeline } from "./activity/ActivityTimeline";
-import { CommentsPanel } from "./activity/CommentsPanel";
+import { CommentsPanel, type CommentsPanelRef } from "./activity/CommentsPanel";
 import { WorkLogPanel } from "./activity/WorkLogPanel";
 import { AssignDialog } from "./assign/AssignDialog";
 import { AssignmentCard } from "./cards/AssignmentCard";
@@ -28,15 +28,20 @@ export function RequestDetailView({ requestId }: DetailProps) {
   const { locale } = useParams<{ locale: string }>();
   const t = useTranslations("pages.requests.detail");
   const detail = useRequestDetail(requestId);
+  const commentsPanelRef = useRef<CommentsPanelRef | null>(null);
 
   const sectionVisibility = getSectionVisibility(detail.role);
-  const headerActions = getHeaderActions({
-    role: detail.role,
-    status: detail.request.status,
-    isRequester: detail.request.relationship.isRequester,
-    isAssignee: detail.request.relationship.isAssignee,
-    hasAssignee: Boolean(detail.request.assignee),
-  });
+  const headerActions = detail.headerActions;
+  const handleHeaderAction = (action: Parameters<typeof detail.handleHeaderAction>[0]) => {
+    if (action === "ADD_NOTE") {
+      commentsPanelRef.current?.focusComposer({
+        preferInternal: sectionVisibility.showInternalNotes,
+      });
+      return;
+    }
+
+    detail.handleHeaderAction(action);
+  };
 
   return (
     <Box className={styles.pageWrap}>
@@ -54,7 +59,7 @@ export function RequestDetailView({ requestId }: DetailProps) {
           <RequestHeaderActions
             headerActions={headerActions}
             isSubmitting={detail.isSubmitting}
-            onAction={detail.handleHeaderAction}
+            onAction={handleHeaderAction}
           />
         }
         topDividerBleed={1.5}
@@ -74,15 +79,13 @@ export function RequestDetailView({ requestId }: DetailProps) {
             {detail.loadError}
           </Alert>
         ) : null}
-        {detail.mutationError ? <Alert severity="error" sx={{ mt: 1 }}>{detail.mutationError}</Alert> : null}
-        {detail.mutationSuccess ? <Alert severity="success" sx={{ mt: 1 }}>{detail.mutationSuccess}</Alert> : null}
-
         <Grid container spacing={2} sx={{ mt: 0.5 }}>
           <Grid size={{ xs: 12, lg: 8 }}>
             <RequestOverviewCard request={detail.request} />
             <AttachmentsCard request={detail.request} />
             <ActivityTimeline request={detail.request} viewerRole={detail.role} />
             <CommentsPanel
+              ref={commentsPanelRef}
               canCreateInternal={sectionVisibility.showInternalNotes}
               isSubmitting={detail.isSubmitting}
               onSubmit={detail.handleCommentSubmit}
@@ -90,6 +93,7 @@ export function RequestDetailView({ requestId }: DetailProps) {
               viewerRole={detail.role}
             />
             <WorkLogPanel
+              canAddWorkLog={detail.request.canAddWorkLog}
               isSubmitting={detail.isSubmitting}
               logs={detail.workLogs}
               onSubmit={detail.handleWorkLogSubmit}

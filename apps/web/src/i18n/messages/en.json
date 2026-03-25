@@ -176,6 +176,17 @@
   },
   "header": {
     "searchPlaceholder": "Search...",
+    "commandPalette": {
+      "noResults": "No results for \"{query}\"",
+      "tabs": {
+        "requests": "Requests",
+        "assets": "Assets",
+        "requestsPlaceholder": "Search requests...",
+        "assetsPlaceholder": "Search assets...",
+        "requestsHint": "Type to search requests",
+        "assetsHint": "Type to search assets"
+      }
+    },
     "toggleNavigationAriaLabel": "Toggle navigation",
     "closeNavigationAriaLabel": "Close navigation",
     "languageMenuAriaLabel": "Open language menu",
@@ -185,6 +196,7 @@
     "userMenuAriaLabel": "Open user menu",
     "profile": "Profile",
     "settings": "Settings",
+    "updatePassword": "Update password",
     "signOut": "Sign out"
   },
   "pages": {
@@ -378,6 +390,16 @@
           "createdAt": "Created at",
           "description": "Description"
         },
+        "attachments": {
+          "title": "Attachments",
+          "empty": "No attachments.",
+          "view": "View",
+          "close": "Close",
+          "openInNewTab": "Open in new tab",
+          "previewTitle": "Attachment preview",
+          "previewNotSupported": "Preview is not available for this file type.",
+          "previewFallback": "Use \"Open in new tab\" to view or download this file."
+        },
         "statusLabels": {
           "DRAFT": "Draft",
           "SUBMITTED": "Submitted",
@@ -411,14 +433,32 @@
           "confirmAssign": "Assign",
           "confirmReassign": "Reassign"
         },
+        "comments": {
+          "sectionTitle": "Comments",
+          "visibilityHint": "Visible to requester unless marked internal",
+          "publicOnlyHint": "Public comments only",
+          "empty": "No comments yet.",
+          "publicBadge": "Public",
+          "internalBadge": "Internal note",
+          "addTitle": "ADD COMMENT",
+          "placeholder": "Type an update... Use @ to mention teammates.",
+          "internalToggle": "Internal note",
+          "submit": "Submit",
+          "mention": {
+            "noResults": "No matching teammate."
+          }
+        },
         "workLog": {
           "sectionTitle": "WORK LOG",
           "empty": "No work logs yet.",
           "noDuration": "No duration",
+          "durationMinutes": "{minutes} min",
           "addTitle": "ADD WORK LOG",
           "placeholder": "Describe what was done...",
           "minutes": "Minutes",
+          "minutesPlaceholder": "e.g. 15",
           "add": "Add",
+          "noPermission": "You do not have permission to add work logs for this request.",
           "timelineTitle": "Work log added"
         },
         "feedback": {
@@ -674,7 +714,12 @@
         "byStatus": "Requests by status",
         "byPriority": "Requests by priority",
         "recentActivity": "Recent activity",
-        "slaOverview": "SLA health overview"
+        "slaOverview": "SLA health overview",
+        "requestTrend": "Request trend (last 30 days)"
+      },
+      "trend": {
+        "opened": "Opened",
+        "resolved": "Resolved"
       },
       "priority": {
         "LOW": "Low",
@@ -781,6 +826,10 @@
           "preferredContact": "Input contact info",
           "assetId": "Input Asset ID"
         },
+        "assetPicker": {
+          "loading": "Loading assets...",
+          "noOptions": "No assets available."
+        },
         "actions": {
           "saveDraft": "Save Draft",
           "submit": "Submit Request"
@@ -820,7 +869,21 @@
           "title": "Assets",
           "subtitle": "Track and manage operational assets and equipment across your facilities.",
           "newAsset": "New Asset",
+          "loading": "Loading assets...",
+          "loadError": "Unable to load assets. Please try again.",
           "emptyState": "No assets found. Create one to get started.",
+          "actions": {
+            "showFilters": "Show Filters",
+            "hideFilters": "Hide Filters",
+            "clear": "Clear",
+            "apply": "Apply",
+            "cancel": "Cancel",
+            "retry": "Retry",
+            "rowActions": {
+              "view": "View",
+              "edit": "Edit"
+            }
+          },
           "filters": {
             "searchPlaceholder": "Search assets by name or code",
             "status": "Status",
@@ -843,6 +906,13 @@
             "UNDER_MAINTENANCE": "Under Maintenance",
             "OUT_OF_SERVICE": "Out of Service",
             "RETIRED": "Retired"
+          },
+          "pagination": {
+            "showing": "Showing",
+            "rows": "Rows per page",
+            "outOf": "out of",
+            "previous": "Previous page",
+            "next": "Next page"
           }
         },
         "detail": {
@@ -976,7 +1046,8 @@
           "description": "Manage role-based status transitions for each service type.",
           "states": {
             "loading": "Loading workflow transitions...",
-            "empty": "No workflow transitions configured yet."
+            "empty": "No workflow transitions configured yet.",
+            "permissionDenied": "You do not have permission to manage workflow transitions."
           },
           "feedback": {
             "loadError": "Unable to load workflow transitions. Please try again.",
@@ -989,10 +1060,11 @@
             "retry": "Retry",
             "create": "Create",
             "update": "Update",
-            "clear": "Clear",
+            "cancel": "Cancel",
             "edit": "Edit",
             "delete": "Delete",
-            "confirmDelete": "Delete this workflow transition?"
+            "confirmDelete": "Delete this workflow transition?",
+            "confirmDeleteDescription": "This action cannot be undone. The workflow transition will be permanently removed."
           },
           "form": {
             "createTitle": "Add transition",
@@ -1035,10 +1107,11 @@
             "retry": "Retry",
             "create": "Create",
             "update": "Update",
-            "clear": "Clear",
+            "cancel": "Cancel",
             "edit": "Edit",
             "delete": "Delete",
-            "confirmDelete": "Delete this SLA policy?"
+            "confirmDelete": "Delete this SLA policy?",
+            "confirmDeleteDescription": "This action cannot be undone. The SLA policy will be permanently removed."
           },
           "form": {
             "createTitle": "Add SLA policy",
@@ -1077,10 +1150,11 @@
             "retry": "Retry",
             "create": "Create",
             "update": "Update",
-            "clear": "Clear",
+            "cancel": "Cancel",
             "edit": "Edit",
             "delete": "Delete",
-            "confirmDelete": "Delete this service type?"
+            "confirmDelete": "Delete this service type?",
+            "confirmDeleteDescription": "This action cannot be undone. The service type will be permanently removed."
           },
           "form": {
             "createTitle": "Add service type",

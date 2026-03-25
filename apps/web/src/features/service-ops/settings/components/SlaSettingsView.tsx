@@ -1,39 +1,60 @@
 "use client";
 
-import { Alert, Box, Button, Card, CardContent, Grid, Stack, TextField, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Grid,
+  Stack,
+  Typography,
+} from "@mui/material";
+import { useDialog } from "@supportops/ui";
+import { ConfirmDialog, FormDialog } from "@supportops/ui-dialog";
+import { SelectOptionField, TextInputField } from "@supportops/ui-form";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 
+import { ContentContainer } from "@/features/layout/components/ContentContainer/ContentContainer";
+import { useToast } from "@/features/common/toast/useToast";
 import { ApiError } from "@/lib/api";
 
 import { serviceOpsSettingsService } from "../services/service-ops-settings.service";
-import type { SettingsLoadState, SlaPolicySetting } from "../types";
+import type { ServiceTypeSetting, SettingsLoadState, SlaPolicySetting } from "../types";
 
-const EMPTY_FORM = {
-  id: "",
+interface SlaFormValues {
+  serviceTypeCode: string;
+  responseMinutes: string;
+  resolutionMinutes: string;
+  escalationAfterMinutes: string;
+}
+
+const EMPTY_FORM: SlaFormValues = {
   serviceTypeCode: "",
   responseMinutes: "30",
   resolutionMinutes: "480",
   escalationAfterMinutes: "60",
 };
+const SLA_FORM_ID = "sla-settings-form";
 
 export function SlaSettingsView() {
   const t = useTranslations("pages.serviceOps.settings.sla");
+  const dialog = useDialog();
+  const deleteDialog = useDialog();
+  const toast = useToast();
+  const [deletingId, setDeletingId] = useState("");
   const [loadState, setLoadState] = useState<SettingsLoadState>("loading");
   const [items, setItems] = useState<SlaPolicySetting[]>([]);
+  const [serviceTypes, setServiceTypes] = useState<ServiceTypeSetting[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
-
-  const normalizedServiceTypeCode = form.serviceTypeCode.trim().toUpperCase();
-  const responseMinutes = Number(form.responseMinutes);
-  const resolutionMinutes = Number(form.resolutionMinutes);
-  const escalationAfterMinutes = Number(form.escalationAfterMinutes);
-  const hasServiceTypeCodeError = normalizedServiceTypeCode.length === 0;
-  const hasResponseMinutesError = !Number.isFinite(responseMinutes) || responseMinutes <= 0;
-  const hasResolutionMinutesError = !Number.isFinite(resolutionMinutes) || resolutionMinutes <= 0;
-  const hasEscalationMinutesError = !Number.isFinite(escalationAfterMinutes) || escalationAfterMinutes <= 0;
+  const [editingId, setEditingId] = useState("");
+  const { control, handleSubmit, reset } = useForm<SlaFormValues>({
+    defaultValues: EMPTY_FORM,
+    mode: "onSubmit",
+  });
 
   const loadItems = useCallback(async () => {
     setLoadState("loading");
@@ -56,26 +77,65 @@ export function SlaSettingsView() {
     void loadItems();
   }, [loadItems]);
 
-  const canSubmit = useMemo(
-    () =>
-      !hasServiceTypeCodeError &&
-      !hasResponseMinutesError &&
-      !hasResolutionMinutesError &&
-      !hasEscalationMinutesError,
-    [hasEscalationMinutesError, hasResolutionMinutesError, hasResponseMinutesError, hasServiceTypeCodeError],
-  );
+  useEffect(() => {
+    void serviceOpsSettingsService.listServiceTypes().then(setServiceTypes).catch(() => undefined);
+  }, []);
 
-  const resetForm = () => setForm(EMPTY_FORM);
+  const usedCodes = useMemo(() => new Set(items.map((item) => item.serviceTypeCode)), [items]);
 
-  const onSave = async () => {
-    if (!canSubmit || isSubmitting) return;
+  const serviceTypeOptions = useMemo(() => {
+    const editingCode = editingId ? items.find((item) => item.id === editingId)?.serviceTypeCode : undefined;
+    return serviceTypes
+      .filter((st) => st.isActive && (!usedCodes.has(st.code) || st.code === editingCode))
+      .map((st) => ({ value: st.code, label: `${st.code} — ${st.name}` }));
+  }, [serviceTypes, usedCodes, editingId, items]);
+
+  const openAddDialog = () => {
+    setEditingId("");
+    reset(EMPTY_FORM);
+    dialog.open();
+  };
+
+  const openEditDialog = (item: SlaPolicySetting) => {
+    setEditingId(item.id);
+    reset({
+      serviceTypeCode: item.serviceTypeCode,
+      responseMinutes: String(item.responseMinutes),
+      resolutionMinutes: String(item.resolutionMinutes),
+      escalationAfterMinutes: String(item.escalationAfterMinutes),
+    });
+    dialog.open();
+  };
+
+  const closeDialog = () => {
+    dialog.close();
+    setEditingId("");
+    reset(EMPTY_FORM);
+  };
+
+  const onSave = handleSubmit(async (values) => {
+    if (isSubmitting) return;
     setIsSubmitting(true);
-    setErrorMessage(null);
-    setSuccessMessage(null);
     try {
+      const serviceTypeCode = values.serviceTypeCode.trim().toUpperCase();
+      const responseMinutes = Number(values.responseMinutes);
+      const resolutionMinutes = Number(values.resolutionMinutes);
+      const escalationAfterMinutes = Number(values.escalationAfterMinutes);
+      if (
+        !serviceTypeCode ||
+        !Number.isFinite(responseMinutes) ||
+        responseMinutes <= 0 ||
+        !Number.isFinite(resolutionMinutes) ||
+        resolutionMinutes <= 0 ||
+        !Number.isFinite(escalationAfterMinutes) ||
+        escalationAfterMinutes <= 0
+      ) {
+        return;
+      }
+
       const saved = await serviceOpsSettingsService.saveSlaPolicy({
-        id: form.id || undefined,
-        serviceTypeCode: normalizedServiceTypeCode,
+        id: editingId || undefined,
+        serviceTypeCode,
         responseMinutes,
         resolutionMinutes,
         escalationAfterMinutes,
@@ -88,158 +148,201 @@ export function SlaSettingsView() {
         return [saved, ...current];
       });
       setLoadState("success");
-      setSuccessMessage(t("feedback.saveSuccess"));
-      resetForm();
+      toast.success(t("feedback.saveSuccess"));
+      closeDialog();
     } catch {
-      setErrorMessage(t("feedback.saveError"));
+      toast.error(t("feedback.saveError"));
     } finally {
       setIsSubmitting(false);
     }
+  });
+
+  const openDeleteDialog = (id: string) => {
+    setDeletingId(id);
+    deleteDialog.open();
   };
 
-  const onDelete = async (id: string) => {
-    if (typeof window !== "undefined" && !window.confirm(t("actions.confirmDelete"))) {
-      return;
-    }
-
-    setErrorMessage(null);
-    setSuccessMessage(null);
+  const onDelete = async () => {
     try {
-      await serviceOpsSettingsService.deleteSlaPolicy(id);
-      const next = items.filter((item) => item.id !== id);
+      await serviceOpsSettingsService.deleteSlaPolicy(deletingId);
+      const next = items.filter((item) => item.id !== deletingId);
       setItems(next);
       setLoadState(next.length === 0 ? "empty" : "success");
-      setSuccessMessage(t("feedback.deleteSuccess"));
+      toast.success(t("feedback.deleteSuccess"));
+      deleteDialog.close();
     } catch {
-      setErrorMessage(t("feedback.deleteError"));
+      toast.error(t("feedback.deleteError"));
     }
   };
 
   return (
-    <Stack spacing={2}>
-      <Typography variant="h4">{t("title")}</Typography>
-      <Typography color="text.secondary" variant="body2">{t("description")}</Typography>
+    <ContentContainer>
+      <Stack spacing={2}>
+        <Stack alignItems="flex-start" direction="row" justifyContent="space-between">
+          <Box>
+            <Typography variant="h4">{t("title")}</Typography>
+            <Typography color="text.secondary" variant="body2">
+              {t("description")}
+            </Typography>
+          </Box>
+          <Button onClick={openAddDialog} sx={{ flexShrink: 0 }} variant="contained">
+            {t("form.createTitle")}
+          </Button>
+        </Stack>
 
-      {loadState === "permissionDenied" ? <Alert severity="warning">{t("states.permissionDenied")}</Alert> : null}
-      {loadState === "loading" ? <Alert severity="info">{t("states.loading")}</Alert> : null}
-      {loadState === "empty" ? <Alert severity="info">{t("states.empty")}</Alert> : null}
-      {loadState === "error" ? (
-        <Alert action={<Button color="inherit" onClick={() => void loadItems()} size="small">{t("actions.retry")}</Button>} severity="error">
-          {errorMessage ?? t("feedback.loadError")}
-        </Alert>
-      ) : null}
-      {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}
-      {errorMessage && loadState !== "error" ? <Alert severity="error">{errorMessage}</Alert> : null}
-
-      <Card variant="outlined">
-        <CardContent>
-          <Stack spacing={2}>
-            <Typography variant="h6">{form.id ? t("form.editTitle") : t("form.createTitle")}</Typography>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
-                  error={hasServiceTypeCodeError}
-                  fullWidth
-                  helperText={hasServiceTypeCodeError ? t("form.validation.serviceTypeCodeRequired") : " "}
-                  label={t("form.fields.serviceTypeCode")}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, serviceTypeCode: event.target.value.toUpperCase() }))
-                  }
-                  value={form.serviceTypeCode}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
-                  error={hasResponseMinutesError}
-                  fullWidth
-                  helperText={hasResponseMinutesError ? t("form.validation.minutesPositive") : " "}
-                  inputProps={{ min: 1 }}
-                  label={t("form.fields.responseMinutes")}
-                  onChange={(event) => setForm((current) => ({ ...current, responseMinutes: event.target.value }))}
-                  type="number"
-                  value={form.responseMinutes}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
-                  error={hasResolutionMinutesError}
-                  fullWidth
-                  helperText={hasResolutionMinutesError ? t("form.validation.minutesPositive") : " "}
-                  inputProps={{ min: 1 }}
-                  label={t("form.fields.resolutionMinutes")}
-                  onChange={(event) => setForm((current) => ({ ...current, resolutionMinutes: event.target.value }))}
-                  type="number"
-                  value={form.resolutionMinutes}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
-                  error={hasEscalationMinutesError}
-                  fullWidth
-                  helperText={hasEscalationMinutesError ? t("form.validation.minutesPositive") : " "}
-                  inputProps={{ min: 1 }}
-                  label={t("form.fields.escalationAfterMinutes")}
-                  onChange={(event) => setForm((current) => ({ ...current, escalationAfterMinutes: event.target.value }))}
-                  type="number"
-                  value={form.escalationAfterMinutes}
-                />
-              </Grid>
-            </Grid>
-            <Stack direction="row" spacing={1}>
-              <Button disabled={!canSubmit || isSubmitting} onClick={() => void onSave()} variant="contained">
-                {form.id ? t("actions.update") : t("actions.create")}
+        {loadState === "permissionDenied" ? <Alert severity="warning">{t("states.permissionDenied")}</Alert> : null}
+        {loadState === "loading" ? <Alert severity="info">{t("states.loading")}</Alert> : null}
+        {loadState === "error" ? (
+          <Alert
+            action={
+              <Button color="inherit" onClick={() => void loadItems()} size="small">
+                {t("actions.retry")}
               </Button>
-              <Button disabled={isSubmitting} onClick={resetForm} variant="outlined">
-                {t("actions.clear")}
-              </Button>
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Card variant="outlined">
-        <CardContent>
-          <Typography gutterBottom variant="h6">{t("table.title")}</Typography>
-          {items.length === 0 ? (
-            <Typography color="text.secondary" variant="body2">{t("states.empty")}</Typography>
-          ) : (
-            <Stack spacing={1}>
-              {items.map((item) => (
-                <Box
-                  key={item.id}
-                  sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1, p: 1.5 }}
-                >
-                  <Stack alignItems="center" direction={{ xs: "column", md: "row" }} justifyContent="space-between" spacing={1}>
-                    <Typography variant="body2">
-                      {item.serviceTypeCode} - {item.responseMinutes}/{item.resolutionMinutes}/{item.escalationAfterMinutes}
-                    </Typography>
-                    <Stack direction="row" spacing={1}>
-                      <Button
-                        onClick={() =>
-                          setForm({
-                            id: item.id,
-                            serviceTypeCode: item.serviceTypeCode,
-                            responseMinutes: String(item.responseMinutes),
-                            resolutionMinutes: String(item.resolutionMinutes),
-                            escalationAfterMinutes: String(item.escalationAfterMinutes),
-                          })
-                        }
-                        size="small"
-                        variant="text"
-                      >
-                        {t("actions.edit")}
-                      </Button>
-                      <Button color="error" onClick={() => void onDelete(item.id)} size="small" variant="text">
-                        {t("actions.delete")}
-                      </Button>
+            }
+            severity="error"
+          >
+            {errorMessage ?? t("feedback.loadError")}
+          </Alert>
+        ) : null}
+        <Card variant="outlined">
+          <CardContent>
+            <Typography gutterBottom variant="h6">
+              {t("table.title")}
+            </Typography>
+            {items.length === 0 ? (
+              <Typography color="text.secondary" variant="body2">
+                {t("states.empty")}
+              </Typography>
+            ) : (
+              <Stack spacing={1}>
+                {items.map((item) => (
+                  <Box key={item.id} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1, p: 1.5 }}>
+                    <Stack
+                      alignItems="center"
+                      direction={{ xs: "column", md: "row" }}
+                      justifyContent="space-between"
+                      spacing={1}
+                    >
+                      <Typography variant="body2">
+                        <strong>{item.serviceTypeCode}</strong>
+                        {" — "}
+                        {t("form.fields.responseMinutes")}: {item.responseMinutes}m
+                        {" · "}
+                        {t("form.fields.resolutionMinutes")}: {item.resolutionMinutes}m
+                        {" · "}
+                        {t("form.fields.escalationAfterMinutes")}: {item.escalationAfterMinutes}m
+                      </Typography>
+                      <Stack direction="row" spacing={1}>
+                        <Button onClick={() => openEditDialog(item)} size="small" variant="text">
+                          {t("actions.edit")}
+                        </Button>
+                        <Button color="error" onClick={() => openDeleteDialog(item.id)} size="small" variant="text">
+                          {t("actions.delete")}
+                        </Button>
+                      </Stack>
                     </Stack>
-                  </Stack>
-                </Box>
-              ))}
-            </Stack>
-          )}
-        </CardContent>
-      </Card>
-    </Stack>
+                  </Box>
+                ))}
+              </Stack>
+            )}
+          </CardContent>
+        </Card>
+      </Stack>
+
+      <FormDialog
+        cancelLabel={t("actions.cancel")}
+        dialog={dialog}
+        formId={SLA_FORM_ID}
+        submitDisabled={isSubmitting}
+        submitLabel={editingId ? t("actions.update") : t("actions.create")}
+        title={editingId ? t("form.editTitle") : t("form.createTitle")}
+      >
+        <Stack
+          component="form"
+          id={SLA_FORM_ID}
+          onSubmit={(event) => {
+            event.preventDefault();
+            void onSave();
+          }}
+          spacing={2}
+          sx={{ pt: 1 }}
+        >
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12 }}>
+              <SelectOptionField
+                control={control}
+                fullWidth
+                hideEmptyHelperText
+                label={t("form.fields.serviceTypeCode")}
+                name="serviceTypeCode"
+                options={serviceTypeOptions}
+                rules={{
+                  validate: (value) =>
+                    value.trim() ? true : t("form.validation.serviceTypeCodeRequired"),
+                }}
+                size="small"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextInputField
+                control={control}
+                fullWidth
+                hideEmptyHelperText
+                label={t("form.fields.responseMinutes")}
+                name="responseMinutes"
+                rules={{
+                  validate: (value) =>
+                    Number.isFinite(Number(value)) && Number(value) > 0 ? true : t("form.validation.minutesPositive"),
+                }}
+                size="small"
+                slotProps={{ htmlInput: { min: 1 } }}
+                type="number"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextInputField
+                control={control}
+                fullWidth
+                hideEmptyHelperText
+                label={t("form.fields.resolutionMinutes")}
+                name="resolutionMinutes"
+                rules={{
+                  validate: (value) =>
+                    Number.isFinite(Number(value)) && Number(value) > 0 ? true : t("form.validation.minutesPositive"),
+                }}
+                size="small"
+                slotProps={{ htmlInput: { min: 1 } }}
+                type="number"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextInputField
+                control={control}
+                fullWidth
+                hideEmptyHelperText
+                label={t("form.fields.escalationAfterMinutes")}
+                name="escalationAfterMinutes"
+                rules={{
+                  validate: (value) =>
+                    Number.isFinite(Number(value)) && Number(value) > 0 ? true : t("form.validation.minutesPositive"),
+                }}
+                size="small"
+                slotProps={{ htmlInput: { min: 1 } }}
+                type="number"
+              />
+            </Grid>
+          </Grid>
+        </Stack>
+      </FormDialog>
+
+      <ConfirmDialog
+        cancelLabel={t("actions.cancel")}
+        confirmLabel={t("actions.delete")}
+        description={t("actions.confirmDeleteDescription")}
+        dialog={deleteDialog}
+        onConfirm={onDelete}
+        title={t("actions.confirmDelete")}
+      />
+    </ContentContainer>
   );
 }
