@@ -104,6 +104,12 @@ export interface DashboardData {
   recentActivity: DashboardRecentActivityItem[];
 }
 
+export interface DashboardRequestTrendItem {
+  date: string;
+  opened: number;
+  resolved: number;
+}
+
 export interface SlaHealthCount {
   health: SlaHealth;
   count: number;

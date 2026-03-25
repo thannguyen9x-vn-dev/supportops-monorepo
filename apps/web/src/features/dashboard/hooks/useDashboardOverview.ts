@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import type { DashboardData } from "@supportops/types";
+import type { DashboardData, DashboardRequestTrendItem } from "@supportops/types";
 
 import { dashboardService } from "@/features/dashboard/services/dashboard.service";
 
-type DashboardLoadState = "loading" | "ready" | "error";
+type DashboardLoadState = "loading" | "refreshing" | "ready" | "error";
 
 const INITIAL_STATE: DashboardData = {
   summary: {
@@ -32,19 +32,19 @@ const INITIAL_STATE: DashboardData = {
 
 export function useDashboardOverview() {
   const [data, setData] = useState<DashboardData>(INITIAL_STATE);
+  const [trend, setTrend] = useState<DashboardRequestTrendItem[]>([]);
   const [loadState, setLoadState] = useState<DashboardLoadState>("loading");
 
   const fetchOverview = useCallback(async () => {
     try {
-      const [{ data: summary }, { data: recentActivity }] = await Promise.all([
+      const [{ data: summary }, { data: recentActivity }, { data: trendData }] = await Promise.all([
         dashboardService.getSummary(),
         dashboardService.getRecentActivity(),
+        dashboardService.getRequestTrend(),
       ]);
 
-      setData({
-        summary,
-        recentActivity,
-      });
+      setData({ summary, recentActivity });
+      setTrend(trendData);
       setLoadState("ready");
     } catch {
       setLoadState("error");
@@ -52,7 +52,7 @@ export function useDashboardOverview() {
   }, []);
 
   const reload = useCallback(async () => {
-    setLoadState("loading");
+    setLoadState("refreshing");
     await fetchOverview();
   }, [fetchOverview]);
 
@@ -68,6 +68,7 @@ export function useDashboardOverview() {
 
   return {
     data,
+    trend,
     loadState,
     reload,
   };

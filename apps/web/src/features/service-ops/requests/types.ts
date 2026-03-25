@@ -83,6 +83,7 @@ export interface RequestDetail {
     isRequester: boolean;
     isAssignee: boolean;
   };
+  canAddWorkLog: boolean;
   overview: {
     serviceType: string;
     category: string;
@@ -101,11 +102,13 @@ export interface RequestDetail {
   }>;
   sla: {
     assignmentSla?: {
+      targetAt?: string;
       targetMinutes: number;
       remainingSeconds: number;
       state: SlaState;
     };
     resolutionSla?: {
+      targetAt?: string;
       targetMinutes: number;
       remainingSeconds: number;
       state: SlaState;
@@ -128,6 +131,8 @@ export interface RequestDetail {
     title: string;
     description?: string;
     actorName?: string;
+    actorEmail?: string;
+    actorAvatarUrl?: string | null;
     actorType?: "USER" | "SYSTEM";
     visibility: CommentVisibility;
     createdAt: string;

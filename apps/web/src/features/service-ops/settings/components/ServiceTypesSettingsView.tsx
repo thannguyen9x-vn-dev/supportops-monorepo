@@ -1,39 +1,60 @@
 "use client";
 
-import { Alert, Box, Button, Card, CardContent, Grid, Stack, Switch, TextField, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Grid,
+  Stack,
+  Switch,
+  Typography,
+} from "@mui/material";
+import { useDialog } from "@supportops/ui";
+import { ConfirmDialog, FormDialog } from "@supportops/ui-dialog";
+import { TextInputField } from "@supportops/ui-form";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
+import { useToast } from "@/features/common/toast/useToast";
+import { ContentContainer } from "@/features/layout/components/ContentContainer/ContentContainer";
 import { ApiError } from "@/lib/api";
 
 import { serviceOpsSettingsService } from "../services/service-ops-settings.service";
 import type { ServiceTypeSetting, SettingsLoadState } from "../types";
 
-const EMPTY_FORM = {
-  id: "",
+interface ServiceTypeFormValues {
+  code: string;
+  name: string;
+  isActive: boolean;
+}
+
+const EMPTY_FORM: ServiceTypeFormValues = {
   code: "",
   name: "",
-  workflowName: "",
-  slaPolicyId: "",
   isActive: true,
 };
+const SERVICE_TYPE_FORM_ID = "service-type-settings-form";
 
 export function ServiceTypesSettingsView() {
   const t = useTranslations("pages.serviceOps.settings.serviceTypes");
+  const dialog = useDialog();
+  const deleteDialog = useDialog();
+  const toast = useToast();
+  const [deletingId, setDeletingId] = useState("");
   const [loadState, setLoadState] = useState<SettingsLoadState>("loading");
   const [items, setItems] = useState<ServiceTypeSetting[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [editingId, setEditingId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { control, handleSubmit, reset, watch, setValue } = useForm<ServiceTypeFormValues>({
+    defaultValues: EMPTY_FORM,
+    mode: "onSubmit",
+  });
 
-  const normalizedCode = form.code.trim().toUpperCase();
-  const normalizedName = form.name.trim();
-  const hasCodeError = normalizedCode.length === 0;
-  const hasNameError = normalizedName.length === 0;
-  const hasDuplicateCodeError = items.some(
-    (item) => item.code.toUpperCase() === normalizedCode && item.id !== form.id && normalizedCode.length > 0,
-  );
+  const formValues = watch();
 
   const loadItems = useCallback(async () => {
     setLoadState("loading");
@@ -56,26 +77,42 @@ export function ServiceTypesSettingsView() {
     void loadItems();
   }, [loadItems]);
 
-  const canSubmit = useMemo(
-    () => !hasCodeError && !hasNameError && !hasDuplicateCodeError,
-    [hasCodeError, hasDuplicateCodeError, hasNameError],
-  );
+  const openAddDialog = () => {
+    setEditingId("");
+    reset(EMPTY_FORM);
+    dialog.open();
+  };
 
-  const resetForm = () => setForm(EMPTY_FORM);
+  const openEditDialog = (item: ServiceTypeSetting) => {
+    setEditingId(item.id);
+    reset({
+      code: item.code,
+      name: item.name,
+      isActive: item.isActive,
+    });
+    dialog.open();
+  };
 
-  const onSave = async () => {
-    if (!canSubmit || isSubmitting) return;
+  const closeDialog = () => {
+    dialog.close();
+    setEditingId("");
+    reset(EMPTY_FORM);
+  };
+
+  const onSave = handleSubmit(async (values) => {
+    if (isSubmitting) return;
     setIsSubmitting(true);
-    setSuccessMessage(null);
-    setErrorMessage(null);
     try {
+      const code = values.code.trim().toUpperCase();
+      const name = values.name.trim();
+      const duplicate = items.some((item) => item.code.toUpperCase() === code && item.id !== editingId);
+      if (!code || !name || duplicate) return;
+
       const saved = await serviceOpsSettingsService.saveServiceType({
-        id: form.id || undefined,
-        code: normalizedCode,
-        name: normalizedName,
-        workflowName: form.workflowName || undefined,
-        slaPolicyId: form.slaPolicyId || undefined,
-        isActive: form.isActive,
+        id: editingId || undefined,
+        code,
+        name,
+        isActive: values.isActive,
       });
       setItems((current) => {
         const exists = current.some((item) => item.id === saved.id);
@@ -83,157 +120,181 @@ export function ServiceTypesSettingsView() {
         return [saved, ...current];
       });
       setLoadState("success");
-      setSuccessMessage(t("feedback.saveSuccess"));
-      resetForm();
+      toast.success(t("feedback.saveSuccess"));
+      closeDialog();
     } catch {
-      setErrorMessage(t("feedback.saveError"));
+      toast.error(t("feedback.saveError"));
     } finally {
       setIsSubmitting(false);
     }
+  });
+
+  const openDeleteDialog = (id: string) => {
+    setDeletingId(id);
+    deleteDialog.open();
   };
 
-  const onDelete = async (id: string) => {
-    if (typeof window !== "undefined" && !window.confirm(t("actions.confirmDelete"))) {
-      return;
-    }
-
-    setSuccessMessage(null);
-    setErrorMessage(null);
+  const onDelete = async () => {
     try {
-      await serviceOpsSettingsService.deleteServiceType(id);
-      const next = items.filter((item) => item.id !== id);
+      await serviceOpsSettingsService.deleteServiceType(deletingId);
+      const next = items.filter((item) => item.id !== deletingId);
       setItems(next);
       setLoadState(next.length === 0 ? "empty" : "success");
-      setSuccessMessage(t("feedback.deleteSuccess"));
+      toast.success(t("feedback.deleteSuccess"));
+      deleteDialog.close();
     } catch {
-      setErrorMessage(t("feedback.deleteError"));
+      toast.error(t("feedback.deleteError"));
     }
   };
 
   return (
-    <Stack spacing={2}>
-      <Typography variant="h4">{t("title")}</Typography>
-      <Typography color="text.secondary" variant="body2">{t("description")}</Typography>
+    <ContentContainer>
+      <Stack spacing={2}>
+        <Stack alignItems="flex-start" direction="row" justifyContent="space-between">
+          <Box>
+            <Typography variant="h4">{t("title")}</Typography>
+            <Typography color="text.secondary" variant="body2">
+              {t("description")}
+            </Typography>
+          </Box>
+          <Button onClick={openAddDialog} sx={{ flexShrink: 0 }} variant="contained">
+            {t("form.createTitle")}
+          </Button>
+        </Stack>
 
-      {loadState === "permissionDenied" ? <Alert severity="warning">{t("states.permissionDenied")}</Alert> : null}
-      {loadState === "loading" ? <Alert severity="info">{t("states.loading")}</Alert> : null}
-      {loadState === "empty" ? <Alert severity="info">{t("states.empty")}</Alert> : null}
-      {loadState === "error" ? (
-        <Alert action={<Button color="inherit" onClick={() => void loadItems()} size="small">{t("actions.retry")}</Button>} severity="error">
-          {errorMessage ?? t("feedback.loadError")}
-        </Alert>
-      ) : null}
-      {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}
-      {errorMessage && loadState !== "error" ? <Alert severity="error">{errorMessage}</Alert> : null}
-
-      <Card variant="outlined">
-        <CardContent>
-          <Stack spacing={2}>
-            <Typography variant="h6">{form.id ? t("form.editTitle") : t("form.createTitle")}</Typography>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
-                  error={hasCodeError || hasDuplicateCodeError}
-                  fullWidth
-                  helperText={
-                    hasCodeError
-                      ? t("form.validation.codeRequired")
-                      : hasDuplicateCodeError
-                        ? t("form.validation.duplicateCode")
-                        : " "
-                  }
-                  label={t("form.fields.code")}
-                  onChange={(event) => setForm((current) => ({ ...current, code: event.target.value.toUpperCase() }))}
-                  value={form.code}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
-                  error={hasNameError}
-                  fullWidth
-                  helperText={hasNameError ? t("form.validation.nameRequired") : " "}
-                  label={t("form.fields.name")}
-                  onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-                  value={form.name}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
-                  fullWidth
-                  label={t("form.fields.workflowName")}
-                  onChange={(event) => setForm((current) => ({ ...current, workflowName: event.target.value }))}
-                  value={form.workflowName}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
-                  fullWidth
-                  label={t("form.fields.slaPolicyId")}
-                  onChange={(event) => setForm((current) => ({ ...current, slaPolicyId: event.target.value }))}
-                  value={form.slaPolicyId}
-                />
-              </Grid>
-            </Grid>
-            <Stack alignItems="center" direction="row" spacing={1}>
-              <Switch
-                checked={form.isActive}
-                onChange={(event) => setForm((current) => ({ ...current, isActive: event.target.checked }))}
-              />
-              <Typography variant="body2">{t("form.fields.isActive")}</Typography>
-            </Stack>
-            <Stack direction="row" spacing={1}>
-              <Button disabled={!canSubmit || isSubmitting} onClick={() => void onSave()} variant="contained">
-                {form.id ? t("actions.update") : t("actions.create")}
+        {loadState === "permissionDenied" ? <Alert severity="warning">{t("states.permissionDenied")}</Alert> : null}
+        {loadState === "loading" ? <Alert severity="info">{t("states.loading")}</Alert> : null}
+        {loadState === "error" ? (
+          <Alert
+            action={
+              <Button color="inherit" onClick={() => void loadItems()} size="small">
+                {t("actions.retry")}
               </Button>
-              <Button disabled={isSubmitting} onClick={resetForm} variant="outlined">
-                {t("actions.clear")}
-              </Button>
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
+            }
+            severity="error"
+          >
+            {errorMessage ?? t("feedback.loadError")}
+          </Alert>
+        ) : null}
 
-      <Card variant="outlined">
-        <CardContent>
-          <Typography gutterBottom variant="h6">{t("table.title")}</Typography>
-          {items.length === 0 ? (
-            <Typography color="text.secondary" variant="body2">{t("states.empty")}</Typography>
-          ) : (
-            <Stack spacing={1}>
-              {items.map((item) => (
-                <Box key={item.id} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1, p: 1.5 }}>
-                  <Stack alignItems="center" direction={{ xs: "column", md: "row" }} justifyContent="space-between" spacing={1}>
-                    <Typography variant="body2">
-                      {item.code} - {item.name} ({item.isActive ? t("table.active") : t("table.inactive")})
-                    </Typography>
-                    <Stack direction="row" spacing={1}>
-                      <Button
-                        onClick={() =>
-                          setForm({
-                            id: item.id,
-                            code: item.code,
-                            name: item.name,
-                            workflowName: item.workflowName ?? "",
-                            slaPolicyId: item.slaPolicyId ?? "",
-                            isActive: item.isActive,
-                          })
-                        }
-                        size="small"
-                        variant="text"
-                      >
-                        {t("actions.edit")}
-                      </Button>
-                      <Button color="error" onClick={() => void onDelete(item.id)} size="small" variant="text">
-                        {t("actions.delete")}
-                      </Button>
+        <Card variant="outlined">
+          <CardContent>
+            <Typography gutterBottom variant="h6">
+              {t("table.title")}
+            </Typography>
+            {items.length === 0 ? (
+              <Typography color="text.secondary" variant="body2">
+                {t("states.empty")}
+              </Typography>
+            ) : (
+              <Stack spacing={1}>
+                {items.map((item) => (
+                  <Box key={item.id} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1, p: 1.5 }}>
+                    <Stack
+                      alignItems="center"
+                      direction={{ xs: "column", md: "row" }}
+                      justifyContent="space-between"
+                      spacing={1}
+                    >
+                      <Typography variant="body2">
+                        <strong>{item.code}</strong> — {item.name}{" "}
+                        <Typography
+                          color={item.isActive ? "success.main" : "text.disabled"}
+                          component="span"
+                          variant="body2"
+                        >
+                          ({item.isActive ? t("table.active") : t("table.inactive")})
+                        </Typography>
+                      </Typography>
+                      <Stack direction="row" spacing={1}>
+                        <Button onClick={() => openEditDialog(item)} size="small" variant="text">
+                          {t("actions.edit")}
+                        </Button>
+                        <Button color="error" onClick={() => openDeleteDialog(item.id)} size="small" variant="text">
+                          {t("actions.delete")}
+                        </Button>
+                      </Stack>
                     </Stack>
-                  </Stack>
-                </Box>
-              ))}
-            </Stack>
-          )}
-        </CardContent>
-      </Card>
-    </Stack>
+                  </Box>
+                ))}
+              </Stack>
+            )}
+          </CardContent>
+        </Card>
+      </Stack>
+
+      <FormDialog
+        cancelLabel={t("actions.cancel")}
+        dialog={dialog}
+        formId={SERVICE_TYPE_FORM_ID}
+        submitDisabled={isSubmitting}
+        submitLabel={editingId ? t("actions.update") : t("actions.create")}
+        title={editingId ? t("form.editTitle") : t("form.createTitle")}
+      >
+        <Stack
+          component="form"
+          id={SERVICE_TYPE_FORM_ID}
+          onSubmit={(event) => {
+            event.preventDefault();
+            void onSave();
+          }}
+          spacing={2}
+          sx={{ pt: 1 }}
+        >
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextInputField
+                autoFocus
+                control={control}
+                fullWidth
+                hideEmptyHelperText
+                label={t("form.fields.code")}
+                name="code"
+                rules={{
+                  validate: (value) => {
+                    const normalized = value.trim().toUpperCase();
+                    if (!normalized) return t("form.validation.codeRequired");
+                    const duplicate = items.some(
+                      (item) => item.code.toUpperCase() === normalized && item.id !== editingId,
+                    );
+                    return duplicate ? t("form.validation.duplicateCode") : true;
+                  },
+                }}
+                size="small"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextInputField
+                control={control}
+                fullWidth
+                hideEmptyHelperText
+                label={t("form.fields.name")}
+                name="name"
+                rules={{
+                  validate: (value) => (value.trim() ? true : t("form.validation.nameRequired")),
+                }}
+                size="small"
+              />
+            </Grid>
+          </Grid>
+          <Stack alignItems="center" direction="row" spacing={1}>
+            <Switch
+              checked={formValues.isActive}
+              onChange={(event) => setValue("isActive", event.target.checked)}
+            />
+            <Typography variant="body2">{t("form.fields.isActive")}</Typography>
+          </Stack>
+        </Stack>
+      </FormDialog>
+
+      <ConfirmDialog
+        cancelLabel={t("actions.cancel")}
+        confirmLabel={t("actions.delete")}
+        description={t("actions.confirmDeleteDescription")}
+        dialog={deleteDialog}
+        onConfirm={onDelete}
+        title={t("actions.confirmDelete")}
+      />
+    </ContentContainer>
   );
 }

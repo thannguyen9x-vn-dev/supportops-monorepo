@@ -1,4 +1,7 @@
+"use client";
+
 import { Box, Stack, Typography } from "@mui/material";
+import { useEffect, useMemo, useState } from "react";
 
 import { SectionCard } from "@/components/section-card";
 
@@ -7,6 +10,13 @@ import { formatRemainingTime, formatTargetMinutes, resolveSlaSummaryState } from
 import { SlaStateChip } from "../shared/SlaStateChip";
 import styles from "../request-detail-screen.module.css";
 
+function resolveLiveRemainingSeconds(targetAt: string | undefined, fallbackSeconds: number, nowTimestamp: number): number {
+  if (!targetAt) return fallbackSeconds;
+  const targetTimestamp = new Date(targetAt).getTime();
+  if (Number.isNaN(targetTimestamp)) return fallbackSeconds;
+  return Math.max(0, Math.floor((targetTimestamp - nowTimestamp) / 1000));
+}
+
 export function SlaCard({
   request,
   visibility,
@@ -14,6 +24,42 @@ export function SlaCard({
   request: RequestDetail;
   visibility: SectionVisibility;
 }) {
+  const [nowTimestamp, setNowTimestamp] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNowTimestamp(Date.now());
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  const liveAssignmentRemainingSeconds = useMemo(
+    () =>
+      request.sla.assignmentSla
+        ? resolveLiveRemainingSeconds(
+            request.sla.assignmentSla.targetAt,
+            request.sla.assignmentSla.remainingSeconds,
+            nowTimestamp,
+          )
+        : 0,
+    [nowTimestamp, request.sla.assignmentSla],
+  );
+
+  const liveResolutionRemainingSeconds = useMemo(
+    () =>
+      request.sla.resolutionSla
+        ? resolveLiveRemainingSeconds(
+            request.sla.resolutionSla.targetAt,
+            request.sla.resolutionSla.remainingSeconds,
+            nowTimestamp,
+          )
+        : 0,
+    [nowTimestamp, request.sla.resolutionSla],
+  );
+
   const summaryState = resolveSlaSummaryState(request.sla);
 
   return (
@@ -27,7 +73,7 @@ export function SlaCard({
                 <Typography color="text.secondary" variant="body2">Target: {formatTargetMinutes(request.sla.assignmentSla.targetMinutes)}</Typography>
               </Stack>
               <Stack alignItems="center" direction="row" justifyContent="space-between" spacing={1}>
-                <Typography fontWeight={600}>{formatRemainingTime(request.sla.assignmentSla.remainingSeconds)} remaining</Typography>
+                <Typography fontWeight={600}>{formatRemainingTime(liveAssignmentRemainingSeconds)} remaining</Typography>
                 <SlaStateChip state={request.sla.assignmentSla.state} />
               </Stack>
             </Box>
@@ -40,7 +86,7 @@ export function SlaCard({
                 <Typography color="text.secondary" variant="body2">Target: {formatTargetMinutes(request.sla.resolutionSla.targetMinutes)}</Typography>
               </Stack>
               <Stack alignItems="center" direction="row" justifyContent="space-between" spacing={1}>
-                <Typography fontWeight={600}>{formatRemainingTime(request.sla.resolutionSla.remainingSeconds)} remaining</Typography>
+                <Typography fontWeight={600}>{formatRemainingTime(liveResolutionRemainingSeconds)} remaining</Typography>
                 <SlaStateChip state={request.sla.resolutionSla.state} />
               </Stack>
             </Box>
@@ -60,7 +106,7 @@ export function SlaCard({
       ) : (
         <Box className={styles.sideBlock}>
           <Typography color="text.secondary" variant="body2">Resolution SLA</Typography>
-          <Typography fontWeight={600}>{formatRemainingTime(request.sla.resolutionSla?.remainingSeconds ?? 0)} remaining</Typography>
+          <Typography fontWeight={600}>{formatRemainingTime(liveResolutionRemainingSeconds)} remaining</Typography>
         </Box>
       )}
     </SectionCard>

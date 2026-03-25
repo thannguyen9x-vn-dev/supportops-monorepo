@@ -12,7 +12,8 @@ type AuthGuardProps = {
   children: ReactNode;
 };
 
-const routeRoleAccess: Array<{ pathPrefix: string; roles: UserRole[] }> = [
+const routeRoleAccess: Array<{ pathPrefix: string; roles: UserRole[]; redirectTo?: string }> = [
+  { pathPrefix: "/dashboard", roles: ["TENANT_ADMIN", "OPS_COORDINATOR", "TECHNICIAN"], redirectTo: "/requests/list" },
   { pathPrefix: "/admin/user", roles: ["TENANT_ADMIN"] },
   { pathPrefix: "/reports", roles: ["OPS_COORDINATOR", "TENANT_ADMIN"] },
   { pathPrefix: "/settings/workflow", roles: ["TENANT_ADMIN"] },
@@ -40,6 +41,14 @@ function canAccessPath(pathWithoutLocale: string, role?: UserRole): boolean {
   return rule.roles.includes(role);
 }
 
+function getDeniedRedirect(pathWithoutLocale: string): string {
+  const rule = routeRoleAccess.find(({ pathPrefix }) =>
+    pathWithoutLocale === pathPrefix || pathWithoutLocale.startsWith(`${pathPrefix}/`)
+  );
+
+  return rule?.redirectTo ?? "/access-denied";
+}
+
 export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -60,7 +69,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     }
 
     if (!canAccessPath(pathWithoutLocale, user?.role)) {
-      router.replace(`/${locale}/access-denied`);
+      router.replace(`/${locale}${getDeniedRedirect(pathWithoutLocale)}`);
     }
   }, [isAuthenticated, isLoading, locale, pathname, router, user?.role]);
 

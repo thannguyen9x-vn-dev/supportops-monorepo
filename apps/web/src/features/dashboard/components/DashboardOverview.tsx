@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import {
   Alert,
@@ -11,10 +12,21 @@ import {
   CircularProgress,
   Divider,
   Grid,
+  IconButton,
   Stack,
+  Tooltip,
   Typography,
+  useTheme,
 } from "@mui/material";
-import type { DashboardRecentActivityItem, DashboardSummary } from "@supportops/types";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
+import PersonOffOutlinedIcon from "@mui/icons-material/PersonOffOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
+import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
+import AssignmentIndOutlinedIcon from "@mui/icons-material/AssignmentIndOutlined";
+import { LineChart } from "@mui/x-charts/LineChart";
+import type { DashboardRecentActivityItem, DashboardRequestTrendItem, DashboardSummary } from "@supportops/types";
 
 import { useDashboardOverview } from "@/features/dashboard/hooks/useDashboardOverview";
 
@@ -22,18 +34,28 @@ function KpiCard({
   label,
   value,
   helper,
+  icon,
+  accentColor,
 }: {
   label: string;
   value: string;
   helper?: string;
+  icon?: ReactNode;
+  accentColor?: string;
 }) {
   return (
-    <Card variant="outlined">
+    <Card
+      variant="outlined"
+      sx={accentColor ? { borderLeft: "3px solid", borderLeftColor: accentColor } : undefined}
+    >
       <CardContent>
         <Stack spacing={1}>
-          <Typography color="text.secondary" variant="body2">
-            {label}
-          </Typography>
+          <Stack alignItems="center" direction="row" justifyContent="space-between">
+            <Typography color="text.secondary" variant="body2">
+              {label}
+            </Typography>
+            {icon}
+          </Stack>
           <Typography sx={{ fontSize: 32, fontWeight: 700, lineHeight: 1.1 }} variant="h4">
             {value}
           </Typography>
@@ -111,12 +133,74 @@ function ActivityRow({ item }: { item: DashboardRecentActivityItem }) {
   );
 }
 
-function DashboardContent({ summary, recentActivity }: { summary: DashboardSummary; recentActivity: DashboardRecentActivityItem[] }) {
+function TrendChart({ data }: { data: DashboardRequestTrendItem[] }) {
+  const t = useTranslations("pages.dashboard");
+  const theme = useTheme();
+
+  const dates = data.map((d) => new Date(d.date));
+  const opened = data.map((d) => d.opened);
+  const resolved = data.map((d) => d.resolved);
+
+  return (
+    <Card variant="outlined">
+      <CardContent>
+        <Stack spacing={2}>
+          <Typography variant="h6">{t("sections.requestTrend")}</Typography>
+          <LineChart
+            xAxis={[{
+              data: dates,
+              scaleType: "time",
+              valueFormatter: (v: Date) =>
+                v.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+            }]}
+            series={[
+              {
+                data: opened,
+                label: t("trend.opened"),
+                color: theme.palette.primary.main,
+                area: true,
+                showMark: false,
+              },
+              {
+                data: resolved,
+                label: t("trend.resolved"),
+                color: theme.palette.success.main,
+                area: true,
+                showMark: false,
+              },
+            ]}
+            height={220}
+            margin={{ top: 16, bottom: 40, left: 36, right: 16 }}
+            sx={{
+              "& .MuiAreaElement-root": { fillOpacity: 0.12 },
+              "& .MuiChartsAxis-tickLabel": { fontSize: "0.75rem" },
+            }}
+          />
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DashboardContent({
+  summary,
+  recentActivity,
+  trend,
+  onRefresh,
+  isRefreshing,
+}: {
+  summary: DashboardSummary;
+  recentActivity: DashboardRecentActivityItem[];
+  trend: DashboardRequestTrendItem[];
+  onRefresh: () => void;
+  isRefreshing: boolean;
+}) {
   const t = useTranslations("pages.dashboard");
   const requestListT = useTranslations("pages.requests.list");
   const format = useFormatter();
 
   const scopeLabel = summary.scope === "TEAM" ? t("scope.team") : t("scope.personal");
+  const activeStatusRows = summary.requestsByStatus.filter((item) => item.count > 0);
 
   return (
     <Stack spacing={3}>
@@ -132,33 +216,74 @@ function DashboardContent({ summary, recentActivity }: { summary: DashboardSumma
             {t("subtitle")}
           </Typography>
         </Stack>
-        <Chip color={summary.scope === "TEAM" ? "primary" : "default"} label={scopeLabel} variant="outlined" />
+        <Stack alignItems="center" direction="row" spacing={1}>
+          <Chip color={summary.scope === "TEAM" ? "primary" : "default"} label={scopeLabel} variant="outlined" />
+          <Tooltip title={t("action.refresh")}>
+            <span>
+              <IconButton disabled={isRefreshing} onClick={onRefresh} size="small">
+                <RefreshIcon
+                  fontSize="small"
+                  sx={isRefreshing ? { animation: "spin 1s linear infinite", "@keyframes spin": { from: { transform: "rotate(0deg)" }, to: { transform: "rotate(360deg)" } } } : undefined}
+                />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Stack>
       </Stack>
 
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
-          <KpiCard label={t("kpi.openRequests")} value={format.number(summary.kpis.openRequests)} />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
-          <KpiCard label={t("kpi.unassigned")} value={format.number(summary.kpis.unassigned)} />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
-          <KpiCard label={t("kpi.slaBreached")} value={format.number(summary.kpis.slaBreached)} />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
-          <KpiCard label={t("kpi.resolvedToday")} value={format.number(summary.kpis.resolvedToday)} />
+          <KpiCard
+            accentColor="primary.main"
+            icon={<InboxOutlinedIcon sx={{ color: "primary.main", fontSize: 18, opacity: 0.8 }} />}
+            label={t("kpi.openRequests")}
+            value={format.number(summary.kpis.openRequests)}
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
           <KpiCard
+            accentColor="warning.main"
+            icon={<PersonOffOutlinedIcon sx={{ color: "warning.main", fontSize: 18, opacity: 0.8 }} />}
+            label={t("kpi.unassigned")}
+            value={format.number(summary.kpis.unassigned)}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+          <KpiCard
+            accentColor="error.main"
+            icon={<WarningAmberOutlinedIcon sx={{ color: "error.main", fontSize: 18, opacity: 0.8 }} />}
+            label={t("kpi.slaBreached")}
+            value={format.number(summary.kpis.slaBreached)}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+          <KpiCard
+            accentColor="success.main"
+            icon={<TaskAltOutlinedIcon sx={{ color: "success.main", fontSize: 18, opacity: 0.8 }} />}
+            label={t("kpi.resolvedToday")}
+            value={format.number(summary.kpis.resolvedToday)}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+          <KpiCard
+            accentColor="info.main"
             helper={t("kpi.avgResolutionTimeHelper")}
+            icon={<AccessTimeOutlinedIcon sx={{ color: "info.main", fontSize: 18, opacity: 0.8 }} />}
             label={t("kpi.avgResolutionTime")}
             value={format.number(summary.kpis.avgResolutionTimeHours, { maximumFractionDigits: 1 })}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
-          <KpiCard label={t("kpi.myAssigned")} value={format.number(summary.kpis.myAssigned)} />
+          <KpiCard
+            accentColor="secondary.main"
+            icon={<AssignmentIndOutlinedIcon sx={{ color: "secondary.main", fontSize: 18, opacity: 0.8 }} />}
+            label={t("kpi.myAssigned")}
+            value={format.number(summary.kpis.myAssigned)}
+          />
         </Grid>
       </Grid>
+
+      <TrendChart data={trend} />
 
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, lg: 4 }}>
@@ -166,13 +291,19 @@ function DashboardContent({ summary, recentActivity }: { summary: DashboardSumma
             <CardContent>
               <Stack spacing={1.5}>
                 <Typography variant="h6">{t("sections.byStatus")}</Typography>
-                {summary.requestsByStatus.map((item) => (
-                  <StatusRow
-                    count={item.count}
-                    key={item.status}
-                    label={requestListT(`statusApi.${item.status}`)}
-                  />
-                ))}
+                {activeStatusRows.length === 0 ? (
+                  <Typography color="text.secondary" variant="body2">
+                    {t("state.empty")}
+                  </Typography>
+                ) : (
+                  activeStatusRows.map((item) => (
+                    <StatusRow
+                      count={item.count}
+                      key={item.status}
+                      label={requestListT(`statusApi.${item.status}`)}
+                    />
+                  ))
+                )}
               </Stack>
             </CardContent>
           </Card>
@@ -234,7 +365,7 @@ function DashboardContent({ summary, recentActivity }: { summary: DashboardSumma
 
 export function DashboardOverview() {
   const t = useTranslations("pages.dashboard");
-  const { data, loadState, reload } = useDashboardOverview();
+  const { data, trend, loadState, reload } = useDashboardOverview();
 
   if (loadState === "loading") {
     return (
@@ -261,13 +392,12 @@ export function DashboardOverview() {
   }
 
   return (
-    <Stack spacing={3}>
-      <Box>
-        <Button onClick={() => void reload()} size="small" variant="outlined">
-          {t("action.refresh")}
-        </Button>
-      </Box>
-      <DashboardContent recentActivity={data.recentActivity} summary={data.summary} />
-    </Stack>
+    <DashboardContent
+      isRefreshing={loadState === "refreshing"}
+      onRefresh={() => void reload()}
+      recentActivity={data.recentActivity}
+      summary={data.summary}
+      trend={trend}
+    />
   );
 }

@@ -2,12 +2,10 @@
 
 import {
   Alert,
-  Autocomplete,
   Box,
   Button,
   Card,
   CardContent,
-  CircularProgress,
   Divider,
   FormControl,
   FormControlLabel,
@@ -16,7 +14,6 @@ import {
   Radio,
   RadioGroup,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
 import type { Asset, CreateServiceRequestInput, ServiceRequest } from "@supportops/types";
@@ -197,13 +194,36 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
     let isMounted = true;
     setLoadingAssets(true);
 
+    const fetchAllAssets = async () => {
+      const { data } = await assetService.list({ size: 200 });
+      return data;
+    };
+
     const loadAssets = async () => {
       try {
-        const query = watchedLocation ? { locationId: watchedLocation } : undefined;
+        const query = watchedLocation ? { locationId: watchedLocation, size: 200 } : { size: 200 };
         const { data } = await assetService.list(query);
-        if (isMounted) setAssets(data);
+
+        if (!isMounted) return;
+
+        if (watchedLocation && data.length === 0) {
+          const fallbackAssets = await fetchAllAssets();
+          if (!isMounted) return;
+          setAssets(fallbackAssets);
+          return;
+        }
+
+        setAssets(data);
       } catch {
-        // Non-critical — asset selector degrades gracefully.
+        // Fallback to global asset list in case location-filter query fails.
+        try {
+          const fallbackAssets = await fetchAllAssets();
+          if (!isMounted) return;
+          setAssets(fallbackAssets);
+        } catch {
+          if (!isMounted) return;
+          setAssets([]);
+        }
       } finally {
         if (isMounted) setLoadingAssets(false);
       }
@@ -224,6 +244,15 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
       { label: t("priority.critical"), value: "CRITICAL" as const },
     ],
     [t],
+  );
+
+  const assetOptions = useMemo(
+    () =>
+      assets.map((asset) => ({
+        label: `${asset.name} (${asset.assetCode})`,
+        value: asset.id,
+      })),
+    [assets],
   );
 
   const handleFileUpload = useCallback(
@@ -428,36 +457,27 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
         </Grid>
       </Grid>
 
-      <Controller
+      <SelectOptionField
+        autocompleteProps={{
+          loading: loadingAssets,
+          openOnFocus: true,
+          autoHighlight: true,
+          slotProps: {
+            popper: {
+              sx: {
+                zIndex: (theme) => theme.zIndex.modal + 1,
+              },
+            },
+          },
+        }}
         control={control}
+        disableClearable={false}
+        label={t("fields.assetId")}
         name="assetId"
-        render={({ field }) => (
-          <Autocomplete
-            getOptionLabel={(opt) => `${opt.name} (${opt.assetCode})`}
-            isOptionEqualToValue={(opt, val) => opt.id === val.id}
-            loading={loadingAssets}
-            onChange={(_, newValue) => field.onChange(newValue?.id ?? "")}
-            options={assets}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                InputProps={{
-                  ...params.InputProps,
-                  endAdornment: (
-                    <>
-                      {loadingAssets ? <CircularProgress size={16} /> : null}
-                      {params.InputProps.endAdornment}
-                    </>
-                  ),
-                }}
-                label={t("fields.assetId")}
-                placeholder={t("placeholders.assetId")}
-                size="small"
-              />
-            )}
-            value={assets.find((a) => a.id === field.value) ?? null}
-          />
-        )}
+        noOptionsText={loadingAssets ? t("assetPicker.loading") : t("assetPicker.noOptions")}
+        options={assetOptions}
+        placeholder={t("placeholders.assetId")}
+        searchable
       />
 
       <FileUploadField

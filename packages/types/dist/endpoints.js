@@ -29,6 +29,7 @@ export const LEGACY_ENDPOINTS = {
     DASHBOARD: {
         SUMMARY: "/dashboard/summary",
         RECENT_ACTIVITY: "/dashboard/recent-activity",
+        REQUEST_TREND: "/dashboard/request-trend",
         SALES_SUMMARY: "/dashboard/sales-summary",
         KPI: "/dashboard/kpi",
         SESSIONS_COUNTRY: "/dashboard/sessions-by-country",

@@ -169,10 +169,13 @@ export function getHeaderActions(params: HeaderActionParams): HeaderAction[] {
   }
 
   const uniqueActions = Array.from(new Set(actions));
+  const normalizedActions = params.hasAssignee
+    ? uniqueActions.filter((action) => action !== "ASSIGN")
+    : uniqueActions;
 
   if (params.role === "TECHNICIAN") {
-    return uniqueActions.filter((action) => action !== "REASSIGN");
+    return normalizedActions.filter((action) => action !== "REASSIGN");
   }
 
-  return uniqueActions;
+  return normalizedActions;
 }

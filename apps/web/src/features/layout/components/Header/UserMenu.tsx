@@ -1,8 +1,8 @@
 "use client";
 
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import LockResetOutlinedIcon from "@mui/icons-material/LockResetOutlined";
 import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import {
   Box,
   ButtonBase,
@@ -58,7 +58,7 @@ export function UserMenu() {
     router.push(`/${locale}/account/profile?tab=general`);
   };
 
-  const handleOpenSettings = () => {
+  const handleOpenUpdatePassword = () => {
     handleClose();
     router.push(`/${locale}/account/profile?tab=security`);
   };
@@ -119,12 +119,12 @@ export function UserMenu() {
           />
         </MenuItem>
 
-        <MenuItem onClick={handleOpenSettings} sx={{ borderRadius: 1, minHeight: 40 }}>
+        <MenuItem onClick={handleOpenUpdatePassword} sx={{ borderRadius: 1, minHeight: 40 }}>
           <ListItemIcon sx={{ minWidth: 32 }}>
-            <SettingsOutlinedIcon fontSize="small" />
+            <LockResetOutlinedIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText
-            primary={t("settings")}
+            primary={t("updatePassword")}
             primaryTypographyProps={{ fontSize: 14, fontWeight: 600, lineHeight: "20px" }}
           />
         </MenuItem>

@@ -179,7 +179,7 @@ export class RequestController {
   }
 
   @Post(':id/work-log')
-  @Permissions({ all: ['request.start_work'] })
+  @Permissions({ any: ['request.start_work', 'request.read.all'] })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Add work log entry to a request' })
   addWorkLog(

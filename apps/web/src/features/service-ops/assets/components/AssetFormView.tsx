@@ -8,20 +8,16 @@ import {
   CardContent,
   CircularProgress,
   Divider,
-  FormControl,
   Grid,
-  InputLabel,
-  MenuItem,
-  Select,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
-import type { AssetStatus, AssetType } from "@supportops/types";
+import { SelectDateField, SelectOptionField, TextAreaField, TextInputField } from "@supportops/ui-form";
+import type { Asset, AssetStatus, AssetType } from "@supportops/types";
 import { ASSET_STATUSES } from "@supportops/types";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
 
 import { useToast } from "@/features/common/toast/useToast";
@@ -41,6 +37,8 @@ type AssetFormValues = {
   description: string;
 };
 
+export const ASSET_FORM_ID = "asset-form";
+
 const DEFAULT_VALUES: AssetFormValues = {
   assetCode: "",
   name: "",
@@ -55,12 +53,23 @@ const DEFAULT_VALUES: AssetFormValues = {
   description: "",
 };
 
-type AssetFormViewProps =
-  | { mode: "create" }
-  | { mode: "edit"; assetId: string };
+type AssetFormCreateProps = {
+  mode: "create";
+  modal?: boolean;
+  onSuccess?: (createdAsset: Asset) => void;
+};
+
+type AssetFormEditProps = {
+  mode: "edit";
+  assetId: string;
+  modal?: boolean;
+};
+
+type AssetFormViewProps = AssetFormCreateProps | AssetFormEditProps;
 
 export function AssetFormView(props: AssetFormViewProps) {
   const t = useTranslations("pages.serviceOps.assets.form");
+  const tList = useTranslations("pages.serviceOps.assets.list");
   const router = useRouter();
   const { locale } = useParams<{ locale: string }>();
   const toast = useToast();
@@ -73,7 +82,7 @@ export function AssetFormView(props: AssetFormViewProps) {
     control,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm<AssetFormValues>({
     defaultValues: DEFAULT_VALUES,
     mode: "onTouched",
@@ -135,11 +144,17 @@ export function AssetFormView(props: AssetFormViewProps) {
       if (props.mode === "create") {
         const { data } = await assetService.create(payload);
         toast.success(t("feedback.createSuccess"));
-        router.push(`/${locale}/assets/${data.id}`);
+        if (props.modal) {
+          props.onSuccess?.(data);
+        } else {
+          router.push(`/${locale}/assets/${data.id}`);
+        }
       } else {
         await assetService.update(props.assetId, payload);
         toast.success(t("feedback.updateSuccess"));
-        router.push(`/${locale}/assets/${props.assetId}`);
+        if (!props.modal) {
+          router.push(`/${locale}/assets/${props.assetId}`);
+        }
       }
     } catch {
       const msg = props.mode === "create" ? t("feedback.createError") : t("feedback.updateError");
@@ -148,6 +163,7 @@ export function AssetFormView(props: AssetFormViewProps) {
   };
 
   const title = props.mode === "create" ? t("createTitle") : t("editTitle");
+  const showPageChrome = !props.modal;
   const backHref =
     props.mode === "create"
       ? `/${locale}/assets/list`
@@ -161,127 +177,80 @@ export function AssetFormView(props: AssetFormViewProps) {
     );
   }
 
-  return (
-    <Box sx={{ maxWidth: 860, mx: "auto", p: { xs: 2, md: 3 } }}>
-      <Typography gutterBottom variant="h5">
-        {title}
-      </Typography>
-
-      <Card variant="outlined">
-        <CardContent>
-          <Stack
-            component="form"
-            noValidate
-            onSubmit={(e) => void handleSubmit(onSubmit)(e)}
-            spacing={3}
-          >
+  const formContent = (
+    <Stack
+      component="form"
+      id={ASSET_FORM_ID}
+      noValidate
+      onSubmit={(e) => void handleSubmit(onSubmit)(e)}
+      spacing={3}
+    >
             {/* Basic Info */}
             <Typography fontWeight={600} variant="body1">
               {t("sections.basic")}
             </Typography>
 
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  control={control}
-                  name="assetCode"
-                  rules={{ required: t("validation.assetCodeRequired") }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      error={!!errors.assetCode}
-                      fullWidth
-                      helperText={errors.assetCode?.message}
-                      label={t("fields.assetCode")}
-                      placeholder={t("placeholders.assetCode")}
-                      size="small"
-                    />
-                  )}
-                />
-              </Grid>
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextInputField
+            control={control}
+            fullWidth
+            hideEmptyHelperText
+            label={t("fields.assetCode")}
+            name="assetCode"
+            placeholder={t("placeholders.assetCode")}
+            rules={{ required: t("validation.assetCodeRequired") }}
+          />
+        </Grid>
 
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  control={control}
-                  name="name"
-                  rules={{ required: t("validation.nameRequired") }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      error={!!errors.name}
-                      fullWidth
-                      helperText={errors.name?.message}
-                      label={t("fields.name")}
-                      placeholder={t("placeholders.name")}
-                      size="small"
-                    />
-                  )}
-                />
-              </Grid>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextInputField
+            control={control}
+            fullWidth
+            hideEmptyHelperText
+            label={t("fields.name")}
+            name="name"
+            placeholder={t("placeholders.name")}
+            rules={{ required: t("validation.nameRequired") }}
+          />
+        </Grid>
 
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  control={control}
-                  name="assetTypeId"
-                  rules={{ required: t("validation.assetTypeRequired") }}
-                  render={({ field }) => (
-                    <FormControl error={!!errors.assetTypeId} fullWidth size="small">
-                      <InputLabel>{t("fields.assetType")}</InputLabel>
-                      <Select {...field} label={t("fields.assetType")}>
-                        {assetTypes.map((at) => (
-                          <MenuItem key={at.id} value={at.id}>
-                            {at.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {errors.assetTypeId && (
-                        <Typography color="error" variant="caption">
-                          {errors.assetTypeId.message}
-                        </Typography>
-                      )}
-                    </FormControl>
-                  )}
-                />
-              </Grid>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <SelectOptionField
+            control={control}
+            fullWidth
+            hideEmptyHelperText
+            label={t("fields.assetType")}
+            name="assetTypeId"
+            options={assetTypes.map((at) => ({ value: at.id, label: at.name }))}
+            placeholder={t("fields.assetType")}
+            rules={{ required: t("validation.assetTypeRequired") }}
+          />
+        </Grid>
 
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  control={control}
-                  name="locationId"
-                  rules={{ required: t("validation.locationRequired") }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      error={!!errors.locationId}
-                      fullWidth
-                      helperText={errors.locationId?.message}
-                      label={t("fields.location")}
-                      placeholder={t("placeholders.location")}
-                      size="small"
-                    />
-                  )}
-                />
-              </Grid>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextInputField
+            control={control}
+            fullWidth
+            hideEmptyHelperText
+            label={t("fields.location")}
+            name="locationId"
+            placeholder={t("placeholders.location")}
+            rules={{ required: t("validation.locationRequired") }}
+          />
+        </Grid>
 
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  control={control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormControl fullWidth size="small">
-                      <InputLabel>{t("fields.status")}</InputLabel>
-                      <Select {...field} label={t("fields.status")}>
-                        {ASSET_STATUSES.map((s) => (
-                          <MenuItem key={s} value={s}>
-                            {s.replace(/_/g, " ")}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  )}
-                />
-              </Grid>
-            </Grid>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <SelectOptionField
+            control={control}
+            fullWidth
+            hideEmptyHelperText
+            label={t("fields.status")}
+            name="status"
+            options={ASSET_STATUSES.map((status) => ({ value: status, label: tList(`statusLabels.${status}`) }))}
+          />
+        </Grid>
+      </Grid>
 
             <Divider />
 
@@ -290,124 +259,106 @@ export function AssetFormView(props: AssetFormViewProps) {
               {t("sections.operational")}
             </Typography>
 
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  control={control}
-                  name="serialNumber"
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label={t("fields.serialNumber")}
-                      placeholder={t("placeholders.serialNumber")}
-                      size="small"
-                    />
-                  )}
-                />
-              </Grid>
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextInputField
+            control={control}
+            fullWidth
+            hideEmptyHelperText
+            label={t("fields.serialNumber")}
+            name="serialNumber"
+            placeholder={t("placeholders.serialNumber")}
+          />
+        </Grid>
 
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  control={control}
-                  name="model"
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label={t("fields.model")}
-                      placeholder={t("placeholders.model")}
-                      size="small"
-                    />
-                  )}
-                />
-              </Grid>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextInputField
+            control={control}
+            fullWidth
+            hideEmptyHelperText
+            label={t("fields.model")}
+            name="model"
+            placeholder={t("placeholders.model")}
+          />
+        </Grid>
 
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  control={control}
-                  name="assignedDepartment"
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label={t("fields.assignedDepartment")}
-                      placeholder={t("placeholders.assignedDepartment")}
-                      size="small"
-                    />
-                  )}
-                />
-              </Grid>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextInputField
+            control={control}
+            fullWidth
+            hideEmptyHelperText
+            label={t("fields.assignedDepartment")}
+            name="assignedDepartment"
+            placeholder={t("placeholders.assignedDepartment")}
+          />
+        </Grid>
 
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  control={control}
-                  name="responsibleTeam"
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label={t("fields.responsibleTeam")}
-                      placeholder={t("placeholders.responsibleTeam")}
-                      size="small"
-                    />
-                  )}
-                />
-              </Grid>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextInputField
+            control={control}
+            fullWidth
+            hideEmptyHelperText
+            label={t("fields.responsibleTeam")}
+            name="responsibleTeam"
+            placeholder={t("placeholders.responsibleTeam")}
+          />
+        </Grid>
 
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  control={control}
-                  name="installedAt"
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      InputLabelProps={{ shrink: true }}
-                      label={t("fields.installedAt")}
-                      size="small"
-                      type="date"
-                    />
-                  )}
-                />
-              </Grid>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <SelectDateField
+            control={control}
+            hideEmptyHelperText
+            label={t("fields.installedAt")}
+            locale={locale}
+            name="installedAt"
+          />
+        </Grid>
 
-              <Grid size={{ xs: 12 }}>
-                <Controller
-                  control={control}
-                  name="description"
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label={t("fields.description")}
-                      minRows={3}
-                      multiline
-                      placeholder={t("placeholders.description")}
-                      size="small"
-                    />
-                  )}
-                />
-              </Grid>
-            </Grid>
+        <Grid size={{ xs: 12 }}>
+          <TextAreaField
+            control={control}
+            fullWidth
+            hideEmptyHelperText
+            label={t("fields.description")}
+            minRows={3}
+            name="description"
+            placeholder={t("placeholders.description")}
+          />
+        </Grid>
+      </Grid>
 
             {submitError && <Alert severity="error">{submitError}</Alert>}
 
-            <Stack direction="row" spacing={1.5}>
-              <Button
-                disabled={isSubmitting}
-                onClick={() => router.push(backHref)}
-                variant="outlined"
-              >
-                {t("actions.cancel")}
-              </Button>
-              <Button disabled={isSubmitting} type="submit" variant="contained">
-                {props.mode === "create" ? t("actions.create") : t("actions.save")}
-              </Button>
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
+      {!props.modal ? (
+        <Stack direction="row" spacing={1.5}>
+          <Button
+            disabled={isSubmitting}
+            onClick={() => router.push(backHref)}
+            variant="outlined"
+          >
+            {t("actions.cancel")}
+          </Button>
+          <Button disabled={isSubmitting} type="submit" variant="contained">
+            {props.mode === "create" ? t("actions.create") : t("actions.save")}
+          </Button>
+        </Stack>
+      ) : null}
+    </Stack>
+  );
+
+  return (
+    <Box sx={showPageChrome ? { maxWidth: 860, mx: "auto", p: { xs: 2, md: 3 } } : undefined}>
+      {showPageChrome ? (
+        <Typography gutterBottom variant="h5">
+          {title}
+        </Typography>
+      ) : null}
+
+      {showPageChrome ? (
+        <Card variant="outlined">
+          <CardContent>{formContent}</CardContent>
+        </Card>
+      ) : formContent}
     </Box>
   );
 }

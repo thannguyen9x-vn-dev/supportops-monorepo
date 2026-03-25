@@ -1730,7 +1730,71 @@ function SelectDateFieldInner(props) {
   ] });
 }
 var SelectDateField = SelectDateFieldInner;
+var textSmStyle5 = {
+  fontSize: 14,
+  fontWeight: 600,
+  lineHeight: "20px"
+};
+function getBorderRadiusPx3(value) {
+  if (typeof value === "number") return value;
+  const parsed = Number.parseFloat(value);
+  if (!Number.isFinite(parsed)) return 8;
+  return parsed;
+}
+var StyledFieldLabel4 = styled(FormLabel)(({ theme }) => ({
+  ...textSmStyle5,
+  display: "block",
+  color: theme.palette.text.secondary,
+  marginBottom: 6
+}));
+var StyledTextField4 = styled(TextField)(({ theme }) => ({
+  "& .MuiOutlinedInput-root": {
+    borderRadius: getBorderRadiusPx3(theme.shape.borderRadius) * 3
+  },
+  "& .MuiOutlinedInput-input": {
+    ...textSmStyle5,
+    padding: "10px 16px",
+    "&::placeholder": {
+      color: theme.palette.text.secondary,
+      fontWeight: 400,
+      opacity: 1
+    }
+  }
+}));
+function DurationMinutesInput({
+  label,
+  value,
+  onChange,
+  min = 1,
+  step = 1,
+  max,
+  fullWidth = true,
+  ...rest
+}) {
+  return /* @__PURE__ */ jsxs(Box4, { sx: { width: fullWidth ? "100%" : void 0 }, children: [
+    /* @__PURE__ */ jsx(StyledFieldLabel4, { children: label }),
+    /* @__PURE__ */ jsx(
+      StyledTextField4,
+      {
+        ...rest,
+        fullWidth,
+        onChange: (event) => onChange(event.target.value),
+        slotProps: {
+          htmlInput: {
+            inputMode: "numeric",
+            min,
+            max,
+            step
+          }
+        },
+        type: "number",
+        value,
+        variant: "outlined"
+      }
+    )
+  ] });
+}
 
-export { PhoneNumberField, SelectDateField, SelectOptionField, TextAreaField, TextInputField };
+export { DurationMinutesInput, PhoneNumberField, SelectDateField, SelectOptionField, TextAreaField, TextInputField };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

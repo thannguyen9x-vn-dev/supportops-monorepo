@@ -58,19 +58,19 @@ export function AssignmentCard({
       )}
 
       {role === "EMPLOYEE" ? null : (
-        <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap", mt: 1.5 }}>
           {showAssignToMe ? (
-            <Button disabled={isSubmitting} fullWidth onClick={onAssignToMe} size="small" variant="outlined">
+            <Button disabled={isSubmitting} onClick={onAssignToMe} size="small" variant="outlined">
               Assign to me
             </Button>
           ) : null}
           {showAssign ? (
-            <Button disabled={isSubmitting} fullWidth onClick={() => onAssign(false)} size="small" variant="outlined">
+            <Button disabled={isSubmitting} onClick={() => onAssign(false)} size="small" variant="outlined">
               Assign
             </Button>
           ) : null}
           {showReassign ? (
-            <Button disabled={isSubmitting} fullWidth onClick={() => onAssign(true)} size="small" variant="outlined">
+            <Button disabled={isSubmitting} onClick={() => onAssign(true)} size="small" variant="outlined">
               Reassign
             </Button>
           ) : null}
@@ -78,7 +78,15 @@ export function AssignmentCard({
       )}
 
       <Typography className={styles.sectionTitle} sx={{ mt: 2 }}>HANDOFF HISTORY</Typography>
-      <Stack spacing={1} sx={{ mt: 1 }}>
+      <Stack
+        spacing={1}
+        sx={{
+          mt: 1,
+          maxHeight: { xs: 200, md: 240 },
+          overflowY: "auto",
+          pr: 0.5,
+        }}
+      >
         {request.assignment.handoffHistory.map((item) => (
           <Box key={item.id}>
             <Typography fontWeight={600} variant="body2">{`${item.from} -> ${item.to}`}</Typography>

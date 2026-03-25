@@ -9,6 +9,18 @@ export default async function LegacySettingsPage({
 }) {
   const { locale } = await params;
   const { tab } = await searchParams;
-  const target = tab ? `/${locale}/account/profile?tab=${encodeURIComponent(tab)}` : `/${locale}/account/profile`;
-  redirect(target);
+
+  if (tab === "general" || tab === "notifications" || tab === "security" || tab === "sessions") {
+    redirect(`/${locale}/account/profile?tab=${encodeURIComponent(tab)}`);
+  }
+
+  if (tab === "sla") {
+    redirect(`/${locale}/settings/sla`);
+  }
+
+  if (tab === "service-types") {
+    redirect(`/${locale}/settings/service-types`);
+  }
+
+  redirect(`/${locale}/settings/workflow`);
 }

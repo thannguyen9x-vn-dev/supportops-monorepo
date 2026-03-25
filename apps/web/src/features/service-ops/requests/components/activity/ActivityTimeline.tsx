@@ -5,7 +5,8 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import RateReviewOutlinedIcon from "@mui/icons-material/RateReviewOutlined";
 import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined";
-import { Avatar as MuiAvatar, Box, Chip, Stack, Typography } from "@mui/material";
+import { Avatar as MuiAvatar, Box, Chip, Stack, Tooltip, Typography } from "@mui/material";
+import { Avatar as UserAvatar } from "@supportops/ui-avatar";
 import type { UserRole } from "@supportops/types";
 
 import { SectionCard } from "@/components/section-card";
@@ -34,6 +35,87 @@ function TimelineIcon({ iconType }: { iconType: ReturnType<typeof eventIcon> }) 
   }
 }
 
+function ActorHoverCard({
+  name,
+  email,
+  avatarUrl,
+}: {
+  name: string;
+  email?: string;
+  avatarUrl?: string | null;
+}) {
+  return (
+    <Stack alignItems="center" direction="row" spacing={1} sx={{ minWidth: 180 }}>
+      <UserAvatar dimension={28} name={name} src={avatarUrl ?? undefined} />
+      <Box sx={{ minWidth: 0 }}>
+        <Typography noWrap sx={{ fontSize: 13, fontWeight: 600, lineHeight: "18px" }}>
+          {name}
+        </Typography>
+        {email ? (
+          <Typography noWrap sx={{ color: "text.secondary", fontSize: 12, lineHeight: "16px" }}>
+            {email}
+          </Typography>
+        ) : null}
+      </Box>
+    </Stack>
+  );
+}
+
+function TimelineActor({
+  name,
+  email,
+  avatarUrl,
+  actorType,
+}: {
+  name?: string;
+  email?: string;
+  avatarUrl?: string | null;
+  actorType?: "USER" | "SYSTEM";
+}) {
+  if (!name) return null;
+
+  if (actorType !== "USER") {
+    return <Typography color="text.secondary" variant="body2">{name}</Typography>;
+  }
+
+  return (
+    <Tooltip
+      arrow
+      placement="top-start"
+      slotProps={{
+        tooltip: {
+          sx: {
+            bgcolor: "background.paper",
+            border: "1px solid var(--mui-palette-divider)",
+            borderRadius: 1,
+            boxShadow: "0px 8px 24px rgba(15, 23, 42, 0.14)",
+            color: "text.primary",
+            px: 1.25,
+            py: 0.9,
+          },
+        },
+        arrow: {
+          sx: {
+            color: "background.paper",
+            "&:before": { border: "1px solid var(--mui-palette-divider)", boxSizing: "border-box" },
+          },
+        },
+      }}
+      title={<ActorHoverCard avatarUrl={avatarUrl} email={email} name={name} />}
+    >
+      <Typography
+        color="text.secondary"
+        component="span"
+        sx={{ cursor: "help", textDecoration: "underline dotted", textUnderlineOffset: "2px" }}
+        tabIndex={0}
+        variant="body2"
+      >
+        {name}
+      </Typography>
+    </Tooltip>
+  );
+}
+
 export function ActivityTimeline({
   request,
   viewerRole,
@@ -50,7 +132,16 @@ export function ActivityTimeline({
       headerRight={<Typography color="text.secondary" variant="caption">All times in local timezone</Typography>}
       title="Activity timeline"
     >
-      <Stack className={styles.timelineWrap} spacing={2} sx={{ mt: 1.5 }}>
+      <Stack
+        className={styles.timelineWrap}
+        spacing={2}
+        sx={{
+          mt: 1.5,
+          maxHeight: { xs: 320, md: 420 },
+          overflowY: "auto",
+          pr: 0.5,
+        }}
+      >
         {visibleEvents.length === 0 ? (
           <Typography color="text.secondary" variant="body2">No activity yet.</Typography>
         ) : null}
@@ -66,7 +157,12 @@ export function ActivityTimeline({
                 {item.visibility === "INTERNAL" ? <Chip label="Internal" size="small" variant="outlined" /> : null}
               </Stack>
               {item.description ? <Typography>{item.description}</Typography> : null}
-              {item.actorName ? <Typography color="text.secondary" variant="body2">{item.actorName}</Typography> : null}
+              <TimelineActor
+                actorType={item.actorType}
+                avatarUrl={item.actorAvatarUrl}
+                email={item.actorEmail}
+                name={item.actorName}
+              />
             </Box>
             <Typography color="text.secondary" variant="body2">{item.createdAt}</Typography>
           </Box>

@@ -1758,7 +1758,72 @@ function SelectDateFieldInner(props) {
   ] });
 }
 var SelectDateField = SelectDateFieldInner;
+var textSmStyle5 = {
+  fontSize: 14,
+  fontWeight: 600,
+  lineHeight: "20px"
+};
+function getBorderRadiusPx3(value) {
+  if (typeof value === "number") return value;
+  const parsed = Number.parseFloat(value);
+  if (!Number.isFinite(parsed)) return 8;
+  return parsed;
+}
+var StyledFieldLabel4 = styles.styled(FormLabel__default.default)(({ theme }) => ({
+  ...textSmStyle5,
+  display: "block",
+  color: theme.palette.text.secondary,
+  marginBottom: 6
+}));
+var StyledTextField4 = styles.styled(TextField__default.default)(({ theme }) => ({
+  "& .MuiOutlinedInput-root": {
+    borderRadius: getBorderRadiusPx3(theme.shape.borderRadius) * 3
+  },
+  "& .MuiOutlinedInput-input": {
+    ...textSmStyle5,
+    padding: "10px 16px",
+    "&::placeholder": {
+      color: theme.palette.text.secondary,
+      fontWeight: 400,
+      opacity: 1
+    }
+  }
+}));
+function DurationMinutesInput({
+  label,
+  value,
+  onChange,
+  min = 1,
+  step = 1,
+  max,
+  fullWidth = true,
+  ...rest
+}) {
+  return /* @__PURE__ */ jsxRuntime.jsxs(Box4__default.default, { sx: { width: fullWidth ? "100%" : void 0 }, children: [
+    /* @__PURE__ */ jsxRuntime.jsx(StyledFieldLabel4, { children: label }),
+    /* @__PURE__ */ jsxRuntime.jsx(
+      StyledTextField4,
+      {
+        ...rest,
+        fullWidth,
+        onChange: (event) => onChange(event.target.value),
+        slotProps: {
+          htmlInput: {
+            inputMode: "numeric",
+            min,
+            max,
+            step
+          }
+        },
+        type: "number",
+        value,
+        variant: "outlined"
+      }
+    )
+  ] });
+}
 
+exports.DurationMinutesInput = DurationMinutesInput;
 exports.PhoneNumberField = PhoneNumberField;
 exports.SelectDateField = SelectDateField;
 exports.SelectOptionField = SelectOptionField;

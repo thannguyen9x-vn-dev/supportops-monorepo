@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma, RequestPriority, RequestStatus, SlaHealth } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { DashboardRecentActivityResponseDto } from './dto/dashboard-recent-activity-response.dto';
+import { DashboardRequestTrendItemDto } from './dto/dashboard-request-trend-response.dto';
 import { DashboardSummaryResponseDto } from './dto/dashboard-summary-response.dto';
 
 type StatusGroupResult = {
@@ -180,6 +181,59 @@ export class DashboardService {
       actorName: this.resolveActorName(activity.actor),
       createdAt: activity.createdAt.toISOString(),
     }));
+  }
+
+  async requestTrend(
+    tenantId: string,
+    userId: string,
+    permissions: string[],
+    days = 30,
+  ): Promise<DashboardRequestTrendItemDto[]> {
+    const startDate = new Date();
+    startDate.setUTCDate(startDate.getUTCDate() - days);
+    startDate.setUTCHours(0, 0, 0, 0);
+
+    const requestScopeWhere = this.buildRequestScopeWhere(tenantId, userId, permissions);
+
+    const [opened, resolved] = await Promise.all([
+      this.prisma.serviceRequest.findMany({
+        where: { ...requestScopeWhere, createdAt: { gte: startDate } },
+        select: { createdAt: true },
+      }),
+      this.prisma.serviceRequest.findMany({
+        where: { ...requestScopeWhere, resolvedAt: { gte: startDate } },
+        select: { resolvedAt: true },
+      }),
+    ]);
+
+    const openedByDate = new Map<string, number>();
+    const resolvedByDate = new Map<string, number>();
+
+    for (const r of opened) {
+      const date = r.createdAt.toISOString().split('T')[0]!;
+      openedByDate.set(date, (openedByDate.get(date) ?? 0) + 1);
+    }
+
+    for (const r of resolved) {
+      if (!r.resolvedAt) continue;
+      const date = r.resolvedAt.toISOString().split('T')[0]!;
+      resolvedByDate.set(date, (resolvedByDate.get(date) ?? 0) + 1);
+    }
+
+    const result: DashboardRequestTrendItemDto[] = [];
+    for (let i = days; i >= 0; i--) {
+      const d = new Date();
+      d.setUTCDate(d.getUTCDate() - i);
+      d.setUTCHours(0, 0, 0, 0);
+      const dateStr = d.toISOString().split('T')[0]!;
+      result.push({
+        date: dateStr,
+        opened: openedByDate.get(dateStr) ?? 0,
+        resolved: resolvedByDate.get(dateStr) ?? 0,
+      });
+    }
+
+    return result;
   }
 
   private buildRequestScopeWhere(

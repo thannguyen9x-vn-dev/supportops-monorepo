@@ -85,12 +85,28 @@ export function LanguageMenu() {
         open={isOpen}
         onClose={handleClose}
         keepMounted
+        slotProps={{
+          paper: {
+            sx: {
+              border: "1px solid var(--mui-palette-divider)",
+              borderRadius: "8px",
+              boxShadow: "0px 2px 8px -2px rgba(21, 21, 21, 0.08), 0px 6px 12px -2px rgba(144, 139, 164, 0.08)",
+              overflow: "hidden",
+              minWidth: 120,
+              mt: 1,
+            },
+          },
+          list: {
+            sx: { p: 1, display: "flex", flexDirection: "column", gap: 0.5 },
+          },
+        }}
       >
         {LOCALE_OPTIONS.map((option) => (
           <MenuItem
             key={option.value}
             selected={option.value === locale}
             onClick={() => handleChangeLocale(option.value)}
+            sx={{ borderRadius: 1, minHeight: 40, fontSize: 14, fontWeight: 600, lineHeight: "20px" }}
           >
             {option.label}
           </MenuItem>
