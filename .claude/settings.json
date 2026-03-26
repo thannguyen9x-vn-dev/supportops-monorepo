@@ -8,7 +8,9 @@
       "Bash(find ./apps/api/src/modules -type f -name *entity.ts -o -name *base*.ts)",
       "Bash(ls -la /Users/thannguyennham/projects/supportops/supportops-admin-fe/apps/web/src/app/[locale]/\\\\\\(authenticated\\\\\\)/admin/user/)",
       "Bash(npx tsup:*)",
-      "Read(//Users/thannguyennham/projects/supportops/supportops-monorepo/**)"
+      "Read(//Users/thannguyennham/projects/supportops/supportops-monorepo/**)",
+      "Bash(mkdir -p /Users/thannguyennham/projects/supportops/supportops-monorepo/apps/portfolio/public)",
+      "Bash(touch /Users/thannguyennham/projects/supportops/supportops-monorepo/apps/portfolio/public/.gitkeep)"
     ]
   }
 }
