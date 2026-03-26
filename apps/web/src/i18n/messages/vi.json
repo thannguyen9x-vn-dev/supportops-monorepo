@@ -1076,7 +1076,8 @@
               "allowedRoles": "Vai trò được phép"
             },
             "placeholders": {
-              "allowedRoles": "TENANT_ADMIN, TEAM_LEADER, AGENT"
+              "allowedRoles": "TENANT_ADMIN, TEAM_LEADER, AGENT",
+              "selectRoles": "— Chọn vai trò —"
             },
             "validation": {
               "serviceTypeCodeRequired": "Mã loại dịch vụ là bắt buộc.",

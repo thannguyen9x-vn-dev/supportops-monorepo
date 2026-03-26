@@ -10,7 +10,9 @@
       "Bash(npx tsup:*)",
       "Read(//Users/thannguyennham/projects/supportops/supportops-monorepo/**)",
       "Bash(mkdir -p /Users/thannguyennham/projects/supportops/supportops-monorepo/apps/portfolio/public)",
-      "Bash(touch /Users/thannguyennham/projects/supportops/supportops-monorepo/apps/portfolio/public/.gitkeep)"
+      "Bash(touch /Users/thannguyennham/projects/supportops/supportops-monorepo/apps/portfolio/public/.gitkeep)",
+      "Bash(pnpm --filter @supportops/web add @tanstack/react-query)",
+      "Bash(pnpm --filter @supportops/web typecheck)"
     ]
   }
 }

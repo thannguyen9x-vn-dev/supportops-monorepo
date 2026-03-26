@@ -1,11 +1,13 @@
 import { useDialog } from "@supportops/ui";
-import { useCallback, useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo, useState } from "react";
 
 import { ApiError } from "@/lib/api";
 
 import type { SettingsLoadState } from "../types";
 
 interface UseSettingsCrudOptions<TItem, TFormValues> {
+  queryKey: readonly unknown[];
   emptyForm: TFormValues;
   toFormValues: (item: TItem) => TFormValues;
   loadItems: () => Promise<TItem[]>;
@@ -39,6 +41,7 @@ interface UseSettingsCrudReturn<TItem, TFormValues> {
 }
 
 export function useSettingsCrud<TItem, TFormValues>({
+  queryKey,
   emptyForm,
   toFormValues,
   loadItems,
@@ -52,35 +55,33 @@ export function useSettingsCrud<TItem, TFormValues>({
   onDeleteSuccess,
   onDeleteError,
 }: UseSettingsCrudOptions<TItem, TFormValues>): UseSettingsCrudReturn<TItem, TFormValues> {
+  const queryClient = useQueryClient();
   const dialog = useDialog();
   const deleteDialog = useDialog();
   const [deletingId, setDeletingId] = useState("");
-  const [loadState, setLoadState] = useState<SettingsLoadState>("loading");
-  const [items, setItems] = useState<TItem[]>([]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState("");
 
-  const reloadItems = useCallback(async () => {
-    setLoadState("loading");
-    setErrorMessage(null);
-    try {
-      const data = await loadItems();
-      setItems(data);
-      setLoadState(data.length === 0 ? "empty" : "success");
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 403) {
-        setLoadState("permissionDenied");
-        return;
-      }
-      setLoadState("error");
-      setErrorMessage(loadErrorMessage);
-    }
-  }, [loadItems, loadErrorMessage]);
+  const { data = [], status, error } = useQuery({
+    queryKey,
+    queryFn: loadItems,
+  });
 
-  useEffect(() => {
-    void reloadItems();
-  }, [reloadItems]);
+  const loadState = useMemo<SettingsLoadState>(() => {
+    if (status === "pending") return "loading";
+    if (status === "error") {
+      if (error instanceof ApiError && error.status === 403) return "permissionDenied";
+      return "error";
+    }
+    return data.length === 0 ? "empty" : "success";
+  }, [status, error, data.length]);
+
+  const errorMessage = status === "error" && !(error instanceof ApiError && error.status === 403)
+    ? loadErrorMessage
+    : null;
+
+  const reloadItems = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey });
+  }, [queryClient, queryKey]);
 
   const openAddDialog = useCallback(() => {
     setEditingId("");
@@ -103,34 +104,45 @@ export function useSettingsCrud<TItem, TFormValues>({
     resetForm(emptyForm);
   }, [dialog, emptyForm, resetForm]);
 
+  const saveMutation = useMutation({
+    mutationFn: (values: TFormValues) => saveItem({ editingId, values }),
+    onSuccess: (saved) => {
+      if (!saved) return;
+      const savedId = getItemId(saved);
+      queryClient.setQueryData<TItem[]>(queryKey, (current = []) => {
+        const exists = current.some((item) => getItemId(item) === savedId);
+        return exists
+          ? current.map((item) => (getItemId(item) === savedId ? saved : item))
+          : [saved, ...current];
+      });
+      onSaveSuccess();
+      closeDialog();
+    },
+    onError: onSaveError,
+  });
+
   const save = useCallback(
     async (values: TFormValues) => {
-      if (isSubmitting) return;
-      setIsSubmitting(true);
       try {
-        const saved = await saveItem({ editingId, values });
-        if (!saved) {
-          return;
-        }
-        const savedId = getItemId(saved);
-        setItems((current) => {
-          const exists = current.some((item) => getItemId(item) === savedId);
-          if (exists) {
-            return current.map((item) => (getItemId(item) === savedId ? saved : item));
-          }
-          return [saved, ...current];
-        });
-        setLoadState("success");
-        onSaveSuccess();
-        closeDialog();
+        await saveMutation.mutateAsync(values);
       } catch {
-        onSaveError();
-      } finally {
-        setIsSubmitting(false);
+        // error handled by onError callback
       }
     },
-    [closeDialog, editingId, getItemId, isSubmitting, onSaveError, onSaveSuccess, saveItem],
+    [saveMutation],
   );
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteItem(deletingId),
+    onSuccess: () => {
+      queryClient.setQueryData<TItem[]>(queryKey, (current = []) =>
+        current.filter((item) => getItemId(item) !== deletingId),
+      );
+      onDeleteSuccess();
+      deleteDialog.close();
+    },
+    onError: onDeleteError,
+  });
 
   const openDeleteDialog = useCallback(
     (id: string) => {
@@ -142,30 +154,21 @@ export function useSettingsCrud<TItem, TFormValues>({
 
   const confirmDelete = useCallback(async () => {
     try {
-      await deleteItem(deletingId);
-      let nextLength = 0;
-      setItems((current) => {
-        const next = current.filter((item) => getItemId(item) !== deletingId);
-        nextLength = next.length;
-        return next;
-      });
-      setLoadState(nextLength === 0 ? "empty" : "success");
-      onDeleteSuccess();
-      deleteDialog.close();
+      await deleteMutation.mutateAsync();
     } catch {
-      onDeleteError();
+      // error handled by onError callback
     }
-  }, [deleteDialog, deleteItem, deletingId, getItemId, onDeleteError, onDeleteSuccess]);
+  }, [deleteMutation]);
 
   return {
     dialog,
     deleteDialog,
     loadState,
-    items,
+    items: data,
     errorMessage,
     editingId,
     deletingId,
-    isSubmitting,
+    isSubmitting: saveMutation.isPending,
     reloadItems,
     openAddDialog,
     openEditDialog,

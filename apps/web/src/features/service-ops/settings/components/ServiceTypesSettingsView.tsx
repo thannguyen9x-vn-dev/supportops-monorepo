@@ -12,10 +12,12 @@ import {
   Switch,
   Typography,
 } from "@mui/material";
+import { TruncatedText } from "@supportops/ui";
 import { ConfirmDialog, FormDialog } from "@supportops/ui-dialog";
 import { TextInputField } from "@supportops/ui-form";
 import { useTranslations } from "next-intl";
-import { useForm } from "react-hook-form";
+import { useCallback } from "react";
+import { useForm, useWatch } from "react-hook-form";
 
 import { useToast } from "@/features/common/toast/useToast";
 import { ContentContainer } from "@/features/layout/components/ContentContainer/ContentContainer";
@@ -40,12 +42,27 @@ const SERVICE_TYPE_FORM_ID = "service-type-settings-form";
 export function ServiceTypesSettingsView() {
   const t = useTranslations("pages.serviceOps.settings.serviceTypes");
   const toast = useToast();
-  const { control, handleSubmit, reset, watch, setValue } = useForm<ServiceTypeFormValues>({
+  const { control, handleSubmit, reset, setValue } = useForm<ServiceTypeFormValues>({
     defaultValues: EMPTY_FORM,
     mode: "onSubmit",
   });
 
-  const formValues = watch();
+  const isActive = useWatch({ control, name: "isActive" });
+
+  const toFormValues = useCallback((item: ServiceTypeSetting): ServiceTypeFormValues => ({
+    code: item.code,
+    name: item.name,
+    isActive: item.isActive,
+  }), []);
+
+  const loadItems = useCallback(() => serviceOpsSettingsService.listServiceTypes(), []);
+  const resetFormCb = useCallback((values: ServiceTypeFormValues) => reset(values), [reset]);
+  const deleteItem = useCallback((id: string) => serviceOpsSettingsService.deleteServiceType(id), []);
+  const getItemId = useCallback((item: ServiceTypeSetting) => item.id, []);
+  const onSaveSuccess = useCallback(() => toast.success(t("feedback.saveSuccess")), [t, toast]);
+  const onSaveError = useCallback(() => toast.error(t("feedback.saveError")), [t, toast]);
+  const onDeleteSuccess = useCallback(() => toast.success(t("feedback.deleteSuccess")), [t, toast]);
+  const onDeleteError = useCallback(() => toast.error(t("feedback.deleteError")), [t, toast]);
 
   const {
     dialog,
@@ -62,19 +79,15 @@ export function ServiceTypesSettingsView() {
     openDeleteDialog,
     confirmDelete,
   } = useSettingsCrud<ServiceTypeSetting, ServiceTypeFormValues>({
+    queryKey: ["service-types"] as const,
     emptyForm: EMPTY_FORM,
-    toFormValues: (item) => ({
-      code: item.code,
-      name: item.name,
-      isActive: item.isActive,
-    }),
-    loadItems: () => serviceOpsSettingsService.listServiceTypes(),
+    toFormValues,
+    loadItems,
     saveItem: async ({ editingId: currentEditingId, values }) => {
       const code = values.code.trim().toUpperCase();
       const name = values.name.trim();
       const duplicate = items.some((item) => item.code.toUpperCase() === code && item.id !== currentEditingId);
       if (!code || !name || duplicate) return null;
-
       return serviceOpsSettingsService.saveServiceType({
         id: currentEditingId || undefined,
         code,
@@ -82,14 +95,14 @@ export function ServiceTypesSettingsView() {
         isActive: values.isActive,
       });
     },
-    deleteItem: (id) => serviceOpsSettingsService.deleteServiceType(id),
-    getItemId: (item) => item.id,
-    resetForm: (values) => reset(values),
+    deleteItem,
+    getItemId,
+    resetForm: resetFormCb,
     loadErrorMessage: t("feedback.loadError"),
-    onSaveSuccess: () => toast.success(t("feedback.saveSuccess")),
-    onSaveError: () => toast.error(t("feedback.saveError")),
-    onDeleteSuccess: () => toast.success(t("feedback.deleteSuccess")),
-    onDeleteError: () => toast.error(t("feedback.deleteError")),
+    onSaveSuccess,
+    onSaveError,
+    onDeleteSuccess,
+    onDeleteError,
   });
 
   const onSave = handleSubmit(async (values) => {
@@ -146,11 +159,14 @@ export function ServiceTypesSettingsView() {
                   <Box key={item.id} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1, p: 1.5 }}>
                     <Stack
                       alignItems="center"
-                      direction={{ xs: "column", md: "row" }}
+                      direction="row"
                       justifyContent="space-between"
                       spacing={1}
                     >
-                      <Typography variant="body2">
+                      <TruncatedText
+                        style={{ fontSize: "14px" }}
+                        title={`${item.code} — ${item.name} (${item.isActive ? t("table.active") : t("table.inactive")})`}
+                      >
                         <strong>{item.code}</strong> — {item.name}{" "}
                         <Typography
                           color={item.isActive ? "success.main" : "text.disabled"}
@@ -159,8 +175,8 @@ export function ServiceTypesSettingsView() {
                         >
                           ({item.isActive ? t("table.active") : t("table.inactive")})
                         </Typography>
-                      </Typography>
-                      <Stack direction="row" spacing={1}>
+                      </TruncatedText>
+                      <Stack direction="row" flexShrink={0} spacing={1}>
                         <Button onClick={() => openEditDialog(item)} size="small" variant="text">
                           {t("actions.edit")}
                         </Button>
@@ -233,7 +249,7 @@ export function ServiceTypesSettingsView() {
           </Grid>
           <Stack alignItems="center" direction="row" spacing={1}>
             <Switch
-              checked={formValues.isActive}
+              checked={isActive}
               onChange={(event) => setValue("isActive", event.target.checked)}
             />
             <Typography variant="body2">{t("form.fields.isActive")}</Typography>

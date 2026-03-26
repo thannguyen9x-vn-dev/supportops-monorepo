@@ -14,8 +14,10 @@ import {
 import { ConfirmDialog, FormDialog } from "@supportops/ui-dialog";
 import { SelectOptionField, TextInputField } from "@supportops/ui-form";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+
+import { TruncatedText } from "@supportops/ui";
 
 import { ContentContainer } from "@/features/layout/components/ContentContainer/ContentContainer";
 import { useToast } from "@/features/common/toast/useToast";
@@ -48,6 +50,41 @@ export function SlaSettingsView() {
     mode: "onSubmit",
   });
 
+  const toFormValues = useCallback((item: SlaPolicySetting): SlaFormValues => ({
+    serviceTypeCode: item.serviceTypeCode,
+    responseMinutes: String(item.responseMinutes),
+    resolutionMinutes: String(item.resolutionMinutes),
+    escalationAfterMinutes: String(item.escalationAfterMinutes),
+  }), []);
+
+  const loadItems = useCallback(() => serviceOpsSettingsService.listSlaPolicies(), []);
+  const resetFormCb = useCallback((values: SlaFormValues) => reset(values), [reset]);
+  const saveItem = useCallback(async ({ editingId: currentEditingId, values }: { editingId: string; values: SlaFormValues }) => {
+    const serviceTypeCode = values.serviceTypeCode.trim().toUpperCase();
+    const responseMinutes = Number(values.responseMinutes);
+    const resolutionMinutes = Number(values.resolutionMinutes);
+    const escalationAfterMinutes = Number(values.escalationAfterMinutes);
+    if (
+      !serviceTypeCode ||
+      !Number.isFinite(responseMinutes) || responseMinutes <= 0 ||
+      !Number.isFinite(resolutionMinutes) || resolutionMinutes <= 0 ||
+      !Number.isFinite(escalationAfterMinutes) || escalationAfterMinutes <= 0
+    ) return null;
+    return serviceOpsSettingsService.saveSlaPolicy({
+      id: currentEditingId || undefined,
+      serviceTypeCode,
+      responseMinutes,
+      resolutionMinutes,
+      escalationAfterMinutes,
+    });
+  }, []);
+  const deleteItem = useCallback((id: string) => serviceOpsSettingsService.deleteSlaPolicy(id), []);
+  const getItemId = useCallback((item: SlaPolicySetting) => item.id, []);
+  const onSaveSuccess = useCallback(() => toast.success(t("feedback.saveSuccess")), [t, toast]);
+  const onSaveError = useCallback(() => toast.error(t("feedback.saveError")), [t, toast]);
+  const onDeleteSuccess = useCallback(() => toast.success(t("feedback.deleteSuccess")), [t, toast]);
+  const onDeleteError = useCallback(() => toast.error(t("feedback.deleteError")), [t, toast]);
+
   const {
     dialog,
     deleteDialog,
@@ -63,47 +100,19 @@ export function SlaSettingsView() {
     openDeleteDialog,
     confirmDelete,
   } = useSettingsCrud<SlaPolicySetting, SlaFormValues>({
+    queryKey: ["sla-policies"] as const,
     emptyForm: EMPTY_FORM,
-    toFormValues: (item) => ({
-      serviceTypeCode: item.serviceTypeCode,
-      responseMinutes: String(item.responseMinutes),
-      resolutionMinutes: String(item.resolutionMinutes),
-      escalationAfterMinutes: String(item.escalationAfterMinutes),
-    }),
-    loadItems: () => serviceOpsSettingsService.listSlaPolicies(),
-    saveItem: async ({ editingId: currentEditingId, values }) => {
-      const serviceTypeCode = values.serviceTypeCode.trim().toUpperCase();
-      const responseMinutes = Number(values.responseMinutes);
-      const resolutionMinutes = Number(values.resolutionMinutes);
-      const escalationAfterMinutes = Number(values.escalationAfterMinutes);
-      if (
-        !serviceTypeCode ||
-        !Number.isFinite(responseMinutes) ||
-        responseMinutes <= 0 ||
-        !Number.isFinite(resolutionMinutes) ||
-        resolutionMinutes <= 0 ||
-        !Number.isFinite(escalationAfterMinutes) ||
-        escalationAfterMinutes <= 0
-      ) {
-        return null;
-      }
-
-      return serviceOpsSettingsService.saveSlaPolicy({
-        id: currentEditingId || undefined,
-        serviceTypeCode,
-        responseMinutes,
-        resolutionMinutes,
-        escalationAfterMinutes,
-      });
-    },
-    deleteItem: (id) => serviceOpsSettingsService.deleteSlaPolicy(id),
-    getItemId: (item) => item.id,
-    resetForm: (values) => reset(values),
+    toFormValues,
+    loadItems,
+    saveItem,
+    deleteItem,
+    getItemId,
+    resetForm: resetFormCb,
     loadErrorMessage: t("feedback.loadError"),
-    onSaveSuccess: () => toast.success(t("feedback.saveSuccess")),
-    onSaveError: () => toast.error(t("feedback.saveError")),
-    onDeleteSuccess: () => toast.success(t("feedback.deleteSuccess")),
-    onDeleteError: () => toast.error(t("feedback.deleteError")),
+    onSaveSuccess,
+    onSaveError,
+    onDeleteSuccess,
+    onDeleteError,
   });
 
   useEffect(() => {
@@ -172,11 +181,14 @@ export function SlaSettingsView() {
                   <Box key={item.id} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1, p: 1.5 }}>
                     <Stack
                       alignItems="center"
-                      direction={{ xs: "column", md: "row" }}
+                      direction="row"
                       justifyContent="space-between"
                       spacing={1}
                     >
-                      <Typography variant="body2">
+                      <TruncatedText
+                        style={{ fontSize: "14px" }}
+                        title={`${item.serviceTypeCode} — ${t("form.fields.responseMinutes")}: ${item.responseMinutes}m · ${t("form.fields.resolutionMinutes")}: ${item.resolutionMinutes}m · ${t("form.fields.escalationAfterMinutes")}: ${item.escalationAfterMinutes}m`}
+                      >
                         <strong>{item.serviceTypeCode}</strong>
                         {" — "}
                         {t("form.fields.responseMinutes")}: {item.responseMinutes}m
@@ -184,8 +196,8 @@ export function SlaSettingsView() {
                         {t("form.fields.resolutionMinutes")}: {item.resolutionMinutes}m
                         {" · "}
                         {t("form.fields.escalationAfterMinutes")}: {item.escalationAfterMinutes}m
-                      </Typography>
-                      <Stack direction="row" spacing={1}>
+                      </TruncatedText>
+                      <Stack direction="row" flexShrink={0} spacing={1}>
                         <Button onClick={() => openEditDialog(item)} size="small" variant="text">
                           {t("actions.edit")}
                         </Button>

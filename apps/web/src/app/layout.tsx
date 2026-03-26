@@ -4,6 +4,7 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import { ThemeProvider } from "@supportops/ui-theme";
 
 import { ToastProvider } from "@/features/common/toast/ToastProvider";
+import { QueryProvider } from "@/lib/query/QueryProvider";
 
 import "./globals.css";
 
@@ -36,7 +37,9 @@ export default function RootLayout({
         <InitColorSchemeScript attribute="class" defaultMode="light" />
         <AppRouterCacheProvider>
           <ThemeProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <QueryProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </QueryProvider>
           </ThemeProvider>
         </AppRouterCacheProvider>
       </body>

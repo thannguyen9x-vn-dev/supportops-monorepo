@@ -24,8 +24,9 @@ import {
 import { REQUEST_STATUSES, USER_ROLES } from "@supportops/types";
 import { ConfirmDialog, FormDialog } from "@supportops/ui-dialog";
 import { SelectOptionField } from "@supportops/ui-form";
+import { TruncatedText } from "@supportops/ui";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useToast } from "@/features/common/toast/useToast";
@@ -62,6 +63,30 @@ export function WorkflowSettingsView() {
     mode: "onSubmit",
   });
 
+  const toFormValues = useCallback((item: WorkflowTransitionSetting): WorkflowFormValues => ({
+    serviceTypeCode: item.serviceTypeCode,
+    fromStatus: item.fromStatus,
+    toStatus: item.toStatus,
+    allowedRoles: item.allowedRoles,
+  }), []);
+
+  const loadItems = useCallback(() => serviceOpsSettingsService.listWorkflowTransitions(), []);
+  const resetFormCb = useCallback((values: WorkflowFormValues) => reset(values), [reset]);
+  const saveItem = useCallback(({ editingId: currentEditingId, values }: { editingId: string; values: WorkflowFormValues }) =>
+    serviceOpsSettingsService.saveWorkflowTransition({
+      id: currentEditingId || undefined,
+      serviceTypeCode: values.serviceTypeCode,
+      fromStatus: values.fromStatus,
+      toStatus: values.toStatus,
+      allowedRoles: values.allowedRoles,
+    }), []);
+  const deleteItem = useCallback((id: string) => serviceOpsSettingsService.deleteWorkflowTransition(id), []);
+  const getItemId = useCallback((item: WorkflowTransitionSetting) => item.id, []);
+  const onSaveSuccess = useCallback(() => toast.success(t("feedback.saveSuccess")), [t, toast]);
+  const onSaveError = useCallback(() => toast.error(t("feedback.saveError")), [t, toast]);
+  const onDeleteSuccess = useCallback(() => toast.success(t("feedback.deleteSuccess")), [t, toast]);
+  const onDeleteError = useCallback(() => toast.error(t("feedback.deleteError")), [t, toast]);
+
   const {
     dialog,
     deleteDialog,
@@ -77,30 +102,19 @@ export function WorkflowSettingsView() {
     openDeleteDialog,
     confirmDelete,
   } = useSettingsCrud<WorkflowTransitionSetting, WorkflowFormValues>({
+    queryKey: ["workflow-transitions"] as const,
     emptyForm: EMPTY_FORM,
-    toFormValues: (item) => ({
-      serviceTypeCode: item.serviceTypeCode,
-      fromStatus: item.fromStatus,
-      toStatus: item.toStatus,
-      allowedRoles: item.allowedRoles,
-    }),
-    loadItems: () => serviceOpsSettingsService.listWorkflowTransitions(),
-    saveItem: ({ editingId: currentEditingId, values }) =>
-      serviceOpsSettingsService.saveWorkflowTransition({
-        id: currentEditingId || undefined,
-        serviceTypeCode: values.serviceTypeCode,
-        fromStatus: values.fromStatus,
-        toStatus: values.toStatus,
-        allowedRoles: values.allowedRoles,
-      }),
-    deleteItem: (id) => serviceOpsSettingsService.deleteWorkflowTransition(id),
-    getItemId: (item) => item.id,
-    resetForm: (values) => reset(values),
+    toFormValues,
+    loadItems,
+    saveItem,
+    deleteItem,
+    getItemId,
+    resetForm: resetFormCb,
     loadErrorMessage: t("feedback.loadError"),
-    onSaveSuccess: () => toast.success(t("feedback.saveSuccess")),
-    onSaveError: () => toast.error(t("feedback.saveError")),
-    onDeleteSuccess: () => toast.success(t("feedback.deleteSuccess")),
-    onDeleteError: () => toast.error(t("feedback.deleteError")),
+    onSaveSuccess,
+    onSaveError,
+    onDeleteSuccess,
+    onDeleteError,
   });
 
   useEffect(() => {
@@ -169,17 +183,20 @@ export function WorkflowSettingsView() {
                   <Box key={item.id} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1, p: 1.5 }}>
                     <Stack
                       alignItems="center"
-                      direction={{ xs: "column", md: "row" }}
+                      direction="row"
                       justifyContent="space-between"
                       spacing={1}
                     >
-                      <Typography variant="body2">
+                      <TruncatedText
+                        style={{ fontSize: "14px" }}
+                        title={`${item.serviceTypeCode}: ${item.fromStatus} → ${item.toStatus} (${item.allowedRoles.join(", ")})`}
+                      >
                         <strong>{item.serviceTypeCode}</strong>: {item.fromStatus} → {item.toStatus}{" "}
                         <Typography color="text.secondary" component="span" variant="body2">
                           ({item.allowedRoles.join(", ")})
                         </Typography>
-                      </Typography>
-                      <Stack direction="row" spacing={1}>
+                      </TruncatedText>
+                      <Stack direction="row" flexShrink={0} spacing={1}>
                         <Button onClick={() => openEditDialog(item)} size="small" variant="text">
                           {t("actions.edit")}
                         </Button>
@@ -288,8 +305,8 @@ export function WorkflowSettingsView() {
                       renderValue={(selected) => {
                         if ((selected as string[]).length === 0) {
                           return (
-                            <Typography color="text.secondary" sx={{ fontSize: 14, fontWeight: 600 }}>
-                              — Select roles —
+                            <Typography color="text.secondary" variant="textSmSemiBold">
+                              {t("form.placeholders.selectRoles")}
                             </Typography>
                           );
                         }
@@ -317,7 +334,7 @@ export function WorkflowSettingsView() {
                           />
                           <ListItemText
                             primary={role.label}
-                            primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }}
+                            primaryTypographyProps={{ variant: "textSmSemiBold" }}
                           />
                         </MenuItem>
                       ))}

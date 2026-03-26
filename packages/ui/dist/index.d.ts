@@ -1,7 +1,7 @@
 import * as _tanstack_react_table from '@tanstack/react-table';
 import { PaginationState, SortingState, ColumnFiltersState, ColumnDef, VisibilityState, ColumnOrderState, ColumnSizingState, RowSelectionState, Table, Column } from '@tanstack/react-table';
 import * as react from 'react';
-import { Ref, BaseSyntheticEvent, RefObject, ChangeEvent, KeyboardEvent, ReactNode, FormHTMLAttributes, FormEvent } from 'react';
+import { Ref, BaseSyntheticEvent, RefObject, ChangeEvent, KeyboardEvent, ReactNode, FormHTMLAttributes, FormEvent, CSSProperties } from 'react';
 import * as react_hook_form from 'react-hook-form';
 import { FieldValues, Path, PathValue, FieldErrors, UseFormReturn, FieldArrayPath, UseFieldArrayProps } from 'react-hook-form';
 import * as react_jsx_runtime from 'react/jsx-runtime';
@@ -795,6 +795,15 @@ interface ToasterProps {
 }
 declare function Toaster({ toasts, onRemove, position }: ToasterProps): react_jsx_runtime.JSX.Element | null;
 
+interface TruncatedTextProps {
+    children: ReactNode;
+    /** Show full text as native tooltip on hover */
+    title?: string;
+    className?: string;
+    style?: CSSProperties;
+}
+declare function TruncatedText({ children, title, className, style }: TruncatedTextProps): react_jsx_runtime.JSX.Element;
+
 interface TableSkeletonProps {
     showToolbar?: boolean;
     showPagination?: boolean;
@@ -893,4 +902,4 @@ declare function getFocusTrapProps(containerId: string): {
 };
 declare function generateId(prefix: string): string;
 
-export { AlertDialog, type AlertDialogProps, type AriaProps, CardSkeleton, CheckboxField, Combobox, ComboboxField, type ComboboxOption, ConfirmDialog, type ConfirmDialogProps, DataTable, DataTableColumnHeader, DataTablePagination, type DataTablePaginationLabels, type DataTableProps, type DataTableState, DataTableToolbar, DateField, DetailSkeleton, Dialog, type DialogCloseMeta, type DialogProps, type FieldConfig, FileField, Form, FormDialog, FormField, type FormFieldConfig, FormSkeleton, type HeadlessFieldProps, InfiniteVirtualList, type InlineEditState, ListSkeleton, MultiCombobox, NumberField, RadioGroupField, type RadioOption, SelectField, type SkeletonRepeatOptions, SwitchField, TableSkeleton, TextField, TextareaField, Toast, type ToastInput, type ToastItem, type ToastProps, type ToastSeverity, type ToastVariant, Toaster, type ToasterItem, type UseClipboardOptions, type UseClipboardReturn, type UseComboboxOptions, type UseDataTableOptions, type UseDataTableReturn, type UseDataTableState, type UseDialogOptions, type UseDialogReturn, type UseInfiniteVirtualListOptions, type UseSkeletonReturn, type UseToastOptions, type UseToastReturn, type UseTypedFormOptions, type UseTypedFormResult, type UseVirtualListOptions, type UseVirtualListReturn, VirtualGrid, type VirtualItem, VirtualList, cn, formatCurrency, formatDate, formatNumber, formatRelativeTime, generateId, getAriaProps, getFocusTrapProps, useClipboard, useCombobox, useDataTable, useDialog, useFieldArray, useFormContext, useFormField, useInfiniteVirtualList, useSkeleton, useTableExport, useTableInlineEdit, useTablePagination, useTableSelection, useToast, useTypedForm, useVirtualList };
+export { AlertDialog, type AlertDialogProps, type AriaProps, CardSkeleton, CheckboxField, Combobox, ComboboxField, type ComboboxOption, ConfirmDialog, type ConfirmDialogProps, DataTable, DataTableColumnHeader, DataTablePagination, type DataTablePaginationLabels, type DataTableProps, type DataTableState, DataTableToolbar, DateField, DetailSkeleton, Dialog, type DialogCloseMeta, type DialogProps, type FieldConfig, FileField, Form, FormDialog, FormField, type FormFieldConfig, FormSkeleton, type HeadlessFieldProps, InfiniteVirtualList, type InlineEditState, ListSkeleton, MultiCombobox, NumberField, RadioGroupField, type RadioOption, SelectField, type SkeletonRepeatOptions, SwitchField, TableSkeleton, TextField, TextareaField, Toast, type ToastInput, type ToastItem, type ToastProps, type ToastSeverity, type ToastVariant, Toaster, type ToasterItem, TruncatedText, type UseClipboardOptions, type UseClipboardReturn, type UseComboboxOptions, type UseDataTableOptions, type UseDataTableReturn, type UseDataTableState, type UseDialogOptions, type UseDialogReturn, type UseInfiniteVirtualListOptions, type UseSkeletonReturn, type UseToastOptions, type UseToastReturn, type UseTypedFormOptions, type UseTypedFormResult, type UseVirtualListOptions, type UseVirtualListReturn, VirtualGrid, type VirtualItem, VirtualList, cn, formatCurrency, formatDate, formatNumber, formatRelativeTime, generateId, getAriaProps, getFocusTrapProps, useClipboard, useCombobox, useDataTable, useDialog, useFieldArray, useFormContext, useFormField, useInfiniteVirtualList, useSkeleton, useTableExport, useTableInlineEdit, useTablePagination, useTableSelection, useToast, useTypedForm, useVirtualList };
