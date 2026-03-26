@@ -28,7 +28,6 @@ async function proxyRequest(request: NextRequest) {
 
     if (contentType.includes("multipart/form-data")) {
       fetchOptions.body = await request.arrayBuffer();
-      headers.delete("content-type");
     } else {
       fetchOptions.body = await request.text();
     }
