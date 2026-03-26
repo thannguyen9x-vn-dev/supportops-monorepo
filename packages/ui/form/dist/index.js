@@ -338,6 +338,24 @@ function SelectOptionFieldInner(props) {
     "& .MuiAutocomplete-popupIndicator.Mui-focused": {
       backgroundColor: "transparent"
     },
+    "& .MuiAutocomplete-clearIndicator": {
+      width: 20,
+      height: 20,
+      minWidth: 20,
+      border: 0,
+      borderRadius: 4,
+      backgroundColor: "transparent !important",
+      boxShadow: "none",
+      color: "var(--mui-palette-text-secondary)",
+      padding: 0,
+      "&:hover": {
+        backgroundColor: "transparent !important",
+        color: "var(--mui-palette-text-primary)"
+      },
+      "& .MuiSvgIcon-root": {
+        fontSize: 16
+      }
+    },
     "& .MuiAutocomplete-listbox": {
       maxHeight: 320
     }
@@ -423,6 +441,16 @@ function SelectOptionFieldInner(props) {
             ...autocompleteProps?.slotProps?.popupIndicator ?? {},
             disableRipple: true
           },
+          clearIndicator: {
+            ...autocompleteProps?.slotProps?.clearIndicator ?? {},
+            disableRipple: true,
+            sx: {
+              color: "text.secondary",
+              backgroundColor: "transparent !important",
+              "&:hover": { backgroundColor: "transparent !important", color: "text.primary" },
+              "& .MuiSvgIcon-root": { fontSize: 16 }
+            }
+          },
           popper: mergedPopperSlotProps
         },
         slots: {
@@ -476,6 +504,16 @@ function SelectOptionFieldInner(props) {
           popupIndicator: {
             ...autocompleteProps?.slotProps?.popupIndicator ?? {},
             disableRipple: true
+          },
+          clearIndicator: {
+            ...autocompleteProps?.slotProps?.clearIndicator ?? {},
+            disableRipple: true,
+            sx: {
+              color: "text.secondary",
+              backgroundColor: "transparent !important",
+              "&:hover": { backgroundColor: "transparent !important", color: "text.primary" },
+              "& .MuiSvgIcon-root": { fontSize: 16 }
+            }
           },
           popper: mergedPopperSlotProps
         },
