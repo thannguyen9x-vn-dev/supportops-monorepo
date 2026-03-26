@@ -13,9 +13,16 @@ COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.staging.yml}"
 ENV_FILE="${ENV_FILE:-.env.staging}"
 CERTS_DIR="${DEPLOY_PATH}/deploy/nginx/certs"
 
-# Skip if real certs already exist (not a fresh deploy)
-if [ -f "${CERTS_DIR}/live/${APP_DOMAIN}/fullchain.pem" ]; then
-  log "Certificates already exist for ${APP_DOMAIN}, skipping init"
+# Skip if real certs already exist for all domains
+_portfolio_cert_ok=true
+if [ -n "${PORTFOLIO_DOMAIN:-}" ] && [ "${PORTFOLIO_DOMAIN}" != "${APP_DOMAIN}" ]; then
+  if [ ! -f "${CERTS_DIR}/live/${PORTFOLIO_DOMAIN}/fullchain.pem" ]; then
+    _portfolio_cert_ok=false
+  fi
+fi
+
+if [ -f "${CERTS_DIR}/live/${APP_DOMAIN}/fullchain.pem" ] && [ "${_portfolio_cert_ok}" = "true" ]; then
+  log "Certificates already exist for all domains, skipping init"
   exit 0
 fi
 
