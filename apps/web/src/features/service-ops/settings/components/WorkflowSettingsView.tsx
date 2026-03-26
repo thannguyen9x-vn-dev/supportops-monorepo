@@ -22,19 +22,18 @@ import {
   Typography,
 } from "@mui/material";
 import { REQUEST_STATUSES, USER_ROLES } from "@supportops/types";
-import { useDialog } from "@supportops/ui";
 import { ConfirmDialog, FormDialog } from "@supportops/ui-dialog";
 import { SelectOptionField } from "@supportops/ui-form";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useToast } from "@/features/common/toast/useToast";
 import { ContentContainer } from "@/features/layout/components/ContentContainer/ContentContainer";
-import { ApiError } from "@/lib/api";
 
+import { useSettingsCrud } from "../hooks/useSettingsCrud";
 import { serviceOpsSettingsService } from "../services/service-ops-settings.service";
-import type { ServiceTypeSetting, SettingsLoadState, WorkflowTransitionSetting } from "../types";
+import type { ServiceTypeSetting, WorkflowTransitionSetting } from "../types";
 
 const STATUS_OPTIONS = REQUEST_STATUSES.map((s) => ({ value: s, label: s }));
 const ROLE_OPTIONS = USER_ROLES.map((r) => ({ value: r, label: r }));
@@ -56,41 +55,53 @@ const WORKFLOW_FORM_ID = "workflow-settings-form";
 
 export function WorkflowSettingsView() {
   const t = useTranslations("pages.serviceOps.settings.workflow");
-  const dialog = useDialog();
-  const deleteDialog = useDialog();
   const toast = useToast();
-  const [deletingId, setDeletingId] = useState("");
-  const [loadState, setLoadState] = useState<SettingsLoadState>("loading");
-  const [items, setItems] = useState<WorkflowTransitionSetting[]>([]);
   const [serviceTypes, setServiceTypes] = useState<ServiceTypeSetting[]>([]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editingId, setEditingId] = useState("");
   const { control, handleSubmit, reset } = useForm<WorkflowFormValues>({
     defaultValues: EMPTY_FORM,
     mode: "onSubmit",
   });
 
-  const loadItems = useCallback(async () => {
-    setLoadState("loading");
-    setErrorMessage(null);
-    try {
-      const data = await serviceOpsSettingsService.listWorkflowTransitions();
-      setItems(data);
-      setLoadState(data.length === 0 ? "empty" : "success");
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 403) {
-        setLoadState("permissionDenied");
-        return;
-      }
-      setLoadState("error");
-      setErrorMessage(t("feedback.loadError"));
-    }
-  }, [t]);
-
-  useEffect(() => {
-    void loadItems();
-  }, [loadItems]);
+  const {
+    dialog,
+    deleteDialog,
+    loadState,
+    items,
+    errorMessage,
+    editingId,
+    isSubmitting,
+    reloadItems,
+    openAddDialog,
+    openEditDialog,
+    save,
+    openDeleteDialog,
+    confirmDelete,
+  } = useSettingsCrud<WorkflowTransitionSetting, WorkflowFormValues>({
+    emptyForm: EMPTY_FORM,
+    toFormValues: (item) => ({
+      serviceTypeCode: item.serviceTypeCode,
+      fromStatus: item.fromStatus,
+      toStatus: item.toStatus,
+      allowedRoles: item.allowedRoles,
+    }),
+    loadItems: () => serviceOpsSettingsService.listWorkflowTransitions(),
+    saveItem: ({ editingId: currentEditingId, values }) =>
+      serviceOpsSettingsService.saveWorkflowTransition({
+        id: currentEditingId || undefined,
+        serviceTypeCode: values.serviceTypeCode,
+        fromStatus: values.fromStatus,
+        toStatus: values.toStatus,
+        allowedRoles: values.allowedRoles,
+      }),
+    deleteItem: (id) => serviceOpsSettingsService.deleteWorkflowTransition(id),
+    getItemId: (item) => item.id,
+    resetForm: (values) => reset(values),
+    loadErrorMessage: t("feedback.loadError"),
+    onSaveSuccess: () => toast.success(t("feedback.saveSuccess")),
+    onSaveError: () => toast.error(t("feedback.saveError")),
+    onDeleteSuccess: () => toast.success(t("feedback.deleteSuccess")),
+    onDeleteError: () => toast.error(t("feedback.deleteError")),
+  });
 
   useEffect(() => {
     void serviceOpsSettingsService.listServiceTypes().then(setServiceTypes).catch(() => undefined);
@@ -104,72 +115,9 @@ export function WorkflowSettingsView() {
     [serviceTypes],
   );
 
-  const openAddDialog = () => {
-    setEditingId("");
-    reset(EMPTY_FORM);
-    dialog.open();
-  };
-
-  const openEditDialog = (item: WorkflowTransitionSetting) => {
-    setEditingId(item.id);
-    reset({
-      serviceTypeCode: item.serviceTypeCode,
-      fromStatus: item.fromStatus,
-      toStatus: item.toStatus,
-      allowedRoles: item.allowedRoles,
-    });
-    dialog.open();
-  };
-
-  const closeDialog = () => {
-    dialog.close();
-    setEditingId("");
-    reset(EMPTY_FORM);
-  };
-
   const onSave = handleSubmit(async (values) => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-    try {
-      const saved = await serviceOpsSettingsService.saveWorkflowTransition({
-        id: editingId || undefined,
-        serviceTypeCode: values.serviceTypeCode,
-        fromStatus: values.fromStatus,
-        toStatus: values.toStatus,
-        allowedRoles: values.allowedRoles,
-      });
-      setItems((current) => {
-        const exists = current.some((item) => item.id === saved.id);
-        if (exists) return current.map((item) => (item.id === saved.id ? saved : item));
-        return [saved, ...current];
-      });
-      setLoadState("success");
-      toast.success(t("feedback.saveSuccess"));
-      closeDialog();
-    } catch {
-      toast.error(t("feedback.saveError"));
-    } finally {
-      setIsSubmitting(false);
-    }
+    await save(values);
   });
-
-  const openDeleteDialog = (id: string) => {
-    setDeletingId(id);
-    deleteDialog.open();
-  };
-
-  const onDelete = async () => {
-    try {
-      await serviceOpsSettingsService.deleteWorkflowTransition(deletingId);
-      const next = items.filter((item) => item.id !== deletingId);
-      setItems(next);
-      setLoadState(next.length === 0 ? "empty" : "success");
-      toast.success(t("feedback.deleteSuccess"));
-      deleteDialog.close();
-    } catch {
-      toast.error(t("feedback.deleteError"));
-    }
-  };
 
   return (
     <ContentContainer>
@@ -190,7 +138,7 @@ export function WorkflowSettingsView() {
         {loadState === "error" ? (
           <Alert
             action={
-              <Button color="inherit" onClick={() => void loadItems()} size="small">
+              <Button color="inherit" onClick={() => void reloadItems()} size="small">
                 {t("actions.retry")}
               </Button>
             }
@@ -392,7 +340,7 @@ export function WorkflowSettingsView() {
         confirmLabel={t("actions.delete")}
         description={t("actions.confirmDeleteDescription")}
         dialog={deleteDialog}
-        onConfirm={onDelete}
+        onConfirm={confirmDelete}
         title={t("actions.confirmDelete")}
       />
     </ContentContainer>

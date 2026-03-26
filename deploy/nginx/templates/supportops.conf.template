@@ -1,3 +1,7 @@
+upstream supportops_portfolio {
+  server portfolio:3001;
+}
+
 upstream supportops_web {
   server web:3000;
 }
@@ -8,7 +12,7 @@ upstream supportops_api {
 
 server {
   listen 80;
-  server_name ${APP_DOMAIN} ${API_DOMAIN};
+  server_name ${PORTFOLIO_DOMAIN} ${APP_DOMAIN} ${API_DOMAIN};
 
   location /.well-known/acme-challenge/ {
     root /var/www/certbot;
@@ -16,6 +20,26 @@ server {
 
   location / {
     return 301 https://$host$request_uri;
+  }
+}
+
+server {
+  listen 443 ssl;
+  server_name ${PORTFOLIO_DOMAIN};
+
+  ssl_certificate /etc/nginx/certs/live/${PORTFOLIO_DOMAIN}/fullchain.pem;
+  ssl_certificate_key /etc/nginx/certs/live/${PORTFOLIO_DOMAIN}/privkey.pem;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers off;
+
+  location / {
+    proxy_pass http://supportops_portfolio;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
   }
 }
 

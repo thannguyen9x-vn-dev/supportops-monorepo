@@ -20,14 +20,17 @@ if [ -f "${CERTS_DIR}/live/${APP_DOMAIN}/fullchain.pem" ]; then
 fi
 
 log "No certificates found — obtaining Let's Encrypt certificates via standalone mode"
-log "Domains: ${APP_DOMAIN}, ${API_DOMAIN}"
+log "Domains: ${PORTFOLIO_DOMAIN:-}, ${APP_DOMAIN}, ${API_DOMAIN}"
 
 cd "${DEPLOY_PATH}"
 
-# Use certbot standalone (no nginx needed — binds directly to port 80)
+# Build domain list — include portfolio domain if set and different from others
 DOMAINS="-d ${APP_DOMAIN}"
 if [ "${APP_DOMAIN}" != "${API_DOMAIN}" ]; then
   DOMAINS="${DOMAINS} -d ${API_DOMAIN}"
+fi
+if [ -n "${PORTFOLIO_DOMAIN:-}" ] && [ "${PORTFOLIO_DOMAIN}" != "${APP_DOMAIN}" ] && [ "${PORTFOLIO_DOMAIN}" != "${API_DOMAIN}" ]; then
+  DOMAINS="${DOMAINS} -d ${PORTFOLIO_DOMAIN}"
 fi
 
 docker run --rm \
@@ -46,6 +49,14 @@ if [ "${APP_DOMAIN}" != "${API_DOMAIN}" ] && [ ! -f "${CERTS_DIR}/live/${API_DOM
   mkdir -p "${CERTS_DIR}/live/${API_DOMAIN}"
   ln -sf "../${APP_DOMAIN}/fullchain.pem" "${CERTS_DIR}/live/${API_DOMAIN}/fullchain.pem"
   ln -sf "../${APP_DOMAIN}/privkey.pem"   "${CERTS_DIR}/live/${API_DOMAIN}/privkey.pem"
+fi
+
+# Create symlink for PORTFOLIO_DOMAIN if it's on the same SAN cert
+if [ -n "${PORTFOLIO_DOMAIN:-}" ] && [ "${PORTFOLIO_DOMAIN}" != "${APP_DOMAIN}" ] && [ ! -f "${CERTS_DIR}/live/${PORTFOLIO_DOMAIN}/fullchain.pem" ]; then
+  log "Creating symlink for ${PORTFOLIO_DOMAIN} → ${APP_DOMAIN} cert"
+  mkdir -p "${CERTS_DIR}/live/${PORTFOLIO_DOMAIN}"
+  ln -sf "../${APP_DOMAIN}/fullchain.pem" "${CERTS_DIR}/live/${PORTFOLIO_DOMAIN}/fullchain.pem"
+  ln -sf "../${APP_DOMAIN}/privkey.pem"   "${CERTS_DIR}/live/${PORTFOLIO_DOMAIN}/privkey.pem"
 fi
 
 # Patch renewal config to use webroot so the certbot sidecar container can renew without needing port 80

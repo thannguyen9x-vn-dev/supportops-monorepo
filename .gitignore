@@ -8,6 +8,12 @@ node_modules
 .idea/workspace.xml
 
 .cursorrules
+**/.next/
+**/next-env.d.ts
+
+# Local file storage - never commit uploaded files
+apps/api/storage/uploads/
+apps/api/storage/avatars/
 
 # Environment files - never commit secrets
 .env
