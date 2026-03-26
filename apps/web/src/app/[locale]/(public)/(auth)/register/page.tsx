@@ -1,3 +1,19 @@
+// NOTE: Trang đăng ký tự do đã bị vô hiệu hóa.
+// Dự án hiện tại chỉ hỗ trợ user được admin mời qua link invite (/invite/accept).
+// Giữ code bên dưới để có thể kích hoạt lại nếu cần trong tương lai.
+
+import { redirect } from "next/navigation";
+
+export default async function RegisterPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  redirect(`/${locale}/login`);
+}
+
+/*
 'use client';
 
 import EmailIcon from "@mui/icons-material/Email";
@@ -308,3 +324,4 @@ export default function RegisterPage() {
     </AuthCard>
   );
 }
+*/

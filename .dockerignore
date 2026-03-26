@@ -1,10 +1,12 @@
 node_modules
 **/node_modules
 .git
-.next
-dist
+**/.next
+**/dist
 coverage
 .pnpm-store
+.turbo
+**/.turbo
 .DS_Store
 *.log
 .env

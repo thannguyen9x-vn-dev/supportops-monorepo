@@ -1,3 +1,20 @@
+// NOTE: Trang xác thực email đã bị vô hiệu hóa.
+// Trang này chỉ dùng cho flow tự đăng ký (self-registration), hiện không áp dụng.
+// Dự án hiện tại user được admin mời qua link invite (/invite/accept), không cần verify email.
+// Giữ code bên dưới để có thể kích hoạt lại nếu cần trong tương lai.
+
+import { redirect } from "next/navigation";
+
+export default async function VerifyEmailPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  redirect(`/${locale}/login`);
+}
+
+/*
 'use client';
 
 import MarkEmailReadOutlinedIcon from "@mui/icons-material/MarkEmailReadOutlined";
@@ -126,3 +143,4 @@ export default function VerifyEmailPage() {
     </AuthCard>
   );
 }
+*/

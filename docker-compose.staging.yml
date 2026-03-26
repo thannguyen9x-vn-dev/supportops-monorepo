@@ -42,6 +42,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    volumes:
+      - api_storage:/app/storage
     environment:
       PORT: 8081
       CORS_ALLOWED_ORIGIN: ${APP_ORIGIN}
@@ -125,6 +127,7 @@ services:
 volumes:
   postgres_staging_data:
   redis_staging_data:
+  api_storage:
 
 networks:
   supportops_staging_net:

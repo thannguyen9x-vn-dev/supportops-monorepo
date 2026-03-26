@@ -44,7 +44,6 @@ export default function LoginPage() {
   const commonT = useTranslations("auth.common");
   const supportLabel = locale.toLowerCase().startsWith("vi") ? "Hỗ trợ kỹ thuật" : "Technical support";
   const [imageLoadError, setImageLoadError] = useState(false);
-  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
   const {
     control,
     formState: { errors, isSubmitting },
@@ -90,7 +89,6 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      setPendingVerificationEmail(null);
       const { data: payload } = await authService.login({
         email: data.email,
         password: data.password,
@@ -107,12 +105,6 @@ export default function LoginPage() {
 
       router.replace(`/${locale}/dashboard`);
     } catch (error: unknown) {
-      if (error instanceof ApiError && error.code === "EMAIL_NOT_VERIFIED") {
-        setPendingVerificationEmail(data.email);
-        setError("root", { message: t("emailNotVerified") });
-        return;
-      }
-
       const message = error instanceof ApiError ? error.message : commonT("unableToSignIn");
       setError("root", { message });
     }
@@ -153,9 +145,6 @@ export default function LoginPage() {
       }
       footer={
         <>
-          <span>{t("footerPrompt")}</span>
-          <Link href={`/${locale}/register`}>{t("footerAction")}</Link>
-          <span aria-hidden>·</span>
           <Link href={`/${locale}/auth-support`}>{supportLabel}</Link>
         </>
       }
@@ -206,13 +195,6 @@ export default function LoginPage() {
             {t("submit")}
           </Button>
           {errors.root?.message ? <Alert severity="error">{errors.root.message}</Alert> : null}
-          {pendingVerificationEmail ? (
-            <Alert severity="info">
-              <Link href={`/${locale}/verify-email?email=${encodeURIComponent(pendingVerificationEmail)}`}>
-                {t("goToVerify")}
-              </Link>
-            </Alert>
-          ) : null}
         </div>
       </form>
     </AuthCard>
