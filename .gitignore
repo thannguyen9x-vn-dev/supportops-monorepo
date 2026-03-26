@@ -1,5 +1,7 @@
 node_modules
 **/*.tsbuildinfo
+.turbo
+**/.turbo
 .history/
 .DS_Store
 **/.DS_Store
