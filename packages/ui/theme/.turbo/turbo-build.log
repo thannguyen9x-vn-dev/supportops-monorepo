@@ -1,0 +1,23 @@
+
+
+> @supportops/ui-theme@0.0.0 build /Users/thannguyennham/projects/supportops/supportops-monorepo/packages/ui/theme
+> tsup && cp src/types/theme.d.ts dist/theme.d.ts && printf '/// <reference path="./theme.d.ts" />\nexport * from "./index"\n' > dist/types.d.ts && cp dist/types.d.ts dist/types.d.cts
+
+[34mCLI[39m Building entry: src/index.ts
+[34mCLI[39m Using tsconfig: tsconfig.tsup.json
+[34mCLI[39m tsup v8.5.1
+[34mCLI[39m Using tsup config: /Users/thannguyennham/projects/supportops/supportops-monorepo/packages/ui/theme/tsup.config.ts
+[34mCLI[39m Target: es2022
+[34mCLI[39m Cleaning output folder
+[34mESM[39m Build start
+[34mCJS[39m Build start
+DTS Build start
+[32mCJS[39m [1mdist/index.cjs     [22m[32m134.50 KB[39m
+[32mCJS[39m [1mdist/index.cjs.map [22m[32m2.64 MB[39m
+[32mCJS[39m ⚡️ Build success in 4530ms
+[32mESM[39m [1mdist/index.js     [22m[32m133.40 KB[39m
+[32mESM[39m [1mdist/index.js.map [22m[32m2.64 MB[39m
+[32mESM[39m ⚡️ Build success in 4531ms
+DTS ⚡️ Build success in 9502ms
+DTS dist/index.d.ts  4.09 KB
+DTS dist/index.d.cts 4.09 KB

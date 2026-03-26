@@ -1,0 +1,5 @@
+
+
+> @supportops/types@0.1.0 build /Users/thannguyennham/projects/supportops/supportops-monorepo/packages/types
+> rm -rf dist tsconfig.tsbuildinfo && tsc -p tsconfig.json
+

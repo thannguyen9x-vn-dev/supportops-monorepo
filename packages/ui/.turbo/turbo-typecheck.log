@@ -1,0 +1,5 @@
+
+
+> @supportops/ui@0.0.0 typecheck /Users/thannguyennham/projects/supportops/supportops-monorepo/packages/ui
+> tsc --noEmit
+

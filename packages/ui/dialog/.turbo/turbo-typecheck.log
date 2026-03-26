@@ -1,0 +1,5 @@
+
+
+> @supportops/ui-dialog@0.0.0 typecheck /Users/thannguyennham/projects/supportops/supportops-monorepo/packages/ui/dialog
+> tsc --noEmit
+
