@@ -56,6 +56,8 @@ COPY --from=build /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=build /app/apps/api ./apps/api
 COPY --from=build /app/packages ./packages
 
+RUN mkdir -p /app/storage && chown -R nestjs:nodejs /app/storage
+
 USER nestjs
 
 EXPOSE 8081
