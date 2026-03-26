@@ -9,7 +9,7 @@ async function proxyRequest(request: NextRequest) {
   const targetUrl = `${BACKEND_URL}${path}${search}`;
 
   const headers = new Headers();
-  const forwardHeaders = ["authorization", "content-type", "x-trace-id", "accept"];
+  const forwardHeaders = ["authorization", "content-type", "x-trace-id", "accept", "cookie"];
 
   forwardHeaders.forEach((headerName) => {
     const value = request.headers.get(headerName);
