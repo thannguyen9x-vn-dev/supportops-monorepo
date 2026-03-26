@@ -1,5 +1,0 @@
-
-
-> @supportops/worker@0.1.0 lint /Users/thannguyennham/projects/supportops/supportops-monorepo/apps/worker
-> eslint "src/**/*.{js,ts}"
-

@@ -1,5 +1,0 @@
-
-
-> @supportops/api@0.1.0 lint /Users/thannguyennham/projects/supportops/supportops-monorepo/apps/api
-> eslint "src/**/*.ts"
-
