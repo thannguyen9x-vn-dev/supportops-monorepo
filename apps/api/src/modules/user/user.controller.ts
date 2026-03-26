@@ -17,6 +17,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { createHash } from 'crypto';
 import type { Request, Response } from 'express';
 import { Permissions } from '../../common/decorators/permissions.decorator';
@@ -140,7 +141,7 @@ export class UserController {
   }
 
   @Post('me/avatar')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
   @ApiOperation({ summary: 'Upload current user avatar' })
   uploadAvatar(
     @CurrentTenant() tenantId: string,
