@@ -59,6 +59,16 @@ log "Pulling images"
 docker compose -p supportops_staging -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" pull
 
 if [ "${RUN_MIGRATIONS}" = "1" ]; then
+  log "Backing up database before migration"
+  BACKUP_DIR="${DEPLOY_PATH}/backups"
+  mkdir -p "${BACKUP_DIR}"
+  BACKUP_FILE="${BACKUP_DIR}/pre-deploy-$(date +%Y%m%d-%H%M%S).sql"
+  docker compose -p supportops_staging -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" \
+    exec -T postgres pg_dump -U "${POSTGRES_USER:-postgres}" "${POSTGRES_DB:-supportops_staging}" \
+    > "${BACKUP_FILE}" 2>/dev/null \
+    && log "Database backup saved to ${BACKUP_FILE}" \
+    || log "Warning: database backup failed — continuing anyway (staging)"
+
   log "Running database migrations"
   docker compose -p supportops_staging -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" run --rm api sh -lc "${API_MIGRATE_CMD}"
 fi

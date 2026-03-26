@@ -1383,7 +1383,7 @@ function DataTable({
                               rowClassName?.(row.original)
                             ),
                             style: {
-                              background: rowBg,
+                              backgroundColor: rowBg,
                               cursor: onRowClick ? "pointer" : void 0,
                               transition: "background-color 0.15s ease"
                             },
@@ -1406,7 +1406,7 @@ function DataTable({
                                     textAlign: isLastColumn ? "right" : "left",
                                     borderRight: isLastColumn ? "none" : "1px solid var(--mui-palette-divider)",
                                     borderBottom: "1px solid var(--mui-palette-divider)",
-                                    background: rowBg,
+                                    backgroundColor: rowBg,
                                     ...getStickyStyle(
                                       pinned,
                                       cell.column.getStart("left"),

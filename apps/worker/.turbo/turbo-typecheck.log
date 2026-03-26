@@ -1,0 +1,5 @@
+
+
+> @supportops/worker@0.1.0 typecheck /Users/thannguyennham/projects/supportops/supportops-monorepo/apps/worker
+> tsc --noEmit
+

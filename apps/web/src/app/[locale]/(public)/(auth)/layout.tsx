@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { LanguageMenu } from "@/features/layout/components/Header/LanguageMenu";
 import { ThemeModeToggle } from "@/features/layout/components/Header/ThemeModeToggle";
+import { AuthMain } from "./AuthMain";
 
 import styles from "./auth.module.css";
 
@@ -37,7 +38,7 @@ export default async function AuthLayout({
         </div>
       </header>
       <div aria-hidden className={styles.headerDivider} />
-      <main className={styles.main}>{children}</main>
+      <AuthMain>{children}</AuthMain>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   Grid,
+  Skeleton,
   Stack,
   Switch,
   Typography,
@@ -163,7 +164,6 @@ export function ServiceTypesSettingsView() {
         </Stack>
 
         {loadState === "permissionDenied" ? <Alert severity="warning">{t("states.permissionDenied")}</Alert> : null}
-        {loadState === "loading" ? <Alert severity="info">{t("states.loading")}</Alert> : null}
         {loadState === "error" ? (
           <Alert
             action={
@@ -182,7 +182,13 @@ export function ServiceTypesSettingsView() {
             <Typography gutterBottom variant="h6">
               {t("table.title")}
             </Typography>
-            {items.length === 0 ? (
+            {loadState === "loading" ? (
+              <Stack spacing={1}>
+                {[0, 1, 2].map((i) => (
+                  <Skeleton key={i} height={52} sx={{ borderRadius: 1 }} variant="rectangular" />
+                ))}
+              </Stack>
+            ) : items.length === 0 ? (
               <Typography color="text.secondary" variant="body2">
                 {t("states.empty")}
               </Typography>

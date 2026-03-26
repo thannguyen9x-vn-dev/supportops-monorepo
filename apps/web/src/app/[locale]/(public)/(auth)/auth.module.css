@@ -87,15 +87,9 @@
   background: var(--mui-palette-background-default);
 }
 
-.main::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  background-image: url("/images/auth/auth-background.jpg");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
+.mainBg {
+  object-fit: cover;
+  z-index: -2 !important;
 }
 
 .main::after {
@@ -112,6 +106,29 @@
 .main > * {
   position: relative;
   z-index: 1;
+}
+
+.mainLoading {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--mui-palette-background-default);
+}
+
+.mainContent {
+  display: contents;
+  animation: fadeIn 300ms ease;
+}
+
+.mainContentHidden {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .card {
