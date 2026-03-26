@@ -17,6 +17,7 @@ env:
   REGISTRY: ghcr.io
   WEB_IMAGE_NAME: ${{ github.repository_owner }}/supportops-web
   API_IMAGE_NAME: ${{ github.repository_owner }}/supportops-api
+  PORTFOLIO_IMAGE_NAME: ${{ github.repository_owner }}/supportops-portfolio
 
 jobs:
   build-and-push:
@@ -24,6 +25,7 @@ jobs:
     outputs:
       web_image: ${{ steps.meta.outputs.web_image }}
       api_image: ${{ steps.meta.outputs.api_image }}
+      portfolio_image: ${{ steps.meta.outputs.portfolio_image }}
 
     steps:
       - name: Checkout
@@ -45,8 +47,10 @@ jobs:
           TAG="${GITHUB_REF_NAME}"
           WEB_IMAGE="${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}:${TAG}"
           API_IMAGE="${{ env.REGISTRY }}/${{ env.API_IMAGE_NAME }}:${TAG}"
+          PORTFOLIO_IMAGE="${{ env.REGISTRY }}/${{ env.PORTFOLIO_IMAGE_NAME }}:${TAG}"
           echo "web_image=${WEB_IMAGE}" >> "${GITHUB_OUTPUT}"
           echo "api_image=${API_IMAGE}" >> "${GITHUB_OUTPUT}"
+          echo "portfolio_image=${PORTFOLIO_IMAGE}" >> "${GITHUB_OUTPUT}"
 
       - name: Build and push web image
         uses: docker/build-push-action@v6
@@ -69,6 +73,16 @@ jobs:
           tags: |
             ${{ steps.meta.outputs.api_image }}
             ${{ env.REGISTRY }}/${{ env.API_IMAGE_NAME }}:prod-latest
+
+      - name: Build and push portfolio image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/portfolio/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.portfolio_image }}
+            ${{ env.REGISTRY }}/${{ env.PORTFOLIO_IMAGE_NAME }}:prod-latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -95,6 +109,8 @@ jobs:
         env:
           WEB_IMAGE: ${{ needs.build-and-push.outputs.web_image }}
           API_IMAGE: ${{ needs.build-and-push.outputs.api_image }}
+          PORTFOLIO_IMAGE: ${{ needs.build-and-push.outputs.portfolio_image }}
+          PORTFOLIO_DOMAIN: ${{ secrets.PROD_PORTFOLIO_DOMAIN }}
           APP_DOMAIN: ${{ secrets.PROD_APP_DOMAIN }}
           API_DOMAIN: ${{ secrets.PROD_API_DOMAIN }}
           APP_ORIGIN: ${{ secrets.PROD_APP_ORIGIN }}
@@ -118,7 +134,7 @@ jobs:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.PROD_SSH_KEY }}
-          envs: WEB_IMAGE,API_IMAGE,APP_DOMAIN,API_DOMAIN,APP_ORIGIN,API_ORIGIN,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,FILE_SIGNING_SECRET,GHCR_USERNAME,GHCR_TOKEN,MAIL_ENABLED,MAIL_PROVIDER,MAIL_DAILY_LIMIT,MAIL_FROM_EMAIL,MAIL_FROM_NAME,RESEND_API_KEY,REDIS_PASSWORD,CERTBOT_EMAIL
+          envs: WEB_IMAGE,API_IMAGE,PORTFOLIO_IMAGE,PORTFOLIO_DOMAIN,APP_DOMAIN,API_DOMAIN,APP_ORIGIN,API_ORIGIN,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,FILE_SIGNING_SECRET,GHCR_USERNAME,GHCR_TOKEN,MAIL_ENABLED,MAIL_PROVIDER,MAIL_DAILY_LIMIT,MAIL_FROM_EMAIL,MAIL_FROM_NAME,RESEND_API_KEY,REDIS_PASSWORD,CERTBOT_EMAIL
           script_stop: true
           script: |
             set -Eeuo pipefail
@@ -129,6 +145,7 @@ jobs:
             cat > .env.prod <<EOF_ENV
             APP_DOMAIN=${APP_DOMAIN}
             API_DOMAIN=${API_DOMAIN}
+            PORTFOLIO_DOMAIN=${PORTFOLIO_DOMAIN}
             APP_ORIGIN=${APP_ORIGIN}
             API_ORIGIN=${API_ORIGIN}
             POSTGRES_DB=${POSTGRES_DB}
@@ -145,6 +162,7 @@ jobs:
             REDIS_PASSWORD=${REDIS_PASSWORD}
             WEB_IMAGE=${WEB_IMAGE}
             API_IMAGE=${API_IMAGE}
+            PORTFOLIO_IMAGE=${PORTFOLIO_IMAGE}
             EOF_ENV
 
             chmod +x deploy/deploy-prod.sh deploy/smoke-test.sh deploy/init-letsencrypt.sh

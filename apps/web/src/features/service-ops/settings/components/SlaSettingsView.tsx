@@ -11,19 +11,18 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { useDialog } from "@supportops/ui";
 import { ConfirmDialog, FormDialog } from "@supportops/ui-dialog";
 import { SelectOptionField, TextInputField } from "@supportops/ui-form";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { ContentContainer } from "@/features/layout/components/ContentContainer/ContentContainer";
 import { useToast } from "@/features/common/toast/useToast";
-import { ApiError } from "@/lib/api";
 
+import { useSettingsCrud } from "../hooks/useSettingsCrud";
 import { serviceOpsSettingsService } from "../services/service-ops-settings.service";
-import type { ServiceTypeSetting, SettingsLoadState, SlaPolicySetting } from "../types";
+import type { ServiceTypeSetting, SlaPolicySetting } from "../types";
 
 interface SlaFormValues {
   serviceTypeCode: string;
@@ -42,41 +41,70 @@ const SLA_FORM_ID = "sla-settings-form";
 
 export function SlaSettingsView() {
   const t = useTranslations("pages.serviceOps.settings.sla");
-  const dialog = useDialog();
-  const deleteDialog = useDialog();
   const toast = useToast();
-  const [deletingId, setDeletingId] = useState("");
-  const [loadState, setLoadState] = useState<SettingsLoadState>("loading");
-  const [items, setItems] = useState<SlaPolicySetting[]>([]);
   const [serviceTypes, setServiceTypes] = useState<ServiceTypeSetting[]>([]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editingId, setEditingId] = useState("");
   const { control, handleSubmit, reset } = useForm<SlaFormValues>({
     defaultValues: EMPTY_FORM,
     mode: "onSubmit",
   });
 
-  const loadItems = useCallback(async () => {
-    setLoadState("loading");
-    setErrorMessage(null);
-    try {
-      const data = await serviceOpsSettingsService.listSlaPolicies();
-      setItems(data);
-      setLoadState(data.length === 0 ? "empty" : "success");
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 403) {
-        setLoadState("permissionDenied");
-        return;
+  const {
+    dialog,
+    deleteDialog,
+    loadState,
+    items,
+    errorMessage,
+    editingId,
+    isSubmitting,
+    reloadItems,
+    openAddDialog,
+    openEditDialog,
+    save,
+    openDeleteDialog,
+    confirmDelete,
+  } = useSettingsCrud<SlaPolicySetting, SlaFormValues>({
+    emptyForm: EMPTY_FORM,
+    toFormValues: (item) => ({
+      serviceTypeCode: item.serviceTypeCode,
+      responseMinutes: String(item.responseMinutes),
+      resolutionMinutes: String(item.resolutionMinutes),
+      escalationAfterMinutes: String(item.escalationAfterMinutes),
+    }),
+    loadItems: () => serviceOpsSettingsService.listSlaPolicies(),
+    saveItem: async ({ editingId: currentEditingId, values }) => {
+      const serviceTypeCode = values.serviceTypeCode.trim().toUpperCase();
+      const responseMinutes = Number(values.responseMinutes);
+      const resolutionMinutes = Number(values.resolutionMinutes);
+      const escalationAfterMinutes = Number(values.escalationAfterMinutes);
+      if (
+        !serviceTypeCode ||
+        !Number.isFinite(responseMinutes) ||
+        responseMinutes <= 0 ||
+        !Number.isFinite(resolutionMinutes) ||
+        resolutionMinutes <= 0 ||
+        !Number.isFinite(escalationAfterMinutes) ||
+        escalationAfterMinutes <= 0
+      ) {
+        return null;
       }
-      setLoadState("error");
-      setErrorMessage(t("feedback.loadError"));
-    }
-  }, [t]);
 
-  useEffect(() => {
-    void loadItems();
-  }, [loadItems]);
+      return serviceOpsSettingsService.saveSlaPolicy({
+        id: currentEditingId || undefined,
+        serviceTypeCode,
+        responseMinutes,
+        resolutionMinutes,
+        escalationAfterMinutes,
+      });
+    },
+    deleteItem: (id) => serviceOpsSettingsService.deleteSlaPolicy(id),
+    getItemId: (item) => item.id,
+    resetForm: (values) => reset(values),
+    loadErrorMessage: t("feedback.loadError"),
+    onSaveSuccess: () => toast.success(t("feedback.saveSuccess")),
+    onSaveError: () => toast.error(t("feedback.saveError")),
+    onDeleteSuccess: () => toast.success(t("feedback.deleteSuccess")),
+    onDeleteError: () => toast.error(t("feedback.deleteError")),
+  });
 
   useEffect(() => {
     void serviceOpsSettingsService.listServiceTypes().then(setServiceTypes).catch(() => undefined);
@@ -91,90 +119,9 @@ export function SlaSettingsView() {
       .map((st) => ({ value: st.code, label: `${st.code} — ${st.name}` }));
   }, [serviceTypes, usedCodes, editingId, items]);
 
-  const openAddDialog = () => {
-    setEditingId("");
-    reset(EMPTY_FORM);
-    dialog.open();
-  };
-
-  const openEditDialog = (item: SlaPolicySetting) => {
-    setEditingId(item.id);
-    reset({
-      serviceTypeCode: item.serviceTypeCode,
-      responseMinutes: String(item.responseMinutes),
-      resolutionMinutes: String(item.resolutionMinutes),
-      escalationAfterMinutes: String(item.escalationAfterMinutes),
-    });
-    dialog.open();
-  };
-
-  const closeDialog = () => {
-    dialog.close();
-    setEditingId("");
-    reset(EMPTY_FORM);
-  };
-
   const onSave = handleSubmit(async (values) => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-    try {
-      const serviceTypeCode = values.serviceTypeCode.trim().toUpperCase();
-      const responseMinutes = Number(values.responseMinutes);
-      const resolutionMinutes = Number(values.resolutionMinutes);
-      const escalationAfterMinutes = Number(values.escalationAfterMinutes);
-      if (
-        !serviceTypeCode ||
-        !Number.isFinite(responseMinutes) ||
-        responseMinutes <= 0 ||
-        !Number.isFinite(resolutionMinutes) ||
-        resolutionMinutes <= 0 ||
-        !Number.isFinite(escalationAfterMinutes) ||
-        escalationAfterMinutes <= 0
-      ) {
-        return;
-      }
-
-      const saved = await serviceOpsSettingsService.saveSlaPolicy({
-        id: editingId || undefined,
-        serviceTypeCode,
-        responseMinutes,
-        resolutionMinutes,
-        escalationAfterMinutes,
-      });
-      setItems((current) => {
-        const exists = current.some((item) => item.id === saved.id);
-        if (exists) {
-          return current.map((item) => (item.id === saved.id ? saved : item));
-        }
-        return [saved, ...current];
-      });
-      setLoadState("success");
-      toast.success(t("feedback.saveSuccess"));
-      closeDialog();
-    } catch {
-      toast.error(t("feedback.saveError"));
-    } finally {
-      setIsSubmitting(false);
-    }
+    await save(values);
   });
-
-  const openDeleteDialog = (id: string) => {
-    setDeletingId(id);
-    deleteDialog.open();
-  };
-
-  const onDelete = async () => {
-    try {
-      await serviceOpsSettingsService.deleteSlaPolicy(deletingId);
-      const next = items.filter((item) => item.id !== deletingId);
-      setItems(next);
-      setLoadState(next.length === 0 ? "empty" : "success");
-      toast.success(t("feedback.deleteSuccess"));
-      deleteDialog.close();
-    } catch {
-      toast.error(t("feedback.deleteError"));
-    }
-  };
 
   return (
     <ContentContainer>
@@ -195,7 +142,7 @@ export function SlaSettingsView() {
         {loadState === "error" ? (
           <Alert
             action={
-              <Button color="inherit" onClick={() => void loadItems()} size="small">
+              <Button color="inherit" onClick={() => void reloadItems()} size="small">
                 {t("actions.retry")}
               </Button>
             }
@@ -346,7 +293,7 @@ export function SlaSettingsView() {
         confirmLabel={t("actions.delete")}
         description={t("actions.confirmDeleteDescription")}
         dialog={deleteDialog}
-        onConfirm={onDelete}
+        onConfirm={confirmDelete}
         title={t("actions.confirmDelete")}
       />
     </ContentContainer>

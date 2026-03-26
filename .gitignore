@@ -9,6 +9,10 @@ node_modules
 
 .cursorrules
 
+# Local file storage - never commit uploaded files
+apps/api/storage/uploads/
+apps/api/storage/avatars/
+
 # Environment files - never commit secrets
 .env
 **/.env
