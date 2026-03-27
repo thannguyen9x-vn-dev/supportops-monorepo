@@ -3,24 +3,28 @@
 ## Quick Start
 
 ```bash
-# install deps
+# Install deps
 pnpm install
 
-# start infra
-cd apps/api && docker compose up -d
+# Start infra (Postgres + Redis)
+docker compose -f docker-compose.dev.yml up -d
 
-# run backend
-cd apps/api && ./gradlew bootRun
+# Run migrations + seed
+pnpm --filter @supportops/api exec prisma migrate deploy
+pnpm --filter @supportops/api exec prisma db seed
 
-# run frontend
-cd apps/web && pnpm dev
+# Start API
+pnpm --filter @supportops/api dev
+
+# Start Web
+pnpm --filter @supportops/web dev
 ```
 
-## Workflow
-- Branch from `main`
+## Branch Workflow
+- Branch from `develop`
 - Follow Conventional Commits
 - Keep PRs focused and atomic
-- Ensure tests pass before PR
+- Ensure lint + typecheck + tests pass before PR
 
 ## Commit Format
 ```text
@@ -34,14 +38,14 @@ chore: short summary
 
 ## Feature Delivery Order
 1. Contracts first (`packages/types`)
-2. Migration (`apps/api/src/main/resources/db/migration`)
-3. Backend module
+2. Prisma migration (`apps/api/prisma/migrations`)
+3. Backend module (NestJS service/controller/guard)
 4. Frontend service/hook/component/page
 5. Tests + i18n update
 
 ## Checklist
 - Tenant filter present on all tenant data queries
-- Validation annotations on request DTOs
+- Validation decorators on all request DTOs
 - No hardcoded API URL in frontend
 - No user-facing hardcoded strings
 - Loading/error/empty states handled
