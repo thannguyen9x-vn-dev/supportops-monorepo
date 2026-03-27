@@ -20,6 +20,9 @@ export function DemoAccess() {
                   Role
                 </th>
                 <th className="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                  Email
+                </th>
+                <th className="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">
                   Can do
                 </th>
               </tr>
@@ -35,6 +38,9 @@ export function DemoAccess() {
                   <td className="px-5 py-3.5 font-medium text-zinc-200 whitespace-nowrap">
                     {item.role}
                   </td>
+                  <td className="px-5 py-3.5 text-zinc-300 font-mono whitespace-nowrap">
+                    {item.email}
+                  </td>
                   <td className="px-5 py-3.5 text-zinc-400">
                     {item.description}
                   </td>
@@ -44,6 +50,7 @@ export function DemoAccess() {
           </table>
         </div>
 
+        {/* Password + CTA */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <a
             href={demo.url}
@@ -62,7 +69,10 @@ export function DemoAccess() {
               />
             </svg>
           </a>
-          <p className="text-xs text-zinc-500">{demo.credential}</p>
+          <p className="text-xs text-zinc-500">
+            Password for all accounts:{" "}
+            <span className="font-mono text-zinc-300">{demo.password}</span>
+          </p>
         </div>
       </div>
     </section>

@@ -50,7 +50,7 @@ export const content = {
     ],
     stats: [
       { value: "4", label: "Roles in RBAC system" },
-      { value: "3", label: "Apps in monorepo" },
+      { value: "4", label: "Apps in monorepo" },
       { value: "CI/CD", label: "GitHub Actions + SSH deploy" },
       { value: "SSL", label: "Let's Encrypt + Nginx" },
     ],
@@ -144,30 +144,33 @@ export const content = {
     heading: "Try the Demo",
     url: "https://app.thannguyen.org",
     note: "The demo runs on a real server with a real database. Each role has a separate account so you can explore the platform from different perspectives.",
+    password: "SupportOps@123",
     roles: [
       {
         role: "Tenant Admin",
+        email: "sarah.chen@supportops.dev",
         description:
           "Full platform control — manage team members, tenant settings, and all service requests",
       },
       {
         role: "Ops Coordinator",
+        email: "marcus.rivera@supportops.dev",
         description:
           "Assign and oversee service requests, manage SLA rules and escalation policies",
       },
       {
         role: "Technician",
+        email: "jordan.kim@supportops.dev",
         description:
           "Work on assigned requests, update progress status, and add activity notes",
       },
       {
         role: "Employee",
+        email: "oliver.davis@supportops.dev",
         description:
           "Submit service requests, track progress, and communicate via activity thread",
       },
     ],
-    credential:
-      "Demo credentials available upon request — contact me via email or LinkedIn below.",
   },
 
   technical: {
@@ -217,13 +220,13 @@ export const content = {
       },
       {
         label: "LinkedIn",
-        href: "https://linkedin.com/in/thannguyendev",
-        description: "linkedin.com/in/thannguyendev",
+        href: "https://www.linkedin.com/in/than-nguyen-nham-vn-763135173",
+        description: "linkedin.com/in/than-nguyen-nham-vn-763135173",
       },
       {
         label: "Email",
-        href: "mailto:thannguyen@thannguyen.org",
-        description: "thannguyen@thannguyen.org",
+        href: "mailto:nguyennhamthan1010@gmail.com",
+        description: "nguyennhamthan1010@gmail.com",
       },
     ],
   },
