@@ -3,8 +3,11 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { LoggerModule } from 'nestjs-pino';
 import { AppController } from './app.controller';
+import { ReadinessService } from './common/health/readiness.service';
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
+import { ErrorAlertService } from './common/monitoring/error-alert.service';
 import appConfig from './config/app.config';
 import authConfig from './config/auth.config';
 import databaseConfig from './config/database.config';
@@ -49,6 +52,22 @@ import { PrismaModule } from './prisma/prisma.module';
       load: [appConfig, authConfig, databaseConfig, fileConfig, jwtConfig, mailConfig],
     }),
     EventEmitterModule.forRoot(),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        level: process.env.LOG_LEVEL ?? 'info',
+        redact: ['req.headers.authorization', 'req.headers.cookie'],
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? {
+                target: 'pino-pretty',
+                options: {
+                  colorize: true,
+                  singleLine: true,
+                },
+              }
+            : undefined,
+      },
+    }),
     ThrottlerModule.forRoot([
       {
         name: 'default',
@@ -90,6 +109,8 @@ import { PrismaModule } from './prisma/prisma.module';
     { provide: APP_INTERCEPTOR, useClass: TenantContextInterceptor },
     { provide: APP_INTERCEPTOR, useClass: ResponseTransformInterceptor },
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
+    ReadinessService,
+    ErrorAlertService,
   ],
 })
 export class AppModule implements NestModule {

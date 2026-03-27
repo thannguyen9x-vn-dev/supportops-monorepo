@@ -14,5 +14,10 @@ export default registerAs('app', () => {
     corsOrigins: process.env.CORS_ALLOWED_ORIGIN ?? 'http://localhost:3000',
     filePublicBaseUrl: process.env.FILE_PUBLIC_BASE_URL ?? '',
     fileSigningSecret,
+    redisUrl: process.env.REDIS_URL ?? '',
+    errorAlertThreshold: Number.parseInt(process.env.ERROR_ALERT_THRESHOLD ?? '20', 10),
+    errorAlertWindowMs: Number.parseInt(process.env.ERROR_ALERT_WINDOW_MS ?? '300000', 10),
+    errorAlertCooldownMs: Number.parseInt(process.env.ERROR_ALERT_COOLDOWN_MS ?? '900000', 10),
+    errorAlertWebhookUrl: process.env.ERROR_ALERT_WEBHOOK_URL ?? '',
   };
 });

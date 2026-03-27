@@ -18,6 +18,8 @@ API_MIGRATE_CMD="${API_MIGRATE_CMD:-pnpm --filter @supportops/api exec prisma mi
 SMOKE_SCRIPT="${SMOKE_SCRIPT:-deploy/smoke-test.sh}"
 SMOKE_PORT="${SMOKE_PORT:-80}"
 CERTBOT_EMAIL="${CERTBOT_EMAIL:-}"
+RUN_AUDIT_PRUNE="${RUN_AUDIT_PRUNE:-1}"
+API_AUDIT_PRUNE_CMD="${API_AUDIT_PRUNE_CMD:-pnpm --filter @supportops/api audit:prune}"
 
 cd "${DEPLOY_PATH}"
 
@@ -78,6 +80,12 @@ docker compose -p supportops_prod -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" 
 
 log "Running smoke tests"
 SMOKE_PORT="${SMOKE_PORT}" "${SMOKE_SCRIPT}"
+
+if [ "${RUN_AUDIT_PRUNE}" = "1" ]; then
+  log "Pruning old audit logs"
+  docker compose -p supportops_prod -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" \
+    run --rm api sh -lc "${API_AUDIT_PRUNE_CMD}"
+fi
 
 rm -f "${ENV_FILE}.rollback"
 trap - ERR

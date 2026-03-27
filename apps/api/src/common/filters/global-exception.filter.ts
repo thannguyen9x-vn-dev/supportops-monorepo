@@ -1,10 +1,14 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { ErrorAlertService } from '../monitoring/error-alert.service';
 import { AppException } from '../exceptions/app.exception';
 
 @Catch()
+@Injectable()
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
+
+  constructor(private readonly errorAlertService: ErrorAlertService) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
@@ -46,6 +50,16 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       message = 'An unexpected error occurred';
     }
 
+    if (status >= 500) {
+      void this.errorAlertService.recordServerError({
+        method: request.method,
+        path: request.url,
+        status,
+        traceId,
+        message,
+      });
+    }
+
     response.status(status).json({
       error: {
         code,
@@ -65,6 +79,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       409: 'CONFLICT',
       422: 'VALIDATION_ERROR',
       429: 'RATE_LIMIT_EXCEEDED',
+      503: 'SERVICE_UNAVAILABLE',
     };
 
     return map[status] ?? 'INTERNAL_ERROR';
