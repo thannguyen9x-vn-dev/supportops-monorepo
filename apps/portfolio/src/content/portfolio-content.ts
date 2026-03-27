@@ -3,7 +3,7 @@ export const content = {
     title: "Than Nguyen — Fullstack Engineer",
     description:
       "Fullstack engineer specialising in internal tooling and enterprise workflow platforms. Currently open to fullstack roles.",
-    url: "https://thannguyendev.org",
+    url: "https://thannguyen.org",
     image: "/og-image.png",
   },
 
@@ -18,7 +18,7 @@ export const content = {
     ],
     demoLink: {
       label: "View Demo",
-      href: "https://app.thannguyendev.org",
+      href: "https://app.thannguyen.org",
     },
   },
 
@@ -31,7 +31,7 @@ export const content = {
     cta: {
       primary: {
         label: "View Live Demo",
-        href: "https://app.thannguyendev.org",
+        href: "https://app.thannguyen.org",
       },
       secondary: {
         label: "GitHub",
@@ -97,7 +97,7 @@ export const content = {
       "Email notifications via Resend with daily rate limiting",
     ],
     links: {
-      demo: "https://app.thannguyendev.org",
+      demo: "https://app.thannguyen.org",
       github:
         "https://github.com/thannguyen9x-vn-dev/supportops-monorepo",
     },
@@ -142,7 +142,7 @@ export const content = {
   demo: {
     id: "demo",
     heading: "Try the Demo",
-    url: "https://app.thannguyendev.org",
+    url: "https://app.thannguyen.org",
     note: "The demo runs on a real server with a real database. Each role has a separate account so you can explore the platform from different perspectives.",
     roles: [
       {
@@ -222,8 +222,8 @@ export const content = {
       },
       {
         label: "Email",
-        href: "mailto:thannguyen@thannguyendev.org",
-        description: "thannguyen@thannguyendev.org",
+        href: "mailto:thannguyen@thannguyen.org",
+        description: "thannguyen@thannguyen.org",
       },
     ],
   },
@@ -231,7 +231,7 @@ export const content = {
   footer: {
     name: "Than Nguyen",
     year: 2025,
-    tagline: "Built with Next.js · Deployed on thannguyendev.org",
+    tagline: "Built with Next.js · Deployed on thannguyen.org",
     github: "https://github.com/thannguyen9x-vn-dev",
   },
 } as const;
