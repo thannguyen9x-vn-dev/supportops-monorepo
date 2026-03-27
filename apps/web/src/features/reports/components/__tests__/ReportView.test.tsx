@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event";
 
-import { render, screen } from "../../../../../__tests__/setup/test-utils";
+import { render, screen } from "@testing-library/react";
 
 jest.mock("@/features/reports/hooks/useReportData", () => ({
   useReportData: jest.fn(),

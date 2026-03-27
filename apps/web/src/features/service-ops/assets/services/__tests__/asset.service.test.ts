@@ -70,11 +70,11 @@ describe("assetService", () => {
   });
 
   it("creates, updates and deletes asset type", async () => {
-    await assetService.createAssetType({ code: "MOBILE", name: "Mobile" });
+    await assetService.createAssetType({ name: "Mobile" });
     await assetService.updateAssetType("asset-type-1", { name: "Laptop Updated" });
     await assetService.deleteAssetType("asset-type-1");
 
-    expect(mockPost).toHaveBeenCalledWith("/asset-types", { code: "MOBILE", name: "Mobile" });
+    expect(mockPost).toHaveBeenCalledWith("/asset-types", { name: "Mobile" });
     expect(mockPatch).toHaveBeenCalledWith("/asset-types/asset-type-1", { name: "Laptop Updated" });
     expect(mockDelete).toHaveBeenCalledWith("/asset-types/asset-type-1");
   });
