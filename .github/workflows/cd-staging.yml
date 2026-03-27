@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - develop
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: false
+        default: 'develop'
 
 permissions:
   contents: read
@@ -17,13 +23,13 @@ env:
   REGISTRY: ghcr.io
   WEB_IMAGE_NAME: ${{ github.repository_owner }}/supportops-web
   API_IMAGE_NAME: ${{ github.repository_owner }}/supportops-api
+  PORTFOLIO_IMAGE_NAME: ${{ github.repository_owner }}/supportops-portfolio
 
 jobs:
-  build-and-push:
+  build-web:
     runs-on: ubuntu-latest
     outputs:
-      web_image: ${{ steps.meta.outputs.web_image }}
-      api_image: ${{ steps.meta.outputs.api_image }}
+      image: ${{ steps.meta.outputs.image }}
 
     steps:
       - name: Checkout
@@ -39,13 +45,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build metadata
+      - name: Cache turbo build artifacts
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-web-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-web-
+
+      - name: Set image name
         id: meta
-        run: |
-          WEB_IMAGE="${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}:staging-${GITHUB_SHA}"
-          API_IMAGE="${{ env.REGISTRY }}/${{ env.API_IMAGE_NAME }}:staging-${GITHUB_SHA}"
-          echo "web_image=${WEB_IMAGE}" >> "${GITHUB_OUTPUT}"
-          echo "api_image=${API_IMAGE}" >> "${GITHUB_OUTPUT}"
+        run: echo "image=${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}:staging-${GITHUB_SHA}" >> "${GITHUB_OUTPUT}"
 
       - name: Build and push web image
         uses: docker/build-push-action@v6
@@ -54,8 +64,43 @@ jobs:
           file: apps/web/Dockerfile
           push: true
           tags: |
-            ${{ steps.meta.outputs.web_image }}
+            ${{ steps.meta.outputs.image }}
             ${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}:staging-latest
+          build-args: |
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.STAGING_API_ORIGIN }}/api/v1
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+  build-api:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache turbo build artifacts
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-api-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-api-
+
+      - name: Set image name
+        id: meta
+        run: echo "image=${{ env.REGISTRY }}/${{ env.API_IMAGE_NAME }}:staging-${GITHUB_SHA}" >> "${GITHUB_OUTPUT}"
 
       - name: Build and push api image
         uses: docker/build-push-action@v6
@@ -64,12 +109,57 @@ jobs:
           file: apps/api/Dockerfile
           push: true
           tags: |
-            ${{ steps.meta.outputs.api_image }}
+            ${{ steps.meta.outputs.image }}
             ${{ env.REGISTRY }}/${{ env.API_IMAGE_NAME }}:staging-latest
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+  build-portfolio:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache turbo build artifacts
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-portfolio-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-portfolio-
+
+      - name: Set image name
+        id: meta
+        run: echo "image=${{ env.REGISTRY }}/${{ env.PORTFOLIO_IMAGE_NAME }}:staging-${GITHUB_SHA}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build and push portfolio image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/portfolio/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image }}
+            ${{ env.REGISTRY }}/${{ env.PORTFOLIO_IMAGE_NAME }}:staging-latest
+          cache-from: type=gha,scope=portfolio
+          cache-to: type=gha,mode=max,scope=portfolio
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: [build-web, build-api, build-portfolio]
     environment: staging
 
     steps:
@@ -82,7 +172,7 @@ jobs:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}
           key: ${{ secrets.STAGING_SSH_KEY }}
-          source: "docker-compose.prod.yml,deploy/nginx/templates/supportops.conf.template,deploy/deploy-prod.sh,deploy/smoke-test.sh"
+          source: "docker-compose.staging.yml,deploy/nginx/templates/supportops.conf.template,deploy/deploy-staging.sh,deploy/smoke-test.sh,deploy/init-letsencrypt.sh"
           target: ${{ secrets.STAGING_DEPLOY_PATH }}
           strip_components: 0
           overwrite: true
@@ -90,8 +180,10 @@ jobs:
       - name: Deploy to staging
         uses: appleboy/ssh-action@v1.2.0
         env:
-          WEB_IMAGE: ${{ needs.build-and-push.outputs.web_image }}
-          API_IMAGE: ${{ needs.build-and-push.outputs.api_image }}
+          WEB_IMAGE: ${{ needs.build-web.outputs.image }}
+          API_IMAGE: ${{ needs.build-api.outputs.image }}
+          PORTFOLIO_IMAGE: ${{ needs.build-portfolio.outputs.image }}
+          PORTFOLIO_DOMAIN: ${{ secrets.STAGING_PORTFOLIO_DOMAIN }}
           APP_DOMAIN: ${{ secrets.STAGING_APP_DOMAIN }}
           API_DOMAIN: ${{ secrets.STAGING_API_DOMAIN }}
           APP_ORIGIN: ${{ secrets.STAGING_APP_ORIGIN }}
@@ -109,11 +201,19 @@ jobs:
           MAIL_FROM_EMAIL: ${{ secrets.STAGING_MAIL_FROM_EMAIL }}
           MAIL_FROM_NAME: ${{ secrets.STAGING_MAIL_FROM_NAME }}
           RESEND_API_KEY: ${{ secrets.STAGING_RESEND_API_KEY }}
+          REDIS_PASSWORD: ${{ secrets.STAGING_REDIS_PASSWORD }}
+          LOG_LEVEL: ${{ secrets.STAGING_LOG_LEVEL }}
+          AUDIT_LOG_RETENTION_DAYS: ${{ secrets.STAGING_AUDIT_LOG_RETENTION_DAYS }}
+          ERROR_ALERT_THRESHOLD: ${{ secrets.STAGING_ERROR_ALERT_THRESHOLD }}
+          ERROR_ALERT_WINDOW_MS: ${{ secrets.STAGING_ERROR_ALERT_WINDOW_MS }}
+          ERROR_ALERT_COOLDOWN_MS: ${{ secrets.STAGING_ERROR_ALERT_COOLDOWN_MS }}
+          ERROR_ALERT_WEBHOOK_URL: ${{ secrets.STAGING_ERROR_ALERT_WEBHOOK_URL }}
+          CERTBOT_EMAIL: ${{ secrets.STAGING_CERTBOT_EMAIL }}
         with:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}
           key: ${{ secrets.STAGING_SSH_KEY }}
-          envs: WEB_IMAGE,API_IMAGE,APP_DOMAIN,API_DOMAIN,APP_ORIGIN,API_ORIGIN,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,FILE_SIGNING_SECRET,GHCR_USERNAME,GHCR_TOKEN,MAIL_ENABLED,MAIL_PROVIDER,MAIL_DAILY_LIMIT,MAIL_FROM_EMAIL,MAIL_FROM_NAME,RESEND_API_KEY
+          envs: WEB_IMAGE,API_IMAGE,PORTFOLIO_IMAGE,PORTFOLIO_DOMAIN,APP_DOMAIN,API_DOMAIN,APP_ORIGIN,API_ORIGIN,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,FILE_SIGNING_SECRET,GHCR_USERNAME,GHCR_TOKEN,MAIL_ENABLED,MAIL_PROVIDER,MAIL_DAILY_LIMIT,MAIL_FROM_EMAIL,MAIL_FROM_NAME,RESEND_API_KEY,REDIS_PASSWORD,LOG_LEVEL,AUDIT_LOG_RETENTION_DAYS,ERROR_ALERT_THRESHOLD,ERROR_ALERT_WINDOW_MS,ERROR_ALERT_COOLDOWN_MS,ERROR_ALERT_WEBHOOK_URL,CERTBOT_EMAIL
           script_stop: true
           script: |
             set -Eeuo pipefail
@@ -121,27 +221,36 @@ jobs:
             mkdir -p "${DEPLOY_PATH}/deploy/nginx/certs" "${DEPLOY_PATH}/deploy/nginx/www"
             cd "${DEPLOY_PATH}"
 
-            cat > .env.prod <<EOF_ENV
-            APP_DOMAIN=${APP_DOMAIN}
-            API_DOMAIN=${API_DOMAIN}
-            APP_ORIGIN=${APP_ORIGIN}
-            API_ORIGIN=${API_ORIGIN}
-            POSTGRES_DB=${POSTGRES_DB}
-            POSTGRES_USER=${POSTGRES_USER}
-            POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-            JWT_SECRET=${JWT_SECRET}
-            FILE_SIGNING_SECRET=${FILE_SIGNING_SECRET}
-            MAIL_ENABLED=${MAIL_ENABLED:-false}
-            MAIL_PROVIDER=${MAIL_PROVIDER:-resend}
-            MAIL_DAILY_LIMIT=${MAIL_DAILY_LIMIT:-90}
-            MAIL_FROM_EMAIL=${MAIL_FROM_EMAIL:-onboarding@resend.dev}
-            MAIL_FROM_NAME=${MAIL_FROM_NAME:-SupportOps}
-            RESEND_API_KEY=${RESEND_API_KEY:-}
-            WEB_IMAGE=${WEB_IMAGE}
-            API_IMAGE=${API_IMAGE}
+            cat > .env.staging <<EOF_ENV
+            APP_DOMAIN="${APP_DOMAIN}"
+            API_DOMAIN="${API_DOMAIN}"
+            PORTFOLIO_DOMAIN="${PORTFOLIO_DOMAIN}"
+            APP_ORIGIN="${APP_ORIGIN}"
+            API_ORIGIN="${API_ORIGIN}"
+            POSTGRES_DB="${POSTGRES_DB}"
+            POSTGRES_USER="${POSTGRES_USER}"
+            POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
+            JWT_SECRET="${JWT_SECRET}"
+            FILE_SIGNING_SECRET="${FILE_SIGNING_SECRET}"
+            MAIL_ENABLED="${MAIL_ENABLED:-false}"
+            MAIL_PROVIDER="${MAIL_PROVIDER:-resend}"
+            MAIL_DAILY_LIMIT="${MAIL_DAILY_LIMIT:-90}"
+            MAIL_FROM_EMAIL="${MAIL_FROM_EMAIL:-onboarding@resend.dev}"
+            MAIL_FROM_NAME="${MAIL_FROM_NAME:-SupportOps}"
+            RESEND_API_KEY="${RESEND_API_KEY:-}"
+            REDIS_PASSWORD="${REDIS_PASSWORD}"
+            LOG_LEVEL="${LOG_LEVEL:-info}"
+            AUDIT_LOG_RETENTION_DAYS="${AUDIT_LOG_RETENTION_DAYS:-2555}"
+            ERROR_ALERT_THRESHOLD="${ERROR_ALERT_THRESHOLD:-20}"
+            ERROR_ALERT_WINDOW_MS="${ERROR_ALERT_WINDOW_MS:-300000}"
+            ERROR_ALERT_COOLDOWN_MS="${ERROR_ALERT_COOLDOWN_MS:-900000}"
+            ERROR_ALERT_WEBHOOK_URL="${ERROR_ALERT_WEBHOOK_URL:-}"
+            WEB_IMAGE="${WEB_IMAGE}"
+            API_IMAGE="${API_IMAGE}"
+            PORTFOLIO_IMAGE="${PORTFOLIO_IMAGE}"
             EOF_ENV
 
-            chmod +x deploy/deploy-prod.sh deploy/smoke-test.sh
+            chmod +x deploy/deploy-staging.sh deploy/smoke-test.sh deploy/init-letsencrypt.sh
             echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
-            DEPLOY_PATH="${DEPLOY_PATH}" ENV_FILE=.env.prod ./deploy/deploy-prod.sh
+            DEPLOY_PATH="${DEPLOY_PATH}" ENV_FILE=.env.staging CERTBOT_EMAIL="${CERTBOT_EMAIL:-}" ./deploy/deploy-staging.sh

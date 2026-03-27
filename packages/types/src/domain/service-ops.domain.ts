@@ -1,4 +1,5 @@
 import type {
+  AssetStatus,
   RequestCommentVisibility,
   RequestImpactLevel,
   RequestPriority,
@@ -8,6 +9,7 @@ import type {
   SlaType,
   SourceChannel,
 } from "../enums";
+import type { PageMeta } from "../types/api-response";
 
 export interface ServiceRequest {
   id: string;
@@ -200,6 +202,42 @@ export interface RequestWorkflowActor {
   avatarUrl: string | null;
 }
 
+export interface AssetType {
+  id: string;
+  tenantId: string;
+  name: string;
+  category?: string | null;
+  description?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Asset {
+  id: string;
+  tenantId: string;
+  assetCode: string;
+  name: string;
+  assetTypeId: string;
+  assetType?: AssetType;
+  locationId: string;
+  status: AssetStatus;
+  serialNumber?: string | null;
+  model?: string | null;
+  assignedDepartment?: string | null;
+  responsibleTeam?: string | null;
+  installedAt?: string | null;
+  description?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AssetDetail {
+  asset: Asset;
+  openRequestCount: number;
+  requests: ServiceRequest[];
+  meta: PageMeta;
+}
+
 export interface RequestWorkflowDetail {
   request: ServiceRequest;
   comments: RequestComment[];
@@ -212,4 +250,6 @@ export interface RequestWorkflowDetail {
   queueLabel: string | null;
   tags: string[];
   escalationRules: string[];
+  allowedActions: string[];
+  canAddWorkLog: boolean;
 }

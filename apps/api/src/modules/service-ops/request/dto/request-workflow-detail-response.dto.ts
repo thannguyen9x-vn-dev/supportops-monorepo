@@ -345,4 +345,10 @@ export class RequestWorkflowDetailResponseDto {
 
   @ApiProperty({ type: [String] })
   escalationRules!: string[];
+
+  @ApiProperty({ type: [String] })
+  allowedActions!: string[];
+
+  @ApiProperty()
+  canAddWorkLog!: boolean;
 }

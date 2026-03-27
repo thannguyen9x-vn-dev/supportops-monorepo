@@ -1,233 +1,365 @@
 "use client";
 
-import { Alert, Box, Button, Card, CardContent, Grid, Stack, TextField, Typography } from "@mui/material";
+import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Checkbox,
+  Chip,
+  FormHelperText,
+  FormLabel,
+  Grid,
+  ListItemText,
+  MenuItem,
+  OutlinedInput,
+  Select,
+  Skeleton,
+  Stack,
+  Typography,
+} from "@mui/material";
+import { REQUEST_STATUSES, USER_ROLES } from "@supportops/types";
+import { ConfirmDialog, FormDialog } from "@supportops/ui-dialog";
+import { SelectOptionField } from "@supportops/ui-form";
+import { TruncatedText } from "@supportops/ui";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
-import { ApiError } from "@/lib/api";
+import { useToast } from "@/features/common/toast/useToast";
+import { ContentContainer } from "@/features/layout/components/ContentContainer/ContentContainer";
 
+import { useSettingsCrud } from "../hooks/useSettingsCrud";
 import { serviceOpsSettingsService } from "../services/service-ops-settings.service";
-import type { SettingsLoadState, WorkflowTransitionSetting } from "../types";
+import type { ServiceTypeSetting, WorkflowTransitionSetting } from "../types";
 
-const EMPTY_FORM = {
-  id: "",
+const STATUS_OPTIONS = REQUEST_STATUSES.map((s) => ({ value: s, label: s }));
+const ROLE_OPTIONS = USER_ROLES.map((r) => ({ value: r, label: r }));
+
+interface WorkflowFormValues {
+  serviceTypeCode: string;
+  fromStatus: string;
+  toStatus: string;
+  allowedRoles: string[];
+}
+
+const EMPTY_FORM: WorkflowFormValues = {
   serviceTypeCode: "",
   fromStatus: "",
   toStatus: "",
-  allowedRoles: "",
+  allowedRoles: [],
 };
+const WORKFLOW_FORM_ID = "workflow-settings-form";
 
 export function WorkflowSettingsView() {
   const t = useTranslations("pages.serviceOps.settings.workflow");
-  const [loadState, setLoadState] = useState<SettingsLoadState>("loading");
-  const [items, setItems] = useState<WorkflowTransitionSetting[]>([]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const toast = useToast();
+  const [serviceTypes, setServiceTypes] = useState<ServiceTypeSetting[]>([]);
+  const { control, handleSubmit, reset } = useForm<WorkflowFormValues>({
+    defaultValues: EMPTY_FORM,
+    mode: "onSubmit",
+  });
 
-  const normalizedServiceTypeCode = form.serviceTypeCode.trim().toUpperCase();
-  const normalizedFromStatus = form.fromStatus.trim().toUpperCase();
-  const normalizedToStatus = form.toStatus.trim().toUpperCase();
-  const normalizedRoles = form.allowedRoles
-    .split(",")
-    .map((role) => role.trim().toUpperCase())
-    .filter(Boolean);
-  const hasServiceTypeCodeError = normalizedServiceTypeCode.length === 0;
-  const hasStatusError = normalizedFromStatus.length === 0 || normalizedToStatus.length === 0;
-  const hasAllowedRolesError = normalizedRoles.length === 0;
+  const toFormValues = useCallback((item: WorkflowTransitionSetting): WorkflowFormValues => ({
+    serviceTypeCode: item.serviceTypeCode,
+    fromStatus: item.fromStatus,
+    toStatus: item.toStatus,
+    allowedRoles: item.allowedRoles,
+  }), []);
 
-  const loadItems = useCallback(async () => {
-    setLoadState("loading");
-    setErrorMessage(null);
-    try {
-      const data = await serviceOpsSettingsService.listWorkflowTransitions();
-      setItems(data);
-      setLoadState(data.length === 0 ? "empty" : "success");
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 403) {
-        setLoadState("permissionDenied");
-        return;
-      }
-      setLoadState("error");
-      setErrorMessage(t("feedback.loadError"));
-    }
-  }, [t]);
+  const loadItems = useCallback(() => serviceOpsSettingsService.listWorkflowTransitions(), []);
+  const resetFormCb = useCallback((values: WorkflowFormValues) => reset(values), [reset]);
+  const saveItem = useCallback(({ editingId: currentEditingId, values }: { editingId: string; values: WorkflowFormValues }) =>
+    serviceOpsSettingsService.saveWorkflowTransition({
+      id: currentEditingId || undefined,
+      serviceTypeCode: values.serviceTypeCode,
+      fromStatus: values.fromStatus,
+      toStatus: values.toStatus,
+      allowedRoles: values.allowedRoles,
+    }), []);
+  const deleteItem = useCallback((id: string) => serviceOpsSettingsService.deleteWorkflowTransition(id), []);
+  const getItemId = useCallback((item: WorkflowTransitionSetting) => item.id, []);
+  const onSaveSuccess = useCallback(() => toast.success(t("feedback.saveSuccess")), [t, toast]);
+  const onSaveError = useCallback(() => toast.error(t("feedback.saveError")), [t, toast]);
+  const onDeleteSuccess = useCallback(() => toast.success(t("feedback.deleteSuccess")), [t, toast]);
+  const onDeleteError = useCallback(() => toast.error(t("feedback.deleteError")), [t, toast]);
+
+  const {
+    dialog,
+    deleteDialog,
+    loadState,
+    items,
+    errorMessage,
+    editingId,
+    isSubmitting,
+    reloadItems,
+    openAddDialog,
+    openEditDialog,
+    save,
+    openDeleteDialog,
+    confirmDelete,
+  } = useSettingsCrud<WorkflowTransitionSetting, WorkflowFormValues>({
+    queryKey: ["workflow-transitions"] as const,
+    emptyForm: EMPTY_FORM,
+    toFormValues,
+    loadItems,
+    saveItem,
+    deleteItem,
+    getItemId,
+    resetForm: resetFormCb,
+    loadErrorMessage: t("feedback.loadError"),
+    onSaveSuccess,
+    onSaveError,
+    onDeleteSuccess,
+    onDeleteError,
+  });
 
   useEffect(() => {
-    void loadItems();
-  }, [loadItems]);
+    void serviceOpsSettingsService.listServiceTypes().then(setServiceTypes).catch(() => undefined);
+  }, []);
 
-  const canSubmit = useMemo(
-    () => !hasServiceTypeCodeError && !hasStatusError && !hasAllowedRolesError,
-    [hasAllowedRolesError, hasServiceTypeCodeError, hasStatusError],
+  const serviceTypeOptions = useMemo(
+    () =>
+      serviceTypes
+        .filter((st) => st.isActive)
+        .map((st) => ({ value: st.code, label: `${st.code} — ${st.name}` })),
+    [serviceTypes],
   );
 
-  const resetForm = () => setForm(EMPTY_FORM);
-
-  const onSave = async () => {
-    if (!canSubmit || isSubmitting) return;
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    setSuccessMessage(null);
-    try {
-      const saved = await serviceOpsSettingsService.saveWorkflowTransition({
-        id: form.id || undefined,
-        serviceTypeCode: normalizedServiceTypeCode,
-        fromStatus: normalizedFromStatus,
-        toStatus: normalizedToStatus,
-        allowedRoles: normalizedRoles,
-      });
-      setItems((current) => {
-        const exists = current.some((item) => item.id === saved.id);
-        if (exists) return current.map((item) => (item.id === saved.id ? saved : item));
-        return [saved, ...current];
-      });
-      setLoadState("success");
-      setSuccessMessage(t("feedback.saveSuccess"));
-      resetForm();
-    } catch {
-      setErrorMessage(t("feedback.saveError"));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const onDelete = async (id: string) => {
-    if (typeof window !== "undefined" && !window.confirm(t("actions.confirmDelete"))) {
-      return;
-    }
-
-    setErrorMessage(null);
-    setSuccessMessage(null);
-    try {
-      await serviceOpsSettingsService.deleteWorkflowTransition(id);
-      const next = items.filter((item) => item.id !== id);
-      setItems(next);
-      setLoadState(next.length === 0 ? "empty" : "success");
-      setSuccessMessage(t("feedback.deleteSuccess"));
-    } catch {
-      setErrorMessage(t("feedback.deleteError"));
-    }
-  };
+  const onSave = handleSubmit(async (values) => {
+    await save(values);
+  });
 
   return (
-    <Stack spacing={2}>
-      <Typography variant="h4">{t("title")}</Typography>
-      <Typography color="text.secondary" variant="body2">{t("description")}</Typography>
+    <ContentContainer>
+      <Stack spacing={2}>
+        <Stack alignItems="flex-start" direction="row" justifyContent="space-between">
+          <Box>
+            <Typography variant="h4">{t("title")}</Typography>
+            <Typography color="text.secondary" variant="body2">
+              {t("description")}
+            </Typography>
+          </Box>
+          <Button onClick={openAddDialog} sx={{ flexShrink: 0 }} variant="contained">
+            {t("form.createTitle")}
+          </Button>
+        </Stack>
 
-      {loadState === "permissionDenied" ? <Alert severity="warning">{t("states.permissionDenied")}</Alert> : null}
-      {loadState === "loading" ? <Alert severity="info">{t("states.loading")}</Alert> : null}
-      {loadState === "empty" ? <Alert severity="info">{t("states.empty")}</Alert> : null}
-      {loadState === "error" ? (
-        <Alert action={<Button color="inherit" onClick={() => void loadItems()} size="small">{t("actions.retry")}</Button>} severity="error">
-          {errorMessage ?? t("feedback.loadError")}
-        </Alert>
-      ) : null}
-      {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}
-      {errorMessage && loadState !== "error" ? <Alert severity="error">{errorMessage}</Alert> : null}
-
-      <Card variant="outlined">
-        <CardContent>
-          <Stack spacing={2}>
-            <Typography variant="h6">{form.id ? t("form.editTitle") : t("form.createTitle")}</Typography>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
-                  error={hasServiceTypeCodeError}
-                  fullWidth
-                  helperText={hasServiceTypeCodeError ? t("form.validation.serviceTypeCodeRequired") : " "}
-                  label={t("form.fields.serviceTypeCode")}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, serviceTypeCode: event.target.value.toUpperCase() }))
-                  }
-                  value={form.serviceTypeCode}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
-                  error={hasStatusError}
-                  fullWidth
-                  helperText={hasStatusError ? t("form.validation.statusRequired") : " "}
-                  label={t("form.fields.fromStatus")}
-                  onChange={(event) => setForm((current) => ({ ...current, fromStatus: event.target.value.toUpperCase() }))}
-                  value={form.fromStatus}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
-                  error={hasStatusError}
-                  fullWidth
-                  helperText={hasStatusError ? t("form.validation.statusRequired") : " "}
-                  label={t("form.fields.toStatus")}
-                  onChange={(event) => setForm((current) => ({ ...current, toStatus: event.target.value.toUpperCase() }))}
-                  value={form.toStatus}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
-                  error={hasAllowedRolesError}
-                  fullWidth
-                  helperText={hasAllowedRolesError ? t("form.validation.allowedRolesRequired") : " "}
-                  label={t("form.fields.allowedRoles")}
-                  onChange={(event) => setForm((current) => ({ ...current, allowedRoles: event.target.value }))}
-                  placeholder={t("form.placeholders.allowedRoles")}
-                  value={form.allowedRoles}
-                />
-              </Grid>
-            </Grid>
-            <Stack direction="row" spacing={1}>
-              <Button disabled={!canSubmit || isSubmitting} onClick={() => void onSave()} variant="contained">
-                {form.id ? t("actions.update") : t("actions.create")}
+        {loadState === "permissionDenied" ? <Alert severity="warning">{t("states.permissionDenied")}</Alert> : null}
+        {loadState === "error" ? (
+          <Alert
+            action={
+              <Button color="inherit" onClick={() => void reloadItems()} size="small">
+                {t("actions.retry")}
               </Button>
-              <Button disabled={isSubmitting} onClick={resetForm} variant="outlined">
-                {t("actions.clear")}
-              </Button>
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
+            }
+            severity="error"
+          >
+            {errorMessage ?? t("feedback.loadError")}
+          </Alert>
+        ) : null}
 
-      <Card variant="outlined">
-        <CardContent>
-          <Typography gutterBottom variant="h6">{t("table.title")}</Typography>
-          {items.length === 0 ? (
-            <Typography color="text.secondary" variant="body2">{t("states.empty")}</Typography>
-          ) : (
-            <Stack spacing={1}>
-              {items.map((item) => (
-                <Box key={item.id} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1, p: 1.5 }}>
-                  <Stack alignItems="center" direction={{ xs: "column", md: "row" }} justifyContent="space-between" spacing={1}>
-                    <Typography variant="body2">
-                      {item.serviceTypeCode}: {item.fromStatus} → {item.toStatus} ({item.allowedRoles.join(", ")})
-                    </Typography>
-                    <Stack direction="row" spacing={1}>
-                      <Button
-                        onClick={() =>
-                          setForm({
-                            id: item.id,
-                            serviceTypeCode: item.serviceTypeCode,
-                            fromStatus: item.fromStatus,
-                            toStatus: item.toStatus,
-                            allowedRoles: item.allowedRoles.join(", "),
-                          })
-                        }
-                        size="small"
-                        variant="text"
+        <Card variant="outlined">
+          <CardContent>
+            <Typography gutterBottom variant="h6">
+              {t("table.title")}
+            </Typography>
+            {loadState === "loading" ? (
+              <Stack spacing={1}>
+                {[0, 1, 2].map((i) => (
+                  <Skeleton key={i} height={52} sx={{ borderRadius: 1 }} variant="rectangular" />
+                ))}
+              </Stack>
+            ) : items.length === 0 ? (
+              <Typography color="text.secondary" variant="body2">
+                {t("states.empty")}
+              </Typography>
+            ) : (
+              <Stack spacing={1}>
+                {items.map((item) => (
+                  <Box key={item.id} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1, p: 1.5 }}>
+                    <Stack
+                      alignItems="center"
+                      direction="row"
+                      justifyContent="space-between"
+                      spacing={1}
+                    >
+                      <TruncatedText
+                        style={{ fontSize: "14px" }}
+                        title={`${item.serviceTypeCode}: ${item.fromStatus} → ${item.toStatus} (${item.allowedRoles.join(", ")})`}
                       >
-                        {t("actions.edit")}
-                      </Button>
-                      <Button color="error" onClick={() => void onDelete(item.id)} size="small" variant="text">
-                        {t("actions.delete")}
-                      </Button>
+                        <strong>{item.serviceTypeCode}</strong>: {item.fromStatus} → {item.toStatus}{" "}
+                        <Typography color="text.secondary" component="span" variant="body2">
+                          ({item.allowedRoles.join(", ")})
+                        </Typography>
+                      </TruncatedText>
+                      <Stack direction="row" flexShrink={0} spacing={1}>
+                        <Button onClick={() => openEditDialog(item)} size="small" variant="text">
+                          {t("actions.edit")}
+                        </Button>
+                        <Button color="error" onClick={() => openDeleteDialog(item.id)} size="small" variant="text">
+                          {t("actions.delete")}
+                        </Button>
+                      </Stack>
                     </Stack>
-                  </Stack>
-                </Box>
-              ))}
-            </Stack>
-          )}
-        </CardContent>
-      </Card>
-    </Stack>
+                  </Box>
+                ))}
+              </Stack>
+            )}
+          </CardContent>
+        </Card>
+      </Stack>
+
+      <FormDialog
+        cancelLabel={t("actions.cancel")}
+        dialog={dialog}
+        formId={WORKFLOW_FORM_ID}
+        submitDisabled={isSubmitting}
+        submitLabel={editingId ? t("actions.update") : t("actions.create")}
+        title={editingId ? t("form.editTitle") : t("form.createTitle")}
+      >
+        <Stack
+          component="form"
+          id={WORKFLOW_FORM_ID}
+          onSubmit={(event) => {
+            event.preventDefault();
+            void onSave();
+          }}
+          spacing={2}
+          sx={{ pt: 1 }}
+        >
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12 }}>
+              <SelectOptionField
+                control={control}
+                fullWidth
+                hideEmptyHelperText
+                label={t("form.fields.serviceTypeCode")}
+                name="serviceTypeCode"
+                options={serviceTypeOptions}
+                rules={{
+                  validate: (value) => (value.trim() ? true : t("form.validation.serviceTypeCodeRequired")),
+                }}
+                size="small"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <SelectOptionField
+                control={control}
+                fullWidth
+                hideEmptyHelperText
+                label={t("form.fields.fromStatus")}
+                name="fromStatus"
+                options={STATUS_OPTIONS}
+                rules={{
+                  validate: (value) => (value.trim() ? true : t("form.validation.statusRequired")),
+                }}
+                size="small"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <SelectOptionField
+                control={control}
+                fullWidth
+                hideEmptyHelperText
+                label={t("form.fields.toStatus")}
+                name="toStatus"
+                options={STATUS_OPTIONS}
+                rules={{
+                  validate: (value) => (value.trim() ? true : t("form.validation.statusRequired")),
+                }}
+                size="small"
+              />
+            </Grid>
+            <Grid size={{ xs: 12 }}>
+              <Controller
+                control={control}
+                name="allowedRoles"
+                rules={{
+                  validate: (value) => (value.length > 0 ? true : t("form.validation.allowedRolesRequired")),
+                }}
+                render={({ field, fieldState }) => (
+                  <Box>
+                    <FormLabel
+                      sx={{
+                        display: "block",
+                        fontSize: 14,
+                        fontWeight: 600,
+                        lineHeight: "20px",
+                        color: "text.secondary",
+                        mb: 0.75,
+                      }}
+                    >
+                      {t("form.fields.allowedRoles")}
+                    </FormLabel>
+                    <Select
+                      {...field}
+                      displayEmpty
+                      error={Boolean(fieldState.error)}
+                      fullWidth
+                      input={<OutlinedInput size="small" />}
+                      multiple
+                      renderValue={(selected) => {
+                        if ((selected as string[]).length === 0) {
+                          return (
+                            <Typography color="text.secondary" variant="textSmSemiBold">
+                              {t("form.placeholders.selectRoles")}
+                            </Typography>
+                          );
+                        }
+                        return (
+                          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                            {(selected as string[]).map((v) => (
+                              <Chip key={v} label={v} size="small" />
+                            ))}
+                          </Box>
+                        );
+                      }}
+                      size="small"
+                      sx={{
+                        "& .MuiOutlinedInput-notchedOutline legend": { display: "none" },
+                        "& .MuiOutlinedInput-notchedOutline": { top: 0 },
+                      }}
+                    >
+                      {ROLE_OPTIONS.map((role) => (
+                        <MenuItem key={role.value} value={role.value}>
+                          <Checkbox
+                            checked={field.value.includes(role.value)}
+                            checkedIcon={<CheckBoxIcon fontSize="small" />}
+                            icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
+                            size="small"
+                          />
+                          <ListItemText
+                            primary={role.label}
+                            primaryTypographyProps={{ variant: "textSmSemiBold" }}
+                          />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {fieldState.error ? (
+                      <FormHelperText error sx={{ ml: 0, mt: 1, fontSize: 14, fontWeight: 600 }}>
+                        {fieldState.error.message}
+                      </FormHelperText>
+                    ) : null}
+                  </Box>
+                )}
+              />
+            </Grid>
+          </Grid>
+        </Stack>
+      </FormDialog>
+
+      <ConfirmDialog
+        cancelLabel={t("actions.cancel")}
+        confirmLabel={t("actions.delete")}
+        description={t("actions.confirmDeleteDescription")}
+        dialog={deleteDialog}
+        onConfirm={confirmDelete}
+        title={t("actions.confirmDelete")}
+      />
+    </ContentContainer>
   );
 }

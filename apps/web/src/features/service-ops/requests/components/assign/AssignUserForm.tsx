@@ -1,8 +1,9 @@
-import { Alert, CircularProgress, Stack, Typography } from "@mui/material";
+import { Alert, Box, CircularProgress, Stack, Typography } from "@mui/material";
 import type { RequestAssignee } from "@supportops/types";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
+import { Avatar as UserAvatar } from "@supportops/ui-avatar";
 import { SelectOptionField } from "@supportops/ui-form";
 
 export function AssignUserForm({
@@ -35,10 +36,11 @@ export function AssignUserForm({
     () =>
       users.map((member) => ({
         value: member.id,
-        label: `${member.fullName || member.email} (${member.roleCode ?? "EMPLOYEE"})`,
+        label: member.fullName || member.email,
       })),
     [users],
   );
+  const usersById = useMemo(() => new Map(users.map((member) => [member.id, member])), [users]);
 
   return (
     <Stack
@@ -53,6 +55,25 @@ export function AssignUserForm({
       spacing={1.5}
     >
       <SelectOptionField
+        autocompleteProps={{
+          renderOption: (props, option) => {
+            const member = usersById.get(String(option.value));
+            const displayName = member?.fullName || member?.email || option.label;
+            const email = member?.email ?? "";
+
+            return (
+              <Box component="li" {...props} key={String(option.value)} sx={{ py: 0.75 }}>
+                <Stack alignItems="center" direction="row" spacing={1}>
+                  <UserAvatar name={displayName} size="xs" src={member?.avatarUrl ?? null} />
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography noWrap variant="body2">{displayName}</Typography>
+                    <Typography color="text.secondary" noWrap variant="caption">{email}</Typography>
+                  </Box>
+                </Stack>
+              </Box>
+            );
+          },
+        }}
         control={control}
         disableClearable
         disabled={isLoadingUsers || isSubmitting || options.length === 0}
@@ -61,6 +82,7 @@ export function AssignUserForm({
         name="assigneeId"
         options={options}
         placeholder={t("assignDialog.assigneePlaceholder")}
+        searchable
         rules={{ required: true }}
         size="small"
       />

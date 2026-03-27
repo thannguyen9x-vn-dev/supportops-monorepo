@@ -1381,7 +1381,7 @@ function DataTable({
                               rowClassName?.(row.original)
                             ),
                             style: {
-                              background: rowBg,
+                              backgroundColor: rowBg,
                               cursor: onRowClick ? "pointer" : void 0,
                               transition: "background-color 0.15s ease"
                             },
@@ -1404,7 +1404,7 @@ function DataTable({
                                     textAlign: isLastColumn ? "right" : "left",
                                     borderRight: isLastColumn ? "none" : "1px solid var(--mui-palette-divider)",
                                     borderBottom: "1px solid var(--mui-palette-divider)",
-                                    background: rowBg,
+                                    backgroundColor: rowBg,
                                     ...getStickyStyle(
                                       pinned,
                                       cell.column.getStart("left"),
@@ -2574,6 +2574,15 @@ function Toaster({
     }
   );
 }
+var truncatedStyle = {
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  minWidth: 0
+};
+function TruncatedText({ children, title, className, style }) {
+  return /* @__PURE__ */ jsx("span", { className, style: { ...truncatedStyle, ...style }, title, children });
+}
 function TableSkeleton({
   rows = 8,
   columns = 5,
@@ -2955,6 +2964,6 @@ function generateId(prefix) {
   return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export { AlertDialog, CardSkeleton, CheckboxField, Combobox, ComboboxField, ConfirmDialog, DataTable, DataTableColumnHeader, DataTablePagination, DataTableToolbar, DateField, DetailSkeleton, Dialog, FileField, Form, FormDialog, FormField, FormSkeleton, InfiniteVirtualList, ListSkeleton, MultiCombobox, NumberField, RadioGroupField, SelectField, SwitchField, TableSkeleton, TextField, TextareaField, Toast, Toaster, VirtualGrid, VirtualList, cn, formatCurrency, formatDate, formatNumber, formatRelativeTime, generateId, getAriaProps, getFocusTrapProps, useClipboard, useCombobox, useDataTable, useDialog, useFieldArray, useFormContext2 as useFormContext, useFormField, useInfiniteVirtualList, useSkeleton, useTableExport, useTableInlineEdit, useTablePagination, useTableSelection, useToast, useTypedForm, useVirtualList };
+export { AlertDialog, CardSkeleton, CheckboxField, Combobox, ComboboxField, ConfirmDialog, DataTable, DataTableColumnHeader, DataTablePagination, DataTableToolbar, DateField, DetailSkeleton, Dialog, FileField, Form, FormDialog, FormField, FormSkeleton, InfiniteVirtualList, ListSkeleton, MultiCombobox, NumberField, RadioGroupField, SelectField, SwitchField, TableSkeleton, TextField, TextareaField, Toast, Toaster, TruncatedText, VirtualGrid, VirtualList, cn, formatCurrency, formatDate, formatNumber, formatRelativeTime, generateId, getAriaProps, getFocusTrapProps, useClipboard, useCombobox, useDataTable, useDialog, useFieldArray, useFormContext2 as useFormContext, useFormField, useInfiniteVirtualList, useSkeleton, useTableExport, useTableInlineEdit, useTablePagination, useTableSelection, useToast, useTypedForm, useVirtualList };
 //# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map

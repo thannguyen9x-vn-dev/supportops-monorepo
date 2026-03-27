@@ -16,13 +16,26 @@ export class LoggingInterceptor implements NestInterceptor {
         next: () => {
           const response = context.switchToHttp().getResponse<{ statusCode: number }>();
           const duration = Date.now() - now;
-          this.logger.log(`${method} ${url} ${response.statusCode} ${duration}ms [${String(traceId)}]`);
+          this.logger.log({
+            event: 'http_request',
+            method,
+            url,
+            statusCode: response.statusCode,
+            durationMs: duration,
+            traceId: String(traceId),
+          });
         },
         error: (error: { status?: number; message?: string }) => {
           const duration = Date.now() - now;
-          this.logger.error(
-            `${method} ${url} ${error.status ?? 500} ${duration}ms [${String(traceId)}] ${error.message ?? 'error'}`,
-          );
+          this.logger.error({
+            event: 'http_request_error',
+            method,
+            url,
+            statusCode: error.status ?? 500,
+            durationMs: duration,
+            traceId: String(traceId),
+            message: error.message ?? 'error',
+          });
         },
       }),
     );

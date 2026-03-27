@@ -8,7 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import type { UserRole } from "@supportops/types";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -72,7 +72,10 @@ export function Sidebar() {
   const roleLabel = user?.role.replace("_", " ") ?? "";
   const profileHref = `/${locale}/account/profile`;
   const isProfileActive = pathname === profileHref;
-  const filteredNavigation = filterNavigationByRole(navigationConfig, user?.role);
+  const filteredNavigation = useMemo(
+    () => filterNavigationByRole(navigationConfig, user?.role),
+    [user?.role],
+  );
 
   useEffect(() => {
     closeMobileSidebar();

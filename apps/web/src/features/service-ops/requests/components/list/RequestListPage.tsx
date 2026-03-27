@@ -38,13 +38,21 @@ export function RequestListPage() {
   const filters = useRequestListFilters("allRequests");
   const { setActiveTabForQuery, setPageIndex } = filters;
   const [assigneesById, setAssigneesById] = useState<Record<string, RequestAssignee>>({});
+  const [isAssigneesReady, setIsAssigneesReady] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
-    void requestService.listAssignees().then(({ data }) => {
-      if (!isMounted) return;
-      setAssigneesById(Object.fromEntries(data.map((assignee) => [assignee.id, assignee])) as Record<string, RequestAssignee>);
-    }).catch(() => {});
+    void requestService
+      .listAssignees()
+      .then(({ data }) => {
+        if (!isMounted) return;
+        setAssigneesById(Object.fromEntries(data.map((assignee) => [assignee.id, assignee])) as Record<string, RequestAssignee>);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!isMounted) return;
+        setIsAssigneesReady(true);
+      });
     return () => {
       isMounted = false;
     };
@@ -58,6 +66,7 @@ export function RequestListPage() {
     pageIndex: filters.pageIndex,
     pageSize: filters.pageSize,
     t,
+    enabled: isAssigneesReady,
   });
 
   const tabs = useRequestTabs(visibleTabKeys, query.tabCounts || INITIAL_TAB_COUNTS);

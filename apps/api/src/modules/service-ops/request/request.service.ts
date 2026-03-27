@@ -72,6 +72,19 @@ type RequestWithServiceType = Prisma.ServiceRequestGetPayload<{
 
 type SystemRoleCode = 'EMPLOYEE' | 'OPS_COORDINATOR' | 'TECHNICIAN' | 'TENANT_ADMIN';
 
+const WORKFLOW_ACTION_ORDER: Record<RequestStatus, string[]> = {
+  [RequestStatus.DRAFT]: ['EDIT_DRAFT', 'SUBMIT'],
+  [RequestStatus.SUBMITTED]: ['ASSIGN', 'REASSIGN', 'ESCALATE', 'ADD_NOTE', 'ASSIGN_TO_ME'],
+  [RequestStatus.TRIAGE]: ['ASSIGN', 'REASSIGN', 'ESCALATE', 'ADD_NOTE', 'ASSIGN_TO_ME'],
+  [RequestStatus.ASSIGNED]: ['START_PROGRESS', 'ASSIGN', 'REASSIGN', 'ESCALATE', 'ADD_NOTE', 'ASSIGN_TO_ME'],
+  [RequestStatus.IN_PROGRESS]: ['RESOLVE', 'REASSIGN', 'ESCALATE', 'ADD_NOTE'],
+  [RequestStatus.WAITING_EXTERNAL_VENDOR]: ['RESOLVE', 'REASSIGN', 'ADD_NOTE'],
+  [RequestStatus.RESOLVED]: ['CLOSE', 'REOPEN', 'ADD_NOTE'],
+  [RequestStatus.CLOSED]: ['REOPEN', 'ADD_NOTE'],
+  [RequestStatus.REOPENED]: ['START_PROGRESS', 'ASSIGN', 'REASSIGN', 'ESCALATE', 'ADD_NOTE', 'ASSIGN_TO_ME'],
+  [RequestStatus.CANCELLED]: [],
+};
+
 @Injectable()
 export class RequestService {
   private static readonly ASSIGNMENT_SLA_MINUTES = 30;
@@ -377,7 +390,8 @@ export class RequestService {
   ): Promise<RequestWorkflowDetailResponseDto> {
     const request = await this.findRequestById(tenantId, requesterId, permissions, requestId);
     const canReadInternal = permissions.includes('comment.read.internal');
-    const canViewInternalEvents = await this.canViewInternalEvents(tenantId, requesterId);
+    const actorRoleCode = await this.resolveActiveRoleCode(tenantId, requesterId);
+    const canViewInternalEvents = actorRoleCode === 'OPS_COORDINATOR' || actorRoleCode === 'TENANT_ADMIN';
 
     const commentWhere: Prisma.RequestCommentWhereInput = canReadInternal
       ? { tenantId, requestId }
@@ -474,6 +488,8 @@ export class RequestService {
     const escalationRules = [
       `If overdue > ${RequestService.ESCALATION_AFTER_MINUTES} min, move to WAITING_EXTERNAL_VENDOR and notify OPS_COORDINATOR (${serviceTypeCode}).`,
     ];
+    const allowedActions = this.resolveWorkflowAllowedActions(permissions, requesterId, request, actorRoleCode);
+    const canAddWorkLog = this.canAddWorkLog(permissions, requesterId, request);
     const mappedActivities = activities.map((item) => RequestWorkflowActivityDto.from(item));
     const visibleActivities = canViewInternalEvents
       ? mappedActivities
@@ -491,6 +507,8 @@ export class RequestService {
       queueLabel,
       tags,
       escalationRules,
+      allowedActions,
+      canAddWorkLog,
     };
   }
 
@@ -792,13 +810,8 @@ export class RequestService {
   ): Promise<RequestWorkLogResponseDto> {
     const request = await this.findRequestById(tenantId, authorId, permissions, requestId);
 
-    if (!permissions.includes('request.start_work')) {
-      throw new ForbiddenException('You do not have permission to add work logs');
-    }
-
-    const canReadAll = permissions.includes('request.read.all');
-    if (!canReadAll && request.assigneeId !== authorId) {
-      throw new ForbiddenException('Only the current assignee can add work logs to this request');
+    if (!this.canAddWorkLog(permissions, authorId, request)) {
+      throw new ForbiddenException('You do not have permission to add work logs for this request');
     }
 
     const content = dto.content.trim();
@@ -1279,6 +1292,24 @@ export class RequestService {
     return false;
   }
 
+  private canAddWorkLog(
+    permissions: string[],
+    actorId: string,
+    request: RequestWithServiceType,
+  ): boolean {
+    const canStartWork = permissions.includes('request.start_work');
+    const canReadAll = permissions.includes('request.read.all');
+    if (!canStartWork && !canReadAll) {
+      return false;
+    }
+
+    if (canReadAll) {
+      return true;
+    }
+
+    return request.assigneeId === actorId;
+  }
+
   private normalizeSystemRoleCode(roleCode: string | null | undefined): SystemRoleCode | null {
     if (
       roleCode === 'EMPLOYEE' ||
@@ -1328,13 +1359,63 @@ export class RequestService {
     return false;
   }
 
-  private isAssignableRoleCode(roleCode: string): roleCode is (typeof RequestService.ASSIGNABLE_ROLE_CODES)[number] {
-    return RequestService.ASSIGNABLE_ROLE_CODES.includes(
-      roleCode as (typeof RequestService.ASSIGNABLE_ROLE_CODES)[number],
-    );
+  private resolveWorkflowAllowedActions(
+    permissions: string[],
+    actorId: string,
+    request: RequestWithServiceType,
+    actorRoleCode: SystemRoleCode | null,
+  ): string[] {
+    if (!actorRoleCode) {
+      return [];
+    }
+
+    const actionOrder = WORKFLOW_ACTION_ORDER[request.status] ?? [];
+    if (actionOrder.length === 0) {
+      return [];
+    }
+
+    const canReadAll = permissions.includes('request.read.all');
+    const isRequester = request.requesterId === actorId;
+    const isAssignee = request.assigneeId === actorId;
+    const hasAssignee = Boolean(request.assigneeId);
+    const canAssign = permissions.includes('request.assign');
+    const canReassign = permissions.includes('request.reassign');
+    const canManageAssignment = actorRoleCode === 'OPS_COORDINATOR' || actorRoleCode === 'TENANT_ADMIN';
+    const canSelfAssignRole = this.canAssignToRole(actorRoleCode, actorRoleCode);
+    const canTransitionTo = (target: RequestStatus) =>
+      this.isStatusTransitionAllowed(request.status, target) &&
+      this.canTransitionStatus(permissions, actorId, request, target, actorRoleCode);
+
+    return actionOrder.filter((action) => {
+      switch (action) {
+        case 'EDIT_DRAFT':
+        case 'SUBMIT':
+          return canTransitionTo(RequestStatus.SUBMITTED);
+        case 'ASSIGN':
+          return !hasAssignee && canManageAssignment && canAssign;
+        case 'REASSIGN':
+          return hasAssignee && canManageAssignment && canReassign;
+        case 'ASSIGN_TO_ME':
+          return !isAssignee && canSelfAssignRole && (canAssign || canReassign);
+        case 'START_PROGRESS':
+          return canTransitionTo(RequestStatus.IN_PROGRESS);
+        case 'RESOLVE':
+          return canTransitionTo(RequestStatus.RESOLVED);
+        case 'CLOSE':
+          return canTransitionTo(RequestStatus.CLOSED);
+        case 'REOPEN':
+          return canTransitionTo(RequestStatus.REOPENED);
+        case 'ESCALATE':
+          return canTransitionTo(RequestStatus.WAITING_EXTERNAL_VENDOR);
+        case 'ADD_NOTE':
+          return permissions.includes('comment.create.internal') && (canReadAll || isAssignee || isRequester);
+        default:
+          return false;
+      }
+    });
   }
 
-  private async canViewInternalEvents(tenantId: string, userId: string): Promise<boolean> {
+  private async resolveActiveRoleCode(tenantId: string, userId: string): Promise<SystemRoleCode | null> {
     const membership = await this.prisma.membership.findFirst({
       where: {
         tenantId,
@@ -1346,8 +1427,13 @@ export class RequestService {
       },
     });
 
-    const roleCode = this.normalizeSystemRoleCode(membership?.roleCode);
-    return roleCode === 'OPS_COORDINATOR' || roleCode === 'TENANT_ADMIN';
+    return this.normalizeSystemRoleCode(membership?.roleCode);
+  }
+
+  private isAssignableRoleCode(roleCode: string): roleCode is (typeof RequestService.ASSIGNABLE_ROLE_CODES)[number] {
+    return RequestService.ASSIGNABLE_ROLE_CODES.includes(
+      roleCode as (typeof RequestService.ASSIGNABLE_ROLE_CODES)[number],
+    );
   }
 
   private async nextRequestCode(tx: Prisma.TransactionClient, tenantId: string, now: Date): Promise<string> {

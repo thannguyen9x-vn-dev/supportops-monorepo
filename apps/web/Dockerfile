@@ -12,20 +12,32 @@ FROM base AS build
 ENV HUSKY=0
 ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json tsconfig.json ./
-COPY apps ./apps
-COPY packages ./packages
+ARG NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+
+# Copy manifest files only — pnpm install layer is cached until lock file changes
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json tsconfig.json turbo.json ./
+COPY apps/web/package.json ./apps/web/package.json
+COPY apps/api/package.json ./apps/api/package.json
+COPY apps/worker/package.json ./apps/worker/package.json
+COPY packages/types/package.json ./packages/types/package.json
+COPY packages/ui/package.json ./packages/ui/package.json
+COPY packages/ui/avatar/package.json ./packages/ui/avatar/package.json
+COPY packages/ui/dialog/package.json ./packages/ui/dialog/package.json
+COPY packages/ui/file-upload/package.json ./packages/ui/file-upload/package.json
+COPY packages/ui/form/package.json ./packages/ui/form/package.json
+COPY packages/ui/theme/package.json ./packages/ui/theme/package.json
+COPY packages/eslint-config/package.json ./packages/eslint-config/package.json
+COPY packages/tsconfig/package.json ./packages/tsconfig/package.json
 
 RUN pnpm install --frozen-lockfile
 
-RUN pnpm --filter @supportops/ui-avatar build \
-  && pnpm --filter @supportops/ui-dialog build \
-  && pnpm --filter @supportops/ui-file-upload build \
-  && pnpm --filter @supportops/ui-form build \
-  && pnpm --filter @supportops/ui-theme build \
-  && pnpm --filter @supportops/ui build
+# Copy source after install so the install layer stays cached on code changes
+COPY apps ./apps
+COPY packages ./packages
 
-RUN pnpm --filter @supportops/web build
+# turbo resolves dependency order automatically and builds packages in parallel
+RUN pnpm exec turbo run build --filter=@supportops/web
 
 FROM node:20-alpine AS runtime
 

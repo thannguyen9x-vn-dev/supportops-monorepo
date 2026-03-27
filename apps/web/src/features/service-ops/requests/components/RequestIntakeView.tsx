@@ -19,18 +19,20 @@ import {
 import type { CreateServiceRequestInput, ServiceRequest } from "@supportops/types";
 import { DEFAULT_FILE_UPLOAD_CONFIG } from "@supportops/types";
 import { SelectOptionField, TextAreaField, TextInputField } from "@supportops/ui-form";
-import { FileUploadField, type UploadedFileInfo } from "@supportops/ui-file-upload";
+import { FileUploadField } from "@supportops/ui-file-upload";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Controller, useForm, useWatch, type Control } from "react-hook-form";
+import { useMemo, useState } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
+
+import { useToast } from "@/features/common/toast/useToast";
+import { ApiError } from "@/lib/api";
 
 import styles from "./request-intake-screen.module.css";
+import { RequestSummaryCard } from "./RequestSummaryCard";
 import { requestService } from "../services/request.service";
-import { fileService } from "@/features/files/services/file.service";
-import { useToast } from "@/features/common/toast/useToast";
-
-import { ApiError } from "@/lib/api";
+import { useFileUpload } from "../hooks/useFileUpload";
+import { useRequestFormData } from "../hooks/useRequestFormData";
 
 type RequestPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
@@ -67,85 +69,14 @@ const DEFAULT_VALUES: RequestIntakeFormValues = {
   preferredContact: "",
 };
 
-const DEFAULT_SERVICE_TYPE_OPTIONS = [
-  { label: "HVAC / Climate Control", value: "HVAC" },
-  { label: "Lighting", value: "LIGHTING" },
-  { label: "Water Leakage", value: "WATER" },
-  { label: "Access Card", value: "ACCESS" },
-];
-
-const LOCATION_OPTIONS = [
-  { label: "Headquarters - Floor 2 - Server Room B", value: "HQ-FLOOR-2-SERVER-ROOM-B" },
-  { label: "Headquarters - Floor 5 - Meeting Room C", value: "HQ-FLOOR-5-MEETING-ROOM-C" },
-  { label: "Branch Office - Ops Room", value: "BRANCH-OPS-ROOM" },
-];
-
-
-function RequestSummaryCard({ control }: { control: Control<RequestIntakeFormValues> }) {
-  const t = useTranslations("pages.serviceOps.requestCreateForm");
-  const [serviceType, priority, location] = useWatch({
-    control,
-    name: ["serviceType", "priority", "location"],
-  });
-
-  return (
-    <Card className={styles.summaryCard} variant="outlined">
-      <CardContent>
-        <Typography gutterBottom variant="h6">
-          {t("summary.title")}
-        </Typography>
-
-        <Stack spacing={1.25}>
-          <Box className={styles.summaryRow}>
-            <Typography color="text.secondary" variant="body2">
-              {t("summary.serviceType")}
-            </Typography>
-            <Typography variant="body2">{serviceType}</Typography>
-          </Box>
-
-          <Box className={styles.summaryRow}>
-            <Typography color="text.secondary" variant="body2">
-              {t("summary.priority")}
-            </Typography>
-            <Typography variant="body2">{priority}</Typography>
-          </Box>
-
-          <Box className={styles.summaryRow}>
-            <Typography color="text.secondary" variant="body2">
-              {t("summary.location")}
-            </Typography>
-            <Typography className={styles.summaryValue} variant="body2">
-              {location}
-            </Typography>
-          </Box>
-
-          <Box className={styles.slaBox}>
-            <Typography fontWeight={700} variant="body2">
-              {t("summary.expectedSla")}
-            </Typography>
-            <Typography variant="body1">4 {t("summary.hours")}</Typography>
-          </Box>
-
-          <Typography color="text.secondary" variant="body2">
-            {t("summary.visibility")}
-          </Typography>
-        </Stack>
-      </CardContent>
-    </Card>
-  );
-}
-
 export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeViewProps = {}) {
   const t = useTranslations("pages.serviceOps.requestCreateForm");
   const router = useRouter();
   const params = useParams<{ locale?: string }>();
   const locale = params?.locale ?? "en";
   const toast = useToast();
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFileInfo[]>([]);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [serviceTypeOptions, setServiceTypeOptions] = useState(DEFAULT_SERVICE_TYPE_OPTIONS);
 
   const {
     control,
@@ -156,33 +87,16 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
     mode: "onTouched",
   });
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadServiceTypeOptions = async () => {
-      try {
-        const { data } = await requestService.listServiceTypes();
-        const options = data
-          .filter((item) => item.isActive ?? true)
-          .map((item) => ({
-            label: item.name,
-            value: item.code,
-          }));
-
-        if (isMounted && options.length > 0) {
-          setServiceTypeOptions(options);
-        }
-      } catch {
-        // Keep stable fallback options for intake flow.
-      }
-    };
-
-    void loadServiceTypeOptions();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const watchedLocation = useWatch({ control, name: "location" });
+  const { serviceTypeOptions, locationOptions, assetOptions, loadingAssets } = useRequestFormData(watchedLocation);
+  const {
+    uploadedFiles,
+    uploadError,
+    setUploadedFiles,
+    handleFileUpload,
+    handleUploadError,
+    handleUploadSuccess,
+  } = useFileUpload({ t, onUploadErrorToast: toast.error });
 
   const priorityOptions = useMemo(
     () => [
@@ -191,25 +105,6 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
       { label: t("priority.high"), value: "HIGH" as const },
       { label: t("priority.critical"), value: "CRITICAL" as const },
     ],
-    [t],
-  );
-
-  const handleFileUpload = useCallback(
-    async (
-      file: { file: File },
-      onProgress: (event: { progress: number }) => void,
-    ): Promise<UploadedFileInfo> => {
-      const files = [file.file];
-      onProgress({ progress: 20 });
-
-      const uploadedFiles = await fileService.uploadFiles(files);
-      const uploadedFile = uploadedFiles[0];
-      if (!uploadedFile) {
-        throw new Error(t("errors.uploadNoFileReturned"));
-      }
-      onProgress({ progress: 100 });
-      return uploadedFile;
-    },
     [t],
   );
 
@@ -292,10 +187,7 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
         rules={{
           required: t("validation.titleRequired"),
           validate: (value) => value.trim().length > 0 || t("validation.titleRequired"),
-          maxLength: {
-            value: 255,
-            message: t("validation.titleTooLong"),
-          },
+          maxLength: { value: 255, message: t("validation.titleTooLong") },
         }}
       />
 
@@ -309,10 +201,7 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
         rules={{
           required: t("validation.descriptionRequired"),
           validate: (value) => value.trim().length > 0 || t("validation.descriptionRequired"),
-          maxLength: {
-            value: 5000,
-            message: t("validation.descriptionTooLong"),
-          },
+          maxLength: { value: 5000, message: t("validation.descriptionTooLong") },
         }}
       />
 
@@ -321,7 +210,7 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
         disableClearable
         label={t("fields.location")}
         name="location"
-        options={LOCATION_OPTIONS}
+        options={locationOptions}
         placeholder={t("placeholders.select")}
         rules={{ required: t("validation.required") }}
       />
@@ -338,11 +227,7 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
                   control={<Radio size="small" />}
                   key={option.value}
                   label={option.label}
-                  slotProps={{
-                    typography: {
-                      sx: { color: "text.primary" },
-                    },
-                  }}
+                  slotProps={{ typography: { sx: { color: "text.primary" } } }}
                   value={option.value}
                 />
               ))}
@@ -396,11 +281,21 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
         </Grid>
       </Grid>
 
-      <TextInputField
+      <SelectOptionField
+        autocompleteProps={{
+          loading: loadingAssets,
+          openOnFocus: true,
+          autoHighlight: true,
+          slotProps: { popper: { sx: { zIndex: (theme) => theme.zIndex.modal + 1 } } },
+        }}
         control={control}
+        disableClearable={false}
         label={t("fields.assetId")}
         name="assetId"
+        noOptionsText={loadingAssets ? t("assetPicker.loading") : t("assetPicker.noOptions")}
+        options={assetOptions}
         placeholder={t("placeholders.assetId")}
+        searchable
       />
 
       <FileUploadField
@@ -412,11 +307,8 @@ export function RequestIntakeView({ modal = false, onSuccess }: RequestIntakeVie
         maxFiles={DEFAULT_FILE_UPLOAD_CONFIG.maxFiles}
         maxFileSizeBytes={DEFAULT_FILE_UPLOAD_CONFIG.maxFileSizeBytes}
         onChange={setUploadedFiles}
-        onUploadError={() => {
-          setUploadError(t("errors.uploadFailed"));
-          toast.error(t("errors.uploadFailed"));
-        }}
-        onUploadSuccess={() => setUploadError(null)}
+        onUploadError={handleUploadError}
+        onUploadSuccess={handleUploadSuccess}
         uploadFn={handleFileUpload}
         value={uploadedFiles}
       />

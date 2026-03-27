@@ -33,3 +33,6 @@ export type SlaHealth = (typeof SLA_HEALTHS)[number];
 
 export const SLA_TYPES = ["ASSIGNMENT", "RESOLUTION"] as const;
 export type SlaType = (typeof SLA_TYPES)[number];
+
+export const ASSET_STATUSES = ["ACTIVE", "UNDER_MAINTENANCE", "OUT_OF_SERVICE", "RETIRED"] as const;
+export type AssetStatus = (typeof ASSET_STATUSES)[number];

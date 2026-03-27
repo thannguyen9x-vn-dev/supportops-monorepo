@@ -17,6 +17,7 @@ env:
   REGISTRY: ghcr.io
   WEB_IMAGE_NAME: ${{ github.repository_owner }}/supportops-web
   API_IMAGE_NAME: ${{ github.repository_owner }}/supportops-api
+  PORTFOLIO_IMAGE_NAME: ${{ github.repository_owner }}/supportops-portfolio
 
 jobs:
   build-and-push:
@@ -24,6 +25,7 @@ jobs:
     outputs:
       web_image: ${{ steps.meta.outputs.web_image }}
       api_image: ${{ steps.meta.outputs.api_image }}
+      portfolio_image: ${{ steps.meta.outputs.portfolio_image }}
 
     steps:
       - name: Checkout
@@ -45,8 +47,10 @@ jobs:
           TAG="${GITHUB_REF_NAME}"
           WEB_IMAGE="${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}:${TAG}"
           API_IMAGE="${{ env.REGISTRY }}/${{ env.API_IMAGE_NAME }}:${TAG}"
+          PORTFOLIO_IMAGE="${{ env.REGISTRY }}/${{ env.PORTFOLIO_IMAGE_NAME }}:${TAG}"
           echo "web_image=${WEB_IMAGE}" >> "${GITHUB_OUTPUT}"
           echo "api_image=${API_IMAGE}" >> "${GITHUB_OUTPUT}"
+          echo "portfolio_image=${PORTFOLIO_IMAGE}" >> "${GITHUB_OUTPUT}"
 
       - name: Build and push web image
         uses: docker/build-push-action@v6
@@ -57,6 +61,8 @@ jobs:
           tags: |
             ${{ steps.meta.outputs.web_image }}
             ${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}:prod-latest
+          build-args: |
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.PROD_API_ORIGIN }}/api/v1
 
       - name: Build and push api image
         uses: docker/build-push-action@v6
@@ -67,6 +73,16 @@ jobs:
           tags: |
             ${{ steps.meta.outputs.api_image }}
             ${{ env.REGISTRY }}/${{ env.API_IMAGE_NAME }}:prod-latest
+
+      - name: Build and push portfolio image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/portfolio/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.portfolio_image }}
+            ${{ env.REGISTRY }}/${{ env.PORTFOLIO_IMAGE_NAME }}:prod-latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -83,7 +99,7 @@ jobs:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.PROD_SSH_KEY }}
-          source: "docker-compose.prod.yml,deploy/nginx/templates/supportops.conf.template,deploy/deploy-prod.sh,deploy/smoke-test.sh"
+          source: "docker-compose.prod.yml,deploy/nginx/templates/supportops.conf.template,deploy/deploy-prod.sh,deploy/smoke-test.sh,deploy/init-letsencrypt.sh"
           target: ${{ secrets.PROD_DEPLOY_PATH }}
           strip_components: 0
           overwrite: true
@@ -93,6 +109,8 @@ jobs:
         env:
           WEB_IMAGE: ${{ needs.build-and-push.outputs.web_image }}
           API_IMAGE: ${{ needs.build-and-push.outputs.api_image }}
+          PORTFOLIO_IMAGE: ${{ needs.build-and-push.outputs.portfolio_image }}
+          PORTFOLIO_DOMAIN: ${{ secrets.PROD_PORTFOLIO_DOMAIN }}
           APP_DOMAIN: ${{ secrets.PROD_APP_DOMAIN }}
           API_DOMAIN: ${{ secrets.PROD_API_DOMAIN }}
           APP_ORIGIN: ${{ secrets.PROD_APP_ORIGIN }}
@@ -110,11 +128,19 @@ jobs:
           MAIL_FROM_EMAIL: ${{ secrets.PROD_MAIL_FROM_EMAIL }}
           MAIL_FROM_NAME: ${{ secrets.PROD_MAIL_FROM_NAME }}
           RESEND_API_KEY: ${{ secrets.PROD_RESEND_API_KEY }}
+          REDIS_PASSWORD: ${{ secrets.PROD_REDIS_PASSWORD }}
+          LOG_LEVEL: ${{ secrets.PROD_LOG_LEVEL }}
+          AUDIT_LOG_RETENTION_DAYS: ${{ secrets.PROD_AUDIT_LOG_RETENTION_DAYS }}
+          ERROR_ALERT_THRESHOLD: ${{ secrets.PROD_ERROR_ALERT_THRESHOLD }}
+          ERROR_ALERT_WINDOW_MS: ${{ secrets.PROD_ERROR_ALERT_WINDOW_MS }}
+          ERROR_ALERT_COOLDOWN_MS: ${{ secrets.PROD_ERROR_ALERT_COOLDOWN_MS }}
+          ERROR_ALERT_WEBHOOK_URL: ${{ secrets.PROD_ERROR_ALERT_WEBHOOK_URL }}
+          CERTBOT_EMAIL: ${{ secrets.PROD_CERTBOT_EMAIL }}
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.PROD_SSH_KEY }}
-          envs: WEB_IMAGE,API_IMAGE,APP_DOMAIN,API_DOMAIN,APP_ORIGIN,API_ORIGIN,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,FILE_SIGNING_SECRET,GHCR_USERNAME,GHCR_TOKEN,MAIL_ENABLED,MAIL_PROVIDER,MAIL_DAILY_LIMIT,MAIL_FROM_EMAIL,MAIL_FROM_NAME,RESEND_API_KEY
+          envs: WEB_IMAGE,API_IMAGE,PORTFOLIO_IMAGE,PORTFOLIO_DOMAIN,APP_DOMAIN,API_DOMAIN,APP_ORIGIN,API_ORIGIN,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,FILE_SIGNING_SECRET,GHCR_USERNAME,GHCR_TOKEN,MAIL_ENABLED,MAIL_PROVIDER,MAIL_DAILY_LIMIT,MAIL_FROM_EMAIL,MAIL_FROM_NAME,RESEND_API_KEY,REDIS_PASSWORD,LOG_LEVEL,AUDIT_LOG_RETENTION_DAYS,ERROR_ALERT_THRESHOLD,ERROR_ALERT_WINDOW_MS,ERROR_ALERT_COOLDOWN_MS,ERROR_ALERT_WEBHOOK_URL,CERTBOT_EMAIL
           script_stop: true
           script: |
             set -Eeuo pipefail
@@ -125,6 +151,7 @@ jobs:
             cat > .env.prod <<EOF_ENV
             APP_DOMAIN=${APP_DOMAIN}
             API_DOMAIN=${API_DOMAIN}
+            PORTFOLIO_DOMAIN=${PORTFOLIO_DOMAIN}
             APP_ORIGIN=${APP_ORIGIN}
             API_ORIGIN=${API_ORIGIN}
             POSTGRES_DB=${POSTGRES_DB}
@@ -138,11 +165,19 @@ jobs:
             MAIL_FROM_EMAIL=${MAIL_FROM_EMAIL:-onboarding@resend.dev}
             MAIL_FROM_NAME=${MAIL_FROM_NAME:-SupportOps}
             RESEND_API_KEY=${RESEND_API_KEY:-}
+            REDIS_PASSWORD=${REDIS_PASSWORD}
+            LOG_LEVEL=${LOG_LEVEL:-info}
+            AUDIT_LOG_RETENTION_DAYS=${AUDIT_LOG_RETENTION_DAYS:-2555}
+            ERROR_ALERT_THRESHOLD=${ERROR_ALERT_THRESHOLD:-20}
+            ERROR_ALERT_WINDOW_MS=${ERROR_ALERT_WINDOW_MS:-300000}
+            ERROR_ALERT_COOLDOWN_MS=${ERROR_ALERT_COOLDOWN_MS:-900000}
+            ERROR_ALERT_WEBHOOK_URL=${ERROR_ALERT_WEBHOOK_URL:-}
             WEB_IMAGE=${WEB_IMAGE}
             API_IMAGE=${API_IMAGE}
+            PORTFOLIO_IMAGE=${PORTFOLIO_IMAGE}
             EOF_ENV
 
-            chmod +x deploy/deploy-prod.sh deploy/smoke-test.sh
+            chmod +x deploy/deploy-prod.sh deploy/smoke-test.sh deploy/init-letsencrypt.sh
             echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
-            DEPLOY_PATH="${DEPLOY_PATH}" ENV_FILE=.env.prod ./deploy/deploy-prod.sh
+            DEPLOY_PATH="${DEPLOY_PATH}" ENV_FILE=.env.prod CERTBOT_EMAIL="${CERTBOT_EMAIL:-}" ./deploy/deploy-prod.sh

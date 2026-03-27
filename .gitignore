@@ -1,8 +1,24 @@
 node_modules
 **/*.tsbuildinfo
+.turbo
+**/.turbo
 .history/
 .DS_Store
 **/.DS_Store
 .idea/workspace.xml
 
 .cursorrules
+**/.next/
+**/next-env.d.ts
+
+# Local file storage - never commit uploaded files
+apps/api/storage/uploads/
+apps/api/storage/avatars/
+
+# Environment files - never commit secrets
+.env
+**/.env
+.env.local
+**/.env.local
+.env.*.local
+**/.env.*.local

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { useCallback } from "react";
 
 type SidebarContextValue = {
@@ -29,12 +29,10 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     setIsCollapsed((current) => !current);
   }, []);
 
-  const value: SidebarContextValue = {
-    isCollapsed,
-    isMobileOpen,
-    toggleSidebar,
-    closeMobileSidebar,
-  };
+  const value = useMemo<SidebarContextValue>(
+    () => ({ isCollapsed, isMobileOpen, toggleSidebar, closeMobileSidebar }),
+    [isCollapsed, isMobileOpen, toggleSidebar, closeMobileSidebar],
+  );
 
   return <SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>;
 }

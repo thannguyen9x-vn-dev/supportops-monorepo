@@ -1,4 +1,5 @@
 import type {
+  AssetStatus,
   RequestCommentVisibility,
   RequestImpactLevel,
   RequestPriority,
@@ -49,6 +50,61 @@ export interface AssignRequestInput {
 
 export interface TriggerEscalationInput {
   reason?: string;
+}
+
+export interface CreateAssetTypeInput {
+  name: string;
+  category?: string;
+  description?: string;
+}
+
+export interface UpdateAssetTypeInput {
+  name?: string;
+  category?: string;
+  description?: string;
+}
+
+export interface CreateAssetInput {
+  assetCode: string;
+  name: string;
+  assetTypeId: string;
+  locationId: string;
+  status?: AssetStatus;
+  serialNumber?: string;
+  model?: string;
+  assignedDepartment?: string;
+  responsibleTeam?: string;
+  installedAt?: string;
+  description?: string;
+}
+
+export interface UpdateAssetInput {
+  assetCode?: string;
+  name?: string;
+  assetTypeId?: string;
+  locationId?: string;
+  status?: AssetStatus;
+  serialNumber?: string;
+  model?: string;
+  assignedDepartment?: string;
+  responsibleTeam?: string;
+  installedAt?: string;
+  description?: string;
+}
+
+export interface AssetListQuery {
+  page?: number;
+  size?: number;
+  search?: string;
+  status?: AssetStatus;
+  assetTypeId?: string;
+  locationId?: string;
+}
+
+export interface AssetDetailQuery {
+  page?: number;
+  size?: number;
+  status?: RequestStatus;
 }
 
 export interface RequestListQuery {

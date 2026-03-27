@@ -2,17 +2,26 @@ import { Logger, UnprocessableEntityException, ValidationPipe } from '@nestjs/co
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import helmet from 'helmet';
+import { Logger as PinoLogger } from 'nestjs-pino';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { setupSwagger } from './config/swagger.config';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+    bufferLogs: true,
   });
+  app.useLogger(app.get(PinoLogger));
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('app.port', 8081);
+
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' }, // allow static file serving
+    }),
+  );
 
   app.setGlobalPrefix('api/v1');
   app.enableCors({
@@ -39,8 +48,9 @@ async function bootstrap(): Promise<void> {
   setupSwagger(app);
 
   await app.listen(port);
-  Logger.log(`NestJS API running on http://localhost:${port}/api/v1`, 'Bootstrap');
-  Logger.log(`Swagger UI: http://localhost:${port}/docs`, 'Bootstrap');
+  const logger = new Logger('Bootstrap');
+  logger.log(`NestJS API running on http://localhost:${port}/api/v1`);
+  logger.log(`Swagger UI: http://localhost:${port}/docs`);
 }
 
 void bootstrap();

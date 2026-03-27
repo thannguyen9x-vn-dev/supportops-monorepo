@@ -127,4 +127,15 @@ interface SelectDateFieldProps<TFieldValues extends FieldValues = FieldValues, T
 
 declare const SelectDateField: <TFieldValues extends FieldValues = FieldValues, TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>>(props: SelectDateFieldProps<TFieldValues, TName>) => ReactElement;
 
-export { type PhoneCountryOption, PhoneNumberField, type PhoneNumberFieldProps, SelectDateField, type SelectDateFieldProps, type SelectOption, SelectOptionField, type SelectOptionFieldProps, TextAreaField, type TextAreaFieldProps, TextInputField, type TextInputFieldProps, type TextInputFieldStatus, type TextInputFieldType };
+interface DurationMinutesInputProps extends Omit<TextFieldProps, 'label' | 'onChange' | 'type' | 'value'> {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    min?: number;
+    max?: number;
+    step?: number;
+}
+
+declare function DurationMinutesInput({ label, value, onChange, min, step, max, fullWidth, ...rest }: DurationMinutesInputProps): ReactElement;
+
+export { DurationMinutesInput, type DurationMinutesInputProps, type PhoneCountryOption, PhoneNumberField, type PhoneNumberFieldProps, SelectDateField, type SelectDateFieldProps, type SelectOption, SelectOptionField, type SelectOptionFieldProps, TextAreaField, type TextAreaFieldProps, TextInputField, type TextInputFieldProps, type TextInputFieldStatus, type TextInputFieldType };

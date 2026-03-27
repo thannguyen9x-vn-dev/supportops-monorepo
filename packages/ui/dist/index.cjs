@@ -1383,7 +1383,7 @@ function DataTable({
                               rowClassName?.(row.original)
                             ),
                             style: {
-                              background: rowBg,
+                              backgroundColor: rowBg,
                               cursor: onRowClick ? "pointer" : void 0,
                               transition: "background-color 0.15s ease"
                             },
@@ -1406,7 +1406,7 @@ function DataTable({
                                     textAlign: isLastColumn ? "right" : "left",
                                     borderRight: isLastColumn ? "none" : "1px solid var(--mui-palette-divider)",
                                     borderBottom: "1px solid var(--mui-palette-divider)",
-                                    background: rowBg,
+                                    backgroundColor: rowBg,
                                     ...getStickyStyle(
                                       pinned,
                                       cell.column.getStart("left"),
@@ -2576,6 +2576,15 @@ function Toaster({
     }
   );
 }
+var truncatedStyle = {
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  minWidth: 0
+};
+function TruncatedText({ children, title, className, style }) {
+  return /* @__PURE__ */ jsxRuntime.jsx("span", { className, style: { ...truncatedStyle, ...style }, title, children });
+}
 function TableSkeleton({
   rows = 8,
   columns = 5,
@@ -2987,6 +2996,7 @@ exports.TextField = TextField;
 exports.TextareaField = TextareaField;
 exports.Toast = Toast;
 exports.Toaster = Toaster;
+exports.TruncatedText = TruncatedText;
 exports.VirtualGrid = VirtualGrid;
 exports.VirtualList = VirtualList;
 exports.cn = cn;

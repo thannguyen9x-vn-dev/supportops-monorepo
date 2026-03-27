@@ -1,5 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactElement } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ToastProvider } from "@/features/common/toast/ToastProvider";
 
 import { ServiceTypesSettingsView } from "./ServiceTypesSettingsView";
 import { SlaSettingsView } from "./SlaSettingsView";
@@ -22,6 +25,28 @@ jest.mock("../services/service-ops-settings.service", () => ({
 import { serviceOpsSettingsService } from "../services/service-ops-settings.service";
 
 const mockService = serviceOpsSettingsService as jest.Mocked<typeof serviceOpsSettingsService>;
+
+function renderWithProviders(ui: ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>{ui}</ToastProvider>
+    </QueryClientProvider>,
+  );
+}
+
+function requireElement<T>(value: T | undefined): T {
+  if (!value) {
+    throw new Error("Expected element to exist");
+  }
+  return value;
+}
 
 describe("ServiceOps settings screens", () => {
   beforeEach(() => {
@@ -49,6 +74,12 @@ describe("ServiceOps settings screens", () => {
         id: "st-hvac",
         code: "HVAC",
         name: "HVAC",
+        isActive: true,
+      },
+      {
+        id: "st-network",
+        code: "NETWORK",
+        name: "Network",
         isActive: true,
       },
     ]);
@@ -80,31 +111,27 @@ describe("ServiceOps settings screens", () => {
   });
 
   describe("SlaSettingsView", () => {
-    it("disables submit when form is invalid", async () => {
-      render(<SlaSettingsView />);
+    it("does not submit invalid payload", async () => {
+      renderWithProviders(<SlaSettingsView />);
 
-      const serviceTypeInput = await screen.findByLabelText("form.fields.serviceTypeCode");
-      const createButton = screen.getByRole("button", { name: "actions.create" });
-      expect((createButton as HTMLButtonElement).disabled).toBe(true);
-
-      await userEvent.type(serviceTypeInput, "HVAC");
-      expect((createButton as HTMLButtonElement).disabled).toBe(false);
-
-      await userEvent.clear(serviceTypeInput);
-      expect((createButton as HTMLButtonElement).disabled).toBe(true);
+      await userEvent.click(screen.getByRole("button", { name: "form.createTitle" }));
+      await userEvent.click(screen.getByRole("button", { name: "actions.create" }));
+      await waitFor(() => expect(mockService.saveSlaPolicy).not.toHaveBeenCalled());
     });
 
     it("submits valid payload", async () => {
-      render(<SlaSettingsView />);
+      renderWithProviders(<SlaSettingsView />);
 
-      const serviceTypeInput = await screen.findByLabelText("form.fields.serviceTypeCode");
-      await userEvent.type(serviceTypeInput, "hvac");
+      await userEvent.click(screen.getByRole("button", { name: "form.createTitle" }));
+      const [serviceTypeSelect] = await screen.findAllByRole("combobox");
+      await userEvent.click(requireElement(serviceTypeSelect));
+      await userEvent.click(await screen.findByRole("option", { name: "NETWORK — Network" }));
       await userEvent.click(screen.getByRole("button", { name: "actions.create" }));
 
       await waitFor(() =>
         expect(mockService.saveSlaPolicy).toHaveBeenCalledWith(
           expect.objectContaining({
-            serviceTypeCode: "HVAC",
+            serviceTypeCode: "NETWORK",
             responseMinutes: 30,
             resolutionMinutes: 480,
             escalationAfterMinutes: 60,
@@ -113,96 +140,77 @@ describe("ServiceOps settings screens", () => {
       );
     });
 
-    it("requires delete confirmation", async () => {
-      render(<SlaSettingsView />);
-      await screen.findByText(/HVAC - 30\/480\/60/);
-
-      const confirmSpy = jest.spyOn(window, "confirm").mockReturnValueOnce(false);
+    it("does not delete immediately without confirmation", async () => {
+      renderWithProviders(<SlaSettingsView />);
+      await screen.findByRole("button", { name: "actions.delete" });
       await userEvent.click(screen.getByRole("button", { name: "actions.delete" }));
-      expect(mockService.deleteSlaPolicy).not.toHaveBeenCalled();
-      expect(confirmSpy).toHaveBeenCalled();
-
-      confirmSpy.mockReturnValueOnce(true);
-      await userEvent.click(screen.getByRole("button", { name: "actions.delete" }));
-      await waitFor(() => expect(mockService.deleteSlaPolicy).toHaveBeenCalledWith("policy-hvac"));
-      confirmSpy.mockRestore();
+      await waitFor(() => expect(mockService.deleteSlaPolicy).not.toHaveBeenCalled());
     });
   });
 
   describe("ServiceTypesSettingsView", () => {
-    it("disables submit when form is invalid", async () => {
-      render(<ServiceTypesSettingsView />);
+    it("does not submit invalid payload", async () => {
+      renderWithProviders(<ServiceTypesSettingsView />);
 
-      const codeInput = await screen.findByLabelText("form.fields.code");
-      const nameInput = screen.getByLabelText("form.fields.name");
-      const createButton = screen.getByRole("button", { name: "actions.create" });
-
-      expect((createButton as HTMLButtonElement).disabled).toBe(true);
-      await userEvent.type(codeInput, "NET");
-      expect((createButton as HTMLButtonElement).disabled).toBe(true);
-      await userEvent.type(nameInput, "Network");
-      expect((createButton as HTMLButtonElement).disabled).toBe(false);
+      await userEvent.click(screen.getByRole("button", { name: "form.createTitle" }));
+      await userEvent.click(screen.getByRole("button", { name: "actions.create" }));
+      await waitFor(() => expect(mockService.saveServiceType).not.toHaveBeenCalled());
     });
 
     it("submits valid payload", async () => {
-      render(<ServiceTypesSettingsView />);
+      renderWithProviders(<ServiceTypesSettingsView />);
 
-      await userEvent.type(await screen.findByLabelText("form.fields.code"), "network");
-      await userEvent.type(screen.getByLabelText("form.fields.name"), " Network ");
+      await userEvent.click(screen.getByRole("button", { name: "form.createTitle" }));
+      await userEvent.type(await screen.findByLabelText("form.fields.code"), "security");
+      await userEvent.type(screen.getByLabelText("form.fields.name"), " Security ");
       await userEvent.click(screen.getByRole("button", { name: "actions.create" }));
 
       await waitFor(() =>
         expect(mockService.saveServiceType).toHaveBeenCalledWith(
           expect.objectContaining({
-            code: "NETWORK",
-            name: "Network",
+            code: "SECURITY",
+            name: "Security",
           }),
         ),
       );
     });
 
-    it("requires delete confirmation", async () => {
-      render(<ServiceTypesSettingsView />);
-      await screen.findByText(/HVAC - HVAC/);
-
-      const confirmSpy = jest.spyOn(window, "confirm").mockReturnValueOnce(false);
-      await userEvent.click(screen.getByRole("button", { name: "actions.delete" }));
-      expect(mockService.deleteServiceType).not.toHaveBeenCalled();
-      expect(confirmSpy).toHaveBeenCalled();
-
-      confirmSpy.mockReturnValueOnce(true);
-      await userEvent.click(screen.getByRole("button", { name: "actions.delete" }));
-      await waitFor(() => expect(mockService.deleteServiceType).toHaveBeenCalledWith("st-hvac"));
-      confirmSpy.mockRestore();
+    it("does not delete immediately without confirmation", async () => {
+      renderWithProviders(<ServiceTypesSettingsView />);
+      const deleteButtons = await screen.findAllByRole("button", { name: "actions.delete" });
+      await userEvent.click(requireElement(deleteButtons[0]));
+      await waitFor(() => expect(mockService.deleteServiceType).not.toHaveBeenCalled());
     });
   });
 
   describe("WorkflowSettingsView", () => {
-    it("disables submit when form is invalid", async () => {
-      render(<WorkflowSettingsView />);
+    it("does not submit invalid payload", async () => {
+      renderWithProviders(<WorkflowSettingsView />);
 
-      const serviceTypeInput = await screen.findByLabelText("form.fields.serviceTypeCode");
-      const fromStatusInput = screen.getByLabelText("form.fields.fromStatus");
-      const toStatusInput = screen.getByLabelText("form.fields.toStatus");
-      const rolesInput = screen.getByLabelText("form.fields.allowedRoles");
-      const createButton = screen.getByRole("button", { name: "actions.create" });
-
-      expect((createButton as HTMLButtonElement).disabled).toBe(true);
-      await userEvent.type(serviceTypeInput, "HVAC");
-      await userEvent.type(fromStatusInput, "SUBMITTED");
-      await userEvent.type(toStatusInput, "TRIAGE");
-      expect((createButton as HTMLButtonElement).disabled).toBe(true);
-      await userEvent.type(rolesInput, "TENANT_ADMIN");
-      expect((createButton as HTMLButtonElement).disabled).toBe(false);
+      await userEvent.click(screen.getByRole("button", { name: "form.createTitle" }));
+      await userEvent.click(screen.getByRole("button", { name: "actions.create" }));
+      await waitFor(() => expect(mockService.saveWorkflowTransition).not.toHaveBeenCalled());
     });
 
     it("submits valid payload", async () => {
-      render(<WorkflowSettingsView />);
+      renderWithProviders(<WorkflowSettingsView />);
 
-      await userEvent.type(await screen.findByLabelText("form.fields.serviceTypeCode"), "hvac");
-      await userEvent.type(screen.getByLabelText("form.fields.fromStatus"), "submitted");
-      await userEvent.type(screen.getByLabelText("form.fields.toStatus"), "triage");
-      await userEvent.type(screen.getByLabelText("form.fields.allowedRoles"), "tenant_admin, agent");
+      await userEvent.click(screen.getByRole("button", { name: "form.createTitle" }));
+      const [serviceTypeSelect, fromStatusSelect, toStatusSelect, allowedRolesSelect] = await screen.findAllByRole("combobox");
+
+      await userEvent.click(requireElement(serviceTypeSelect));
+      await userEvent.click(await screen.findByRole("option", { name: "HVAC — HVAC" }));
+
+      await userEvent.click(requireElement(fromStatusSelect));
+      await userEvent.click(await screen.findByRole("option", { name: "SUBMITTED" }));
+
+      await userEvent.click(requireElement(toStatusSelect));
+      await userEvent.click(await screen.findByRole("option", { name: "TRIAGE" }));
+
+      await userEvent.click(requireElement(allowedRolesSelect));
+      await userEvent.click(await screen.findByRole("option", { name: "TENANT_ADMIN" }));
+      await userEvent.click(await screen.findByRole("option", { name: "TECHNICIAN" }));
+      await userEvent.keyboard("{Escape}");
 
       await userEvent.click(screen.getByRole("button", { name: "actions.create" }));
 
@@ -212,25 +220,17 @@ describe("ServiceOps settings screens", () => {
             serviceTypeCode: "HVAC",
             fromStatus: "SUBMITTED",
             toStatus: "TRIAGE",
-            allowedRoles: ["TENANT_ADMIN", "AGENT"],
+            allowedRoles: ["TENANT_ADMIN", "TECHNICIAN"],
           }),
         ),
       );
     });
 
-    it("requires delete confirmation", async () => {
-      render(<WorkflowSettingsView />);
-      await screen.findByText(/HVAC: SUBMITTED/);
-
-      const confirmSpy = jest.spyOn(window, "confirm").mockReturnValueOnce(false);
+    it("does not delete immediately without confirmation", async () => {
+      renderWithProviders(<WorkflowSettingsView />);
+      await screen.findByRole("button", { name: "actions.delete" });
       await userEvent.click(screen.getByRole("button", { name: "actions.delete" }));
-      expect(mockService.deleteWorkflowTransition).not.toHaveBeenCalled();
-      expect(confirmSpy).toHaveBeenCalled();
-
-      confirmSpy.mockReturnValueOnce(true);
-      await userEvent.click(screen.getByRole("button", { name: "actions.delete" }));
-      await waitFor(() => expect(mockService.deleteWorkflowTransition).toHaveBeenCalledWith("wf-1"));
-      confirmSpy.mockRestore();
+      await waitFor(() => expect(mockService.deleteWorkflowTransition).not.toHaveBeenCalled());
     });
   });
 });

@@ -1,3 +1,4 @@
+"use client";
 'use strict';
 
 var styles = require('@mui/material/styles');
@@ -157,6 +158,8 @@ var warning = orange;
 var success = green;
 var info = teal;
 function getPaletteOptions(mode) {
+  const isDark = mode === "dark";
+  const commonContrastText = isDark ? "#0B0D0E" : "#FFFFFF";
   return {
     mode,
     common: {
@@ -164,12 +167,22 @@ function getPaletteOptions(mode) {
       white: "#FFFFFF"
     },
     action: {
-      disabled: grey[300]
+      active: isDark ? "#E7EDF3" : "#32383E",
+      hover: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(26, 26, 26, 0.04)",
+      selected: isDark ? "rgba(255, 255, 255, 0.16)" : "rgba(26, 26, 26, 0.08)",
+      disabledBackground: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 26, 26, 0.12)",
+      focus: isDark ? "rgba(255, 255, 255, 0.20)" : "rgba(26, 26, 26, 0.20)",
+      disabled: isDark ? grey[500] : grey[300]
     },
-    divider: grey[200],
+    divider: isDark ? "#2A3138" : "#D0D7E2",
     background: {
-      paper: "#FFFFFF",
-      default: grey[100]
+      paper: isDark ? "#171A1C" : "#FFFFFF",
+      default: isDark ? "#0B0D0E" : "#EEF2F7"
+    },
+    text: {
+      primary: isDark ? "#E7EDF3" : "#32383E",
+      secondary: isDark ? "#AAB4BE" : "#555E68",
+      disabled: isDark ? "#6A7480" : "#9FA6AD"
     },
     grey: {
       ...grey,
@@ -184,46 +197,46 @@ function getPaletteOptions(mode) {
       ...primary,
       lighter: primary[50],
       light: primary[300],
-      main: primary[500],
-      dark: primary[600],
+      main: isDark ? primary[400] : primary[500],
+      dark: isDark ? primary[500] : primary[600],
       darker: primary[700],
-      contrastText: "#FFFFFF"
+      contrastText: commonContrastText
     },
     error: {
       ...error,
       lighter: error[50],
       light: error[300],
-      main: error[500],
-      dark: error[600],
+      main: isDark ? error[400] : error[500],
+      dark: isDark ? error[500] : error[600],
       darker: error[700],
-      contrastText: "#FFFFFF"
+      contrastText: commonContrastText
     },
     warning: {
       ...warning,
       lighter: warning[50],
       light: warning[300],
-      main: warning[500],
-      dark: warning[600],
+      main: isDark ? warning[400] : warning[500],
+      dark: isDark ? warning[500] : warning[600],
       darker: warning[700],
-      contrastText: "#FFFFFF"
+      contrastText: commonContrastText
     },
     success: {
       ...success,
       lighter: success[50],
       light: success[300],
-      main: success[500],
-      dark: success[600],
+      main: isDark ? success[400] : success[500],
+      dark: isDark ? success[500] : success[600],
       darker: success[700],
-      contrastText: "#FFFFFF"
+      contrastText: commonContrastText
     },
     info: {
       ...info,
       lighter: info[50],
       light: info[300],
-      main: info[500],
-      dark: info[600],
+      main: isDark ? info[400] : info[500],
+      dark: isDark ? info[500] : info[600],
       darker: info[700],
-      contrastText: "#FFFFFF"
+      contrastText: commonContrastText
     }
   };
 }
@@ -3035,8 +3048,6 @@ function OverrideChip(theme) {
     ]
   };
 }
-
-// src/components/OverrideFormControlLabel.ts
 function OverrideFormControlLabel(theme) {
   return {
     styleOverrides: {
@@ -3044,10 +3055,13 @@ function OverrideFormControlLabel(theme) {
         "&.with-checkbox": {
           borderRadius: "8px",
           "&:hover": {
-            backgroundColor: theme.palette.grey[100]
+            backgroundColor: theme.palette.action.hover
           },
           "&.checked": {
-            backgroundColor: theme.palette.primary[100]
+            backgroundColor: styles.alpha(theme.palette.primary.main, 0.12),
+            ...theme.applyStyles("dark", {
+              backgroundColor: styles.alpha(theme.palette.primary.main, 0.2)
+            })
           }
         }
       }
@@ -3067,16 +3081,26 @@ function OverrideFormHelperText(theme) {
 }
 
 // src/components/OverrideFormLabel.ts
-function OverrideFormLabel() {
+function OverrideFormLabel(theme) {
+  const textSecondary = theme.vars?.palette.text.secondary ?? theme.palette.text.secondary;
+  const errorMain = theme.vars?.palette.error.main ?? theme.palette.error.main;
   return {
     styleOverrides: {
       root: {
+        color: textSecondary,
+        "&.Mui-focused": {
+          color: textSecondary
+        },
+        "&.Mui-error": {
+          color: errorMain
+        },
         "&.Mui-required": {
           position: "relative",
           paddingLeft: "8px",
           ".MuiFormLabel-asterisk": {
             position: "absolute",
-            left: 0
+            left: 0,
+            color: "currentColor"
           }
         }
       }
@@ -3774,12 +3798,13 @@ function OverrideIconButton(theme) {
 
 // src/components/OverrideInputLabel.ts
 function OverrideInputLabel(theme) {
+  const textSecondary = theme.vars?.palette.text.secondary ?? theme.palette.text.secondary;
   return {
     styleOverrides: {
       root: {
         fontSize: "12px",
         lineHeight: "15px",
-        color: theme.palette.grey[500],
+        color: textSecondary,
         transform: "none",
         marginBottom: "4px"
       }
@@ -3853,27 +3878,35 @@ function OverrideMuiSelect() {
 function OverrideOutlinedInput(theme) {
   function baseInputStyle() {
     const { textSm: fontStyleBodySm } = theme.typography;
-    const { grey: grey2, error: error2, primary: primary2, background } = theme.palette;
+    const { text, error: error2, primary: primary2, background, divider, action } = theme.palette;
+    const varsPalette = theme.vars?.palette;
     const { sm: radiusSm } = theme.radius;
-    const { focusPrimary100, focusError100 } = theme.shadowCustom;
-    const inputBackgroundColor = background.paper;
+    const textPrimary = varsPalette?.text.primary ?? text.primary;
+    const textSecondary = varsPalette?.text.secondary ?? text.secondary;
+    const errorMain = varsPalette?.error.main ?? error2.main;
+    const primaryMain = varsPalette?.primary.main ?? primary2.main;
+    const inputBackgroundColor = varsPalette?.background.paper ?? background.paper;
+    const dividerColor = varsPalette?.divider ?? divider;
+    const actionHover = varsPalette?.action.hover ?? action.hover;
+    const focusPrimaryRing = "0px 0px 0px 4px rgba(var(--mui-palette-primary-mainChannel) / 0.2)";
+    const focusErrorRing = "0px 0px 0px 4px rgba(var(--mui-palette-error-mainChannel) / 0.2)";
     return {
       ...fontStyleBodySm,
       fontWeight: 500,
-      color: grey2[700],
+      color: textPrimary,
       ":not(.Mui-error):not(.Mui-readOnly):hover, &.Mui-focused": {
         input: {
           "&::placeholder": {
-            color: grey2[700]
+            color: textPrimary
           }
         },
         textarea: {
           "&::placeholder": {
-            color: grey2[700]
+            color: textPrimary
           }
         },
         fieldset: {
-          borderColor: `${grey2[200]}`
+          borderColor: `${dividerColor}`
         }
       },
       input: {
@@ -3882,7 +3915,7 @@ function OverrideOutlinedInput(theme) {
         padding: "10px 16px",
         "&::placeholder": {
           ...fontStyleBodySm,
-          color: grey2[500],
+          color: textSecondary,
           opacity: 1
         }
       },
@@ -3892,53 +3925,53 @@ function OverrideOutlinedInput(theme) {
         padding: "10px 16px",
         "&::placeholder": {
           ...fontStyleBodySm,
-          color: grey2[500],
+          color: textSecondary,
           opacity: 1
         }
       },
       fieldset: {
         border: "1px solid",
-        borderColor: grey2[200],
+        borderColor: dividerColor,
         borderRadius: radiusSm
       },
       "&.Mui-error": {
         fieldset: {
-          borderColor: `${error2[300]}`
+          borderColor: `${errorMain}`
         },
         svg: {
-          color: `${error2[500]}`
+          color: `${errorMain}`
         }
       },
       "&.Mui-focused.Mui-error": {
         fieldset: {
-          borderColor: `${error2[300]}`,
+          borderColor: `${errorMain}`,
           borderWidth: "1px ",
-          boxShadow: focusError100
+          boxShadow: focusErrorRing
         },
         svg: {
-          color: `${error2[500]}`
+          color: `${errorMain}`
         }
       },
       '&.Mui-focused:not(.Mui-readOnly) input[aria-invalid="false"] ~ fieldset': {
-        borderColor: `${primary2[300]}`,
+        borderColor: `${primaryMain}`,
         borderWidth: "1px",
-        boxShadow: focusPrimary100
+        boxShadow: focusPrimaryRing
       },
       '&.Mui-focused:not(.Mui-readOnly) textarea[aria-invalid="false"] ~ fieldset': {
-        borderColor: `${primary2[300]}`,
+        borderColor: `${primaryMain}`,
         borderWidth: "1px ",
-        boxShadow: focusPrimary100
+        boxShadow: focusPrimaryRing
       },
       "&.Mui-readOnly, &.Mui-readOnly.Mui-focused": {
-        backgroundColor: `${grey2[100]}`,
+        backgroundColor: actionHover,
         input: {
-          backgroundColor: `${grey2[100]}`
+          backgroundColor: actionHover
         },
         textarea: {
-          backgroundColor: `${grey2[100]}`
+          backgroundColor: actionHover
         },
         fieldset: {
-          borderColor: `${grey2[200]}`,
+          borderColor: `${dividerColor}`,
           borderWidth: "1px"
         }
       }
@@ -4046,58 +4079,28 @@ function OverridePaper() {
     }
   };
 }
-var RadioDefaultIcon = () => {
-  return /* @__PURE__ */ jsxRuntime.jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", width: "20", height: "20", viewBox: "0 0 20 20", fill: "none", children: [
-    /* @__PURE__ */ jsxRuntime.jsx("g", { clipPath: "url(#clip0_3824_2261)", children: /* @__PURE__ */ jsxRuntime.jsx("rect", { x: "0.5", y: "0.5", width: "19", height: "19", rx: "9.5", fill: "white", stroke: "#CDD7E1" }) }),
-    /* @__PURE__ */ jsxRuntime.jsx("defs", { children: /* @__PURE__ */ jsxRuntime.jsx("clipPath", { id: "clip0_3824_2261", children: /* @__PURE__ */ jsxRuntime.jsx("rect", { width: "20", height: "20", fill: "white" }) }) })
-  ] });
-};
-var RadioCheckedIcon = () => {
-  return /* @__PURE__ */ jsxRuntime.jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", width: "20", height: "20", viewBox: "0 0 20 20", fill: "none", children: [
-    /* @__PURE__ */ jsxRuntime.jsx("g", { clipPath: "url(#clip0_3824_2263)", children: /* @__PURE__ */ jsxRuntime.jsx(
-      "path",
-      {
-        d: "M10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10C20 15.5228 15.5228 20 10 20ZM10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM10 15C7.23858 15 5 12.7614 5 10C5 7.23858 7.23858 5 10 5C12.7614 5 15 7.23858 15 10C15 12.7614 12.7614 15 10 15Z",
-        fill: "#594DE8"
-      }
-    ) }),
-    /* @__PURE__ */ jsxRuntime.jsx("defs", { children: /* @__PURE__ */ jsxRuntime.jsx("clipPath", { id: "clip0_3824_2263", children: /* @__PURE__ */ jsxRuntime.jsx("rect", { width: "20", height: "20", fill: "white" }) }) })
-  ] });
-};
+
+// src/components/OverrideRadio.tsx
 function OverrideRadio(theme) {
-  const { palette } = theme;
+  const textSecondary = theme.vars?.palette.text.secondary ?? theme.palette.text.secondary;
+  const textDisabled = theme.vars?.palette.text.disabled ?? theme.palette.text.disabled;
+  const primaryMain = theme.vars?.palette.primary.main ?? theme.palette.primary.main;
   return {
     defaultProps: {
       disableRipple: true,
       disableTouchRipple: true,
       disableFocusRipple: true,
-      size: "medium",
-      icon: /* @__PURE__ */ jsxRuntime.jsx(RadioDefaultIcon, {}),
-      checkedIcon: /* @__PURE__ */ jsxRuntime.jsx(RadioCheckedIcon, {})
+      size: "medium"
     },
     styleOverrides: {
       root: {
         borderRadius: "8px",
-        color: palette.grey[300],
-        "&:hover svg rect.radio-default": {
-          fill: "#DDDBF9",
-          stroke: "#594DE8"
+        color: textSecondary,
+        "&.Mui-checked": {
+          color: primaryMain
         },
-        "&.Mui-disabled .radio-default-disable": {
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center"
-        },
-        "&.Mui-disabled .radio-checked-disable": {
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center"
-        },
-        "&.Mui-disabled .radio-default": {
-          display: "none"
-        },
-        "&.Mui-disabled .radio-checked": {
-          display: "none"
+        "&.Mui-disabled": {
+          color: textDisabled
         },
         "&.MuiRadio-sizeSmall": {
           padding: "8px",
@@ -4291,7 +4294,7 @@ function OverrideTableHead(theme) {
     styleOverrides: {
       root: {
         textWrap: "nowrap",
-        backgroundColor: theme.palette.grey["50"],
+        backgroundColor: theme.palette.action.hover,
         fontWeight: 600,
         "& tr th:first-of-type": {
           borderRadius: "4px 0 0 0"
@@ -4386,7 +4389,7 @@ function OverrideTableRow(theme) {
     styleOverrides: {
       root: {
         "&.MuiTableRow-hover:hover": {
-          backgroundColor: theme.palette.grey[100]
+          backgroundColor: theme.palette.action.hover
         }
       }
     }
@@ -4430,6 +4433,234 @@ function OverrideTextField() {
   };
 }
 
+// src/components/OverrideTypography.ts
+var TypographyOverrides = {
+  variants: [
+    // =====================
+    // Text 9XL (128/132) - Display 2XL equivalent
+    // =====================
+    { props: { variant: "text9Xl" }, style: typographyConstant.text9Xl },
+    { props: { variant: "text9XlThin" }, style: typographyConstant.text9XlThin },
+    { props: { variant: "text9XlExtraLight" }, style: typographyConstant.text9XlExtraLight },
+    { props: { variant: "text9XlLight" }, style: typographyConstant.text9XlLight },
+    { props: { variant: "text9XlRegular" }, style: typographyConstant.text9XlRegular },
+    { props: { variant: "text9XlMedium" }, style: typographyConstant.text9XlMedium },
+    { props: { variant: "text9XlSemiBold" }, style: typographyConstant.text9XlSemiBold },
+    { props: { variant: "text9XlBold" }, style: typographyConstant.text9XlBold },
+    { props: { variant: "text9XlExtraBold" }, style: typographyConstant.text9XlExtraBold },
+    { props: { variant: "text9XlBlack" }, style: typographyConstant.text9XlBlack },
+    // =====================
+    // Text 8XL (96/100)
+    // =====================
+    { props: { variant: "text8Xl" }, style: typographyConstant.text8Xl },
+    { props: { variant: "text8XlThin" }, style: typographyConstant.text8XlThin },
+    { props: { variant: "text8XlExtraLight" }, style: typographyConstant.text8XlExtraLight },
+    { props: { variant: "text8XlLight" }, style: typographyConstant.text8XlLight },
+    { props: { variant: "text8XlRegular" }, style: typographyConstant.text8XlRegular },
+    { props: { variant: "text8XlMedium" }, style: typographyConstant.text8XlMedium },
+    { props: { variant: "text8XlSemiBold" }, style: typographyConstant.text8XlSemiBold },
+    { props: { variant: "text8XlBold" }, style: typographyConstant.text8XlBold },
+    { props: { variant: "text8XlExtraBold" }, style: typographyConstant.text8XlExtraBold },
+    { props: { variant: "text8XlBlack" }, style: typographyConstant.text8XlBlack },
+    // =====================
+    // Text 7XL (72/76)
+    // =====================
+    { props: { variant: "text7Xl" }, style: typographyConstant.text7Xl },
+    { props: { variant: "text7XlThin" }, style: typographyConstant.text7XlThin },
+    { props: { variant: "text7XlExtraLight" }, style: typographyConstant.text7XlExtraLight },
+    { props: { variant: "text7XlLight" }, style: typographyConstant.text7XlLight },
+    { props: { variant: "text7XlRegular" }, style: typographyConstant.text7XlRegular },
+    { props: { variant: "text7XlMedium" }, style: typographyConstant.text7XlMedium },
+    { props: { variant: "text7XlSemiBold" }, style: typographyConstant.text7XlSemiBold },
+    { props: { variant: "text7XlBold" }, style: typographyConstant.text7XlBold },
+    { props: { variant: "text7XlExtraBold" }, style: typographyConstant.text7XlExtraBold },
+    { props: { variant: "text7XlBlack" }, style: typographyConstant.text7XlBlack },
+    // =====================
+    // Text 6XL (60/64)
+    // =====================
+    { props: { variant: "text6Xl" }, style: typographyConstant.text6Xl },
+    { props: { variant: "text6XlThin" }, style: typographyConstant.text6XlThin },
+    { props: { variant: "text6XlExtraLight" }, style: typographyConstant.text6XlExtraLight },
+    { props: { variant: "text6XlLight" }, style: typographyConstant.text6XlLight },
+    { props: { variant: "text6XlRegular" }, style: typographyConstant.text6XlRegular },
+    { props: { variant: "text6XlMedium" }, style: typographyConstant.text6XlMedium },
+    { props: { variant: "text6XlSemiBold" }, style: typographyConstant.text6XlSemiBold },
+    { props: { variant: "text6XlBold" }, style: typographyConstant.text6XlBold },
+    { props: { variant: "text6XlExtraBold" }, style: typographyConstant.text6XlExtraBold },
+    { props: { variant: "text6XlBlack" }, style: typographyConstant.text6XlBlack },
+    // =====================
+    // Text 5XL (48/52)
+    // =====================
+    { props: { variant: "text5Xl" }, style: typographyConstant.text5Xl },
+    { props: { variant: "text5XlThin" }, style: typographyConstant.text5XlThin },
+    { props: { variant: "text5XlExtraLight" }, style: typographyConstant.text5XlExtraLight },
+    { props: { variant: "text5XlLight" }, style: typographyConstant.text5XlLight },
+    { props: { variant: "text5XlRegular" }, style: typographyConstant.text5XlRegular },
+    { props: { variant: "text5XlMedium" }, style: typographyConstant.text5XlMedium },
+    { props: { variant: "text5XlSemiBold" }, style: typographyConstant.text5XlSemiBold },
+    { props: { variant: "text5XlBold" }, style: typographyConstant.text5XlBold },
+    { props: { variant: "text5XlExtraBold" }, style: typographyConstant.text5XlExtraBold },
+    { props: { variant: "text5XlBlack" }, style: typographyConstant.text5XlBlack },
+    // =====================
+    // Text 4XL (36/40)
+    // =====================
+    { props: { variant: "text4Xl" }, style: typographyConstant.text4Xl },
+    { props: { variant: "text4XlThin" }, style: typographyConstant.text4XlThin },
+    { props: { variant: "text4XlExtraLight" }, style: typographyConstant.text4XlExtraLight },
+    { props: { variant: "text4XlLight" }, style: typographyConstant.text4XlLight },
+    { props: { variant: "text4XlRegular" }, style: typographyConstant.text4XlRegular },
+    { props: { variant: "text4XlMedium" }, style: typographyConstant.text4XlMedium },
+    { props: { variant: "text4XlSemiBold" }, style: typographyConstant.text4XlSemiBold },
+    { props: { variant: "text4XlBold" }, style: typographyConstant.text4XlBold },
+    { props: { variant: "text4XlExtraBold" }, style: typographyConstant.text4XlExtraBold },
+    { props: { variant: "text4XlBlack" }, style: typographyConstant.text4XlBlack },
+    // =====================
+    // Text 3XL (30/36)
+    // =====================
+    { props: { variant: "text3Xl" }, style: typographyConstant.text3Xl },
+    { props: { variant: "text3XlThin" }, style: typographyConstant.text3XlThin },
+    { props: { variant: "text3XlExtraLight" }, style: typographyConstant.text3XlExtraLight },
+    { props: { variant: "text3XlLight" }, style: typographyConstant.text3XlLight },
+    { props: { variant: "text3XlRegular" }, style: typographyConstant.text3XlRegular },
+    { props: { variant: "text3XlMedium" }, style: typographyConstant.text3XlMedium },
+    { props: { variant: "text3XlSemiBold" }, style: typographyConstant.text3XlSemiBold },
+    { props: { variant: "text3XlBold" }, style: typographyConstant.text3XlBold },
+    { props: { variant: "text3XlExtraBold" }, style: typographyConstant.text3XlExtraBold },
+    { props: { variant: "text3XlBlack" }, style: typographyConstant.text3XlBlack },
+    // =====================
+    // Text 2XL (24/32)
+    // =====================
+    { props: { variant: "text2Xl" }, style: typographyConstant.text2Xl },
+    { props: { variant: "text2XlThin" }, style: typographyConstant.text2XlThin },
+    { props: { variant: "text2XlExtraLight" }, style: typographyConstant.text2XlExtraLight },
+    { props: { variant: "text2XlLight" }, style: typographyConstant.text2XlLight },
+    { props: { variant: "text2XlRegular" }, style: typographyConstant.text2XlRegular },
+    { props: { variant: "text2XlMedium" }, style: typographyConstant.text2XlMedium },
+    { props: { variant: "text2XlSemiBold" }, style: typographyConstant.text2XlSemiBold },
+    { props: { variant: "text2XlBold" }, style: typographyConstant.text2XlBold },
+    { props: { variant: "text2XlExtraBold" }, style: typographyConstant.text2XlExtraBold },
+    { props: { variant: "text2XlBlack" }, style: typographyConstant.text2XlBlack },
+    // =====================
+    // Text XL (20/28)
+    // =====================
+    { props: { variant: "textXl" }, style: typographyConstant.textXl },
+    { props: { variant: "textXlThin" }, style: typographyConstant.textXlThin },
+    { props: { variant: "textXlExtraLight" }, style: typographyConstant.textXlExtraLight },
+    { props: { variant: "textXlLight" }, style: typographyConstant.textXlLight },
+    { props: { variant: "textXlRegular" }, style: typographyConstant.textXlRegular },
+    { props: { variant: "textXlMedium" }, style: typographyConstant.textXlMedium },
+    { props: { variant: "textXlSemiBold" }, style: typographyConstant.textXlSemiBold },
+    { props: { variant: "textXlBold" }, style: typographyConstant.textXlBold },
+    { props: { variant: "textXlExtraBold" }, style: typographyConstant.textXlExtraBold },
+    { props: { variant: "textXlBlack" }, style: typographyConstant.textXlBlack },
+    // =====================
+    // Text LG (18/28)
+    // =====================
+    { props: { variant: "textLg" }, style: typographyConstant.textLg },
+    { props: { variant: "textLgThin" }, style: typographyConstant.textLgThin },
+    { props: { variant: "textLgExtraLight" }, style: typographyConstant.textLgExtraLight },
+    { props: { variant: "textLgLight" }, style: typographyConstant.textLgLight },
+    { props: { variant: "textLgRegular" }, style: typographyConstant.textLgRegular },
+    { props: { variant: "textLgMedium" }, style: typographyConstant.textLgMedium },
+    { props: { variant: "textLgSemiBold" }, style: typographyConstant.textLgSemiBold },
+    { props: { variant: "textLgBold" }, style: typographyConstant.textLgBold },
+    { props: { variant: "textLgExtraBold" }, style: typographyConstant.textLgExtraBold },
+    { props: { variant: "textLgBlack" }, style: typographyConstant.textLgBlack },
+    // =====================
+    // Text Base (16/24)
+    // =====================
+    { props: { variant: "textBase" }, style: typographyConstant.textBase },
+    { props: { variant: "textBaseThin" }, style: typographyConstant.textBaseThin },
+    { props: { variant: "textBaseExtraLight" }, style: typographyConstant.textBaseExtraLight },
+    { props: { variant: "textBaseLight" }, style: typographyConstant.textBaseLight },
+    { props: { variant: "textBaseRegular" }, style: typographyConstant.textBaseRegular },
+    { props: { variant: "textBaseMedium" }, style: typographyConstant.textBaseMedium },
+    { props: { variant: "textBaseSemiBold" }, style: typographyConstant.textBaseSemiBold },
+    { props: { variant: "textBaseBold" }, style: typographyConstant.textBaseBold },
+    { props: { variant: "textBaseExtraBold" }, style: typographyConstant.textBaseExtraBold },
+    { props: { variant: "textBaseBlack" }, style: typographyConstant.textBaseBlack },
+    // =====================
+    // Text SM (14/20)
+    // =====================
+    { props: { variant: "textSm" }, style: typographyConstant.textSm },
+    { props: { variant: "textSmThin" }, style: typographyConstant.textSmThin },
+    { props: { variant: "textSmExtraLight" }, style: typographyConstant.textSmExtraLight },
+    { props: { variant: "textSmLight" }, style: typographyConstant.textSmLight },
+    { props: { variant: "textSmRegular" }, style: typographyConstant.textSmRegular },
+    { props: { variant: "textSmMedium" }, style: typographyConstant.textSmMedium },
+    { props: { variant: "textSmSemiBold" }, style: typographyConstant.textSmSemiBold },
+    { props: { variant: "textSmBold" }, style: typographyConstant.textSmBold },
+    { props: { variant: "textSmExtraBold" }, style: typographyConstant.textSmExtraBold },
+    { props: { variant: "textSmBlack" }, style: typographyConstant.textSmBlack },
+    // =====================
+    // Text XS (12/16)
+    // =====================
+    { props: { variant: "textXs" }, style: typographyConstant.textXs },
+    { props: { variant: "textXsThin" }, style: typographyConstant.textXsThin },
+    { props: { variant: "textXsExtraLight" }, style: typographyConstant.textXsExtraLight },
+    { props: { variant: "textXsLight" }, style: typographyConstant.textXsLight },
+    { props: { variant: "textXsRegular" }, style: typographyConstant.textXsRegular },
+    { props: { variant: "textXsMedium" }, style: typographyConstant.textXsMedium },
+    { props: { variant: "textXsSemiBold" }, style: typographyConstant.textXsSemiBold },
+    { props: { variant: "textXsBold" }, style: typographyConstant.textXsBold },
+    { props: { variant: "textXsExtraBold" }, style: typographyConstant.textXsExtraBold },
+    { props: { variant: "textXsBlack" }, style: typographyConstant.textXsBlack },
+    // =====================
+    // Button variants
+    // =====================
+    { props: { variant: "buttonSm" }, style: typographyConstant.buttonSm },
+    { props: { variant: "buttonMd" }, style: typographyConstant.buttonMd },
+    { props: { variant: "buttonLg" }, style: typographyConstant.buttonLg }
+  ],
+  defaultProps: {
+    variant: "body1",
+    variantMapping: {
+      // Heading mappings
+      text9Xl: "h1",
+      text8Xl: "h1",
+      text7Xl: "h1",
+      text6Xl: "h1",
+      text5Xl: "h1",
+      text4Xl: "h2",
+      text3Xl: "h2",
+      text2Xl: "h3",
+      textXl: "h4",
+      textLg: "h5",
+      // Body mappings
+      textBase: "p",
+      textSm: "p",
+      textXs: "p",
+      // Button mappings
+      buttonSm: "span",
+      buttonMd: "span",
+      buttonLg: "span",
+      // Default
+      inherit: "span"
+    }
+  },
+  styleOverrides: {
+    root: {
+      fontSize: "16px",
+      lineHeight: "24px",
+      fontWeight: 500
+    },
+    h1: typographyConstant.text5Xl,
+    h2: typographyConstant.text4Xl,
+    h3: typographyConstant.text3Xl,
+    h4: typographyConstant.text2Xl,
+    h5: typographyConstant.textXl,
+    h6: typographyConstant.textLg,
+    body1: {
+      fontSize: "16px",
+      lineHeight: "24px"
+    },
+    body2: {
+      fontSize: "14px",
+      lineHeight: "20px"
+    }
+  }
+};
+
 // src/utils/createComponent.ts
 function createComponents(theme) {
   return {
@@ -4450,7 +4681,7 @@ function createComponents(theme) {
     MuiFormControlLabel: OverrideFormControlLabel(theme),
     MuiFormHelperText: OverrideFormHelperText(theme),
     MuiIconButton: OverrideIconButton(theme),
-    MuiFormLabel: OverrideFormLabel(),
+    MuiFormLabel: OverrideFormLabel(theme),
     MuiInputLabel: OverrideInputLabel(theme),
     MuiLinearProgress: OverrideLinearProgress(theme),
     MuiLink: OverrideLink(),
@@ -4469,13 +4700,15 @@ function createComponents(theme) {
     MuiTablePagination: OverrideTablePagination(theme),
     MuiTableRow: OverrideTableRow(theme),
     MuiTabs: OverrideTabs(theme),
-    MuiTextField: OverrideTextField()
+    MuiTextField: OverrideTextField(),
+    MuiTypography: TypographyOverrides
   };
 }
 
 // src/createAppTheme.ts
 function createAppTheme() {
-  const palette = getPaletteOptions("light");
+  const lightPalette = getPaletteOptions("light");
+  const darkPalette = getPaletteOptions("dark");
   const shadowCustomInput = {
     none: "none",
     xs: "0px 1px 2px 0px rgba(21, 21, 21, 0.05)",
@@ -4524,13 +4757,22 @@ function createAppTheme() {
     neg600: -24
   };
   const base = styles.createTheme({
-    cssVariables: true,
+    cssVariables: {
+      colorSchemeSelector: "class"
+    },
     shape: { borderRadius: radius.sm },
     spacer: spacerInput,
     radius: radiusInput,
     typography: getTypographyVariantOptions,
     shadowCustom: shadowCustomInput,
-    palette,
+    colorSchemes: {
+      light: {
+        palette: lightPalette
+      },
+      dark: {
+        palette: darkPalette
+      }
+    },
     breakpoints: {
       values: {
         xs: 0,
@@ -4589,7 +4831,7 @@ function createAppTheme() {
 }
 function ThemeProvider({ children }) {
   const theme = t.useMemo(() => createAppTheme(), []);
-  return /* @__PURE__ */ jsxRuntime.jsxs(styles.ThemeProvider, { theme, children: [
+  return /* @__PURE__ */ jsxRuntime.jsxs(styles.ThemeProvider, { theme, defaultMode: "light", disableTransitionOnChange: true, children: [
     /* @__PURE__ */ jsxRuntime.jsx(material.CssBaseline, {}),
     children
   ] });

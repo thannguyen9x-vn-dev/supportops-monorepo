@@ -27,6 +27,7 @@ export declare const LEGACY_ENDPOINTS: {
     readonly DASHBOARD: {
         readonly SUMMARY: "/dashboard/summary";
         readonly RECENT_ACTIVITY: "/dashboard/recent-activity";
+        readonly REQUEST_TREND: "/dashboard/request-trend";
         readonly SALES_SUMMARY: "/dashboard/sales-summary";
         readonly KPI: "/dashboard/kpi";
         readonly SESSIONS_COUNTRY: "/dashboard/sessions-by-country";
@@ -69,6 +70,7 @@ export declare const ENDPOINTS: {
     readonly DASHBOARD: {
         readonly SUMMARY: "/dashboard/summary";
         readonly RECENT_ACTIVITY: "/dashboard/recent-activity";
+        readonly REQUEST_TREND: "/dashboard/request-trend";
         readonly SALES_SUMMARY: "/dashboard/sales-summary";
         readonly KPI: "/dashboard/kpi";
         readonly SESSIONS_COUNTRY: "/dashboard/sessions-by-country";
@@ -112,7 +114,16 @@ export declare const ENDPOINTS: {
     };
     readonly ASSETS: {
         readonly LIST: "/assets";
+        readonly CREATE: "/assets";
         readonly DETAIL: (id: string) => string;
+        readonly UPDATE: (id: string) => string;
+        readonly DELETE: (id: string) => string;
+    };
+    readonly ASSET_TYPES: {
+        readonly LIST: "/asset-types";
+        readonly CREATE: "/asset-types";
+        readonly UPDATE: (id: string) => string;
+        readonly DELETE: (id: string) => string;
     };
     readonly WORK_LOGS: {
         readonly LIST: (requestId: string) => string;

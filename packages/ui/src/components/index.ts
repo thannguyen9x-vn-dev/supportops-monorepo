@@ -31,6 +31,8 @@ export * from "./combobox/MultiCombobox";
 export * from "./toast/Toast";
 export * from "./toast/Toaster";
 
+export * from "./typography/TruncatedText";
+
 export * from "./skeletons/TableSkeleton";
 export * from "./skeletons/CardSkeleton";
 export * from "./skeletons/FormSkeleton";

@@ -1,0 +1,160 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-supportops_staging}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-supportops_staging}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - supportops_staging_net
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_staging_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD} ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - supportops_staging_net
+
+  api:
+    image: ${API_IMAGE:-ghcr.io/your-org/supportops-api:staging}
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - api_storage:/app/storage
+    environment:
+      PORT: 8081
+      CORS_ALLOWED_ORIGIN: ${APP_ORIGIN}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-supportops_staging}?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+      ACCESS_TOKEN_TTL_SECONDS: ${ACCESS_TOKEN_TTL_SECONDS:-900}
+      REFRESH_TOKEN_TTL_SECONDS: ${REFRESH_TOKEN_TTL_SECONDS:-604800}
+      WEB_APP_BASE_URL: ${APP_ORIGIN}
+      FILE_PUBLIC_BASE_URL: ${API_ORIGIN}/storage
+      FILE_SIGNING_SECRET: ${FILE_SIGNING_SECRET}
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      MAIL_PROVIDER: ${MAIL_PROVIDER:-resend}
+      MAIL_DAILY_LIMIT: ${MAIL_DAILY_LIMIT:-30}
+      MAIL_FROM_EMAIL: ${MAIL_FROM_EMAIL:-onboarding@resend.dev}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-SupportOps Staging}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      AUDIT_LOG_RETENTION_DAYS: ${AUDIT_LOG_RETENTION_DAYS:-2555}
+      ERROR_ALERT_THRESHOLD: ${ERROR_ALERT_THRESHOLD:-20}
+      ERROR_ALERT_WINDOW_MS: ${ERROR_ALERT_WINDOW_MS:-300000}
+      ERROR_ALERT_COOLDOWN_MS: ${ERROR_ALERT_COOLDOWN_MS:-900000}
+      ERROR_ALERT_WEBHOOK_URL: ${ERROR_ALERT_WEBHOOK_URL:-}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - supportops_staging_net
+
+  portfolio:
+    image: ${PORTFOLIO_IMAGE:-ghcr.io/your-org/supportops-portfolio:staging}
+    build:
+      context: .
+      dockerfile: apps/portfolio/Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - supportops_staging_net
+
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/your-org/supportops-web:staging}
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      NEXT_PUBLIC_API_BASE_URL: ${API_ORIGIN}/api/v1
+      BACKEND_INTERNAL_URL: http://api:8081/api/v1
+      API_INTERNAL_URL: http://api:8081/api/v1
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - supportops_staging_net
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      portfolio:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      PORTFOLIO_DOMAIN: ${PORTFOLIO_DOMAIN}
+      APP_DOMAIN: ${APP_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+    volumes:
+      - ./deploy/nginx/templates:/etc/nginx/templates:ro
+      - ./deploy/nginx/certs:/etc/nginx/certs:ro
+      - ./deploy/nginx/www:/var/www/certbot:ro
+    networks:
+      - supportops_staging_net
+
+  certbot:
+    image: certbot/certbot:latest
+    restart: unless-stopped
+    volumes:
+      - ./deploy/nginx/certs:/etc/letsencrypt
+      - ./deploy/nginx/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
+    networks:
+      - supportops_staging_net
+
+volumes:
+  postgres_staging_data:
+  redis_staging_data:
+  api_storage:
+
+networks:
+  supportops_staging_net:
+    driver: bridge

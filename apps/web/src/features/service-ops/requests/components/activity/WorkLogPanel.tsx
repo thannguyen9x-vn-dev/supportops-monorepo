@@ -1,5 +1,6 @@
 import { Box, Button, Divider, Stack, TextField, Typography } from "@mui/material";
 import type { RequestWorkLog } from "@supportops/types";
+import { DurationMinutesInput } from "@supportops/ui-form";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -8,10 +9,12 @@ import { SectionCard } from "@/components/section-card";
 import type { WorkLogPayload } from "../../types";
 
 export function WorkLogPanel({
+  canAddWorkLog,
   logs,
   onSubmit,
   isSubmitting,
 }: {
+  canAddWorkLog: boolean;
   logs: RequestWorkLog[];
   onSubmit: (payload: WorkLogPayload) => Promise<void>;
   isSubmitting: boolean;
@@ -19,6 +22,10 @@ export function WorkLogPanel({
   const t = useTranslations("pages.requests.detail");
   const [content, setContent] = useState("");
   const [minutes, setMinutes] = useState<string>("15");
+  const formatWorkLogTime = (value: string) => {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
+  };
 
   const handleSubmit = async () => {
     const normalizedContent = content.trim();
@@ -40,7 +47,10 @@ export function WorkLogPanel({
             <Box key={item.id}>
               <Typography fontWeight={600} variant="body2">{item.content}</Typography>
               <Typography color="text.secondary" variant="body2">
-                {item.minutesSpent ? `${item.minutesSpent} min` : t("workLog.noDuration")} · {new Date(item.createdAt).toLocaleString()}
+                {item.minutesSpent
+                  ? t("workLog.durationMinutes", { minutes: item.minutesSpent })
+                  : t("workLog.noDuration")}{" "}
+                · {formatWorkLogTime(item.createdAt)}
               </Typography>
             </Box>
           ))
@@ -48,30 +58,40 @@ export function WorkLogPanel({
       </Stack>
 
       <Divider sx={{ my: 2 }} />
-      <Typography gutterBottom variant="body2">{t("workLog.addTitle")}</Typography>
-      <TextField
-        minRows={2}
-        multiline
-        onChange={(event) => setContent(event.target.value)}
-        placeholder={t("workLog.placeholder")}
-        value={content}
-      />
-      <Stack alignItems="center" direction="row" spacing={1} sx={{ mt: 1 }}>
-        <TextField
-          label={t("workLog.minutes")}
-          onChange={(event) => setMinutes(event.target.value)}
-          size="small"
-          type="number"
-          value={minutes}
-        />
-        <Button
-          disabled={content.trim().length === 0 || isSubmitting}
-          onClick={() => void handleSubmit()}
-          variant="contained"
-        >
-          {t("workLog.add")}
-        </Button>
-      </Stack>
+      {canAddWorkLog ? (
+        <>
+          <Typography gutterBottom variant="body2">{t("workLog.addTitle")}</Typography>
+          <TextField
+            fullWidth
+            maxRows={8}
+            minRows={2}
+            multiline
+            onChange={(event) => setContent(event.target.value)}
+            placeholder={t("workLog.placeholder")}
+            value={content}
+          />
+          <Stack spacing={1} sx={{ mt: 1 }}>
+            <DurationMinutesInput
+              label={t("workLog.minutes")}
+              max={1440}
+              min={1}
+              onChange={setMinutes}
+              placeholder={t("workLog.minutesPlaceholder")}
+              sx={{ maxWidth: 180 }}
+              value={minutes}
+            />
+            <Stack alignItems="flex-start">
+              <Button
+                disabled={content.trim().length === 0 || isSubmitting}
+                onClick={() => void handleSubmit()}
+                variant="contained"
+              >
+                {t("workLog.add")}
+              </Button>
+            </Stack>
+          </Stack>
+        </>
+      ) : null}
     </SectionCard>
   );
 }
