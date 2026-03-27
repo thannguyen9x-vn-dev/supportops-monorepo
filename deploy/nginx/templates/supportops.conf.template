@@ -32,8 +32,11 @@ server {
   ssl_protocols TLSv1.2 TLSv1.3;
   ssl_prefer_server_ciphers off;
 
+  resolver 127.0.0.11 valid=30s;
+
   location / {
-    proxy_pass http://supportops_portfolio;
+    set $upstream_portfolio portfolio:3001;
+    proxy_pass http://$upstream_portfolio;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -54,8 +57,11 @@ server {
 
   client_max_body_size 20m;
 
+  resolver 127.0.0.11 valid=30s;
+
   location / {
-    proxy_pass http://supportops_web;
+    set $upstream_web web:3000;
+    proxy_pass http://$upstream_web;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -76,8 +82,11 @@ server {
 
   client_max_body_size 20m;
 
+  resolver 127.0.0.11 valid=30s;
+
   location / {
-    proxy_pass http://supportops_api;
+    set $upstream_api api:8081;
+    proxy_pass http://$upstream_api;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
