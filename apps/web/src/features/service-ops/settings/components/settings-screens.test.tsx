@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "@/features/common/toast/ToastProvider";
 
 import { ServiceTypesSettingsView } from "./ServiceTypesSettingsView";
@@ -26,7 +27,18 @@ import { serviceOpsSettingsService } from "../services/service-ops-settings.serv
 const mockService = serviceOpsSettingsService as jest.Mocked<typeof serviceOpsSettingsService>;
 
 function renderWithProviders(ui: ReactElement) {
-  return render(<ToastProvider>{ui}</ToastProvider>);
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>{ui}</ToastProvider>
+    </QueryClientProvider>,
+  );
 }
 
 function requireElement<T>(value: T | undefined): T {

@@ -6,7 +6,10 @@
     "dev": "ts-node src/main.ts",
     "build": "tsc --project tsconfig.json",
     "lint": "eslint \"src/**/*.{js,ts}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",
@@ -14,7 +17,9 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@vitest/coverage-v8": "^3.2.4",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }
