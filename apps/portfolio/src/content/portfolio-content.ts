@@ -3,7 +3,7 @@ export const content = {
     title: "Than Nguyen — Fullstack Engineer",
     description:
       "Fullstack engineer specialising in internal tooling and enterprise workflow platforms. Currently open to fullstack roles.",
-    url: "https://thannguyendev.org",
+    url: "https://thannguyen.org",
     image: "/og-image.png",
   },
 
@@ -18,7 +18,7 @@ export const content = {
     ],
     demoLink: {
       label: "View Demo",
-      href: "https://app.thannguyendev.org",
+      href: "https://app.thannguyen.org",
     },
   },
 
@@ -31,7 +31,7 @@ export const content = {
     cta: {
       primary: {
         label: "View Live Demo",
-        href: "https://app.thannguyendev.org",
+        href: "https://app.thannguyen.org",
       },
       secondary: {
         label: "GitHub",
@@ -50,7 +50,7 @@ export const content = {
     ],
     stats: [
       { value: "4", label: "Roles in RBAC system" },
-      { value: "3", label: "Apps in monorepo" },
+      { value: "4", label: "Apps in monorepo" },
       { value: "CI/CD", label: "GitHub Actions + SSH deploy" },
       { value: "SSL", label: "Let's Encrypt + Nginx" },
     ],
@@ -97,10 +97,16 @@ export const content = {
       "Email notifications via Resend with daily rate limiting",
     ],
     links: {
-      demo: "https://app.thannguyendev.org",
+      demo: "https://app.thannguyen.org",
       github:
         "https://github.com/thannguyen9x-vn-dev/supportops-monorepo",
     },
+    screenshots: [
+      { src: "/screenshots/dashboard.png", alt: "Dashboard overview" },
+      { src: "/screenshots/request-list.png", alt: "Service requests list with filters and SLA status" },
+      { src: "/screenshots/request-detail.png", alt: "Request detail with SLA tracking and activity timeline" },
+      { src: "/screenshots/admin-panel.png", alt: "Admin panel — tenant and member management" },
+    ],
   },
 
   demonstrates: {
@@ -142,32 +148,35 @@ export const content = {
   demo: {
     id: "demo",
     heading: "Try the Demo",
-    url: "https://app.thannguyendev.org",
+    url: "https://app.thannguyen.org",
     note: "The demo runs on a real server with a real database. Each role has a separate account so you can explore the platform from different perspectives.",
+    password: "SupportOps@123",
     roles: [
       {
         role: "Tenant Admin",
+        email: "sarah.chen@supportops.dev",
         description:
           "Full platform control — manage team members, tenant settings, and all service requests",
       },
       {
         role: "Ops Coordinator",
+        email: "marcus.rivera@supportops.dev",
         description:
           "Assign and oversee service requests, manage SLA rules and escalation policies",
       },
       {
         role: "Technician",
+        email: "jordan.kim@supportops.dev",
         description:
           "Work on assigned requests, update progress status, and add activity notes",
       },
       {
         role: "Employee",
+        email: "oliver.davis@supportops.dev",
         description:
           "Submit service requests, track progress, and communicate via activity thread",
       },
     ],
-    credential:
-      "Demo credentials available upon request — contact me via email or LinkedIn below.",
   },
 
   technical: {
@@ -217,21 +226,21 @@ export const content = {
       },
       {
         label: "LinkedIn",
-        href: "https://linkedin.com/in/thannguyendev",
-        description: "linkedin.com/in/thannguyendev",
+        href: "https://www.linkedin.com/in/than-nguyen-nham-vn-763135173",
+        description: "linkedin.com/in/than-nguyen-nham-vn-763135173",
       },
       {
         label: "Email",
-        href: "mailto:thannguyen@thannguyendev.org",
-        description: "thannguyen@thannguyendev.org",
+        href: "mailto:nguyennhamthan1010@gmail.com",
+        description: "nguyennhamthan1010@gmail.com",
       },
     ],
   },
 
   footer: {
     name: "Than Nguyen",
-    year: 2025,
-    tagline: "Built with Next.js · Deployed on thannguyendev.org",
+    year: new Date().getFullYear(),
+    tagline: "Built with Next.js · Deployed on thannguyen.org",
     github: "https://github.com/thannguyen9x-vn-dev",
   },
 } as const;

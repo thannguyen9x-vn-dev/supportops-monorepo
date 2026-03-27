@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { content } from "@/content/portfolio-content";
 
 export function FeaturedProject() {
@@ -17,6 +18,24 @@ export function FeaturedProject() {
             <p className="text-zinc-400 leading-relaxed mb-8 max-w-3xl">
               {project.description}
             </p>
+
+            {/* Screenshots */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+              {project.screenshots.map((shot) => (
+                <div
+                  key={shot.src}
+                  className="rounded-lg overflow-hidden border border-zinc-700 bg-zinc-900 aspect-[16/10]"
+                >
+                  <Image
+                    src={shot.src}
+                    alt={shot.alt}
+                    width={1600}
+                    height={900}
+                    className="w-full h-full object-cover object-top"
+                  />
+                </div>
+              ))}
+            </div>
 
             <div className="grid md:grid-cols-2 gap-x-12 gap-y-2 mb-8">
               {project.highlights.map((item) => (

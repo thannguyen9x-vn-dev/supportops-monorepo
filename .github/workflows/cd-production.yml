@@ -68,7 +68,7 @@ jobs:
             ${{ steps.meta.outputs.image }}
             ${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}:prod-latest
           build-args: |
-            NEXT_PUBLIC_API_BASE_URL=${{ secrets.PROD_API_ORIGIN }}/api/v1
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.PRODUCTION_API_ORIGIN }}/api/v1
           cache-from: type=gha,scope=web-prod
           cache-to: type=gha,mode=max,scope=web-prod
 
@@ -174,11 +174,11 @@ jobs:
       - name: Copy deploy files to server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USER }}
-          key: ${{ secrets.PROD_SSH_KEY }}
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
           source: "docker-compose.prod.yml,deploy/nginx/templates/supportops.conf.template,deploy/deploy-prod.sh,deploy/smoke-test.sh,deploy/init-letsencrypt.sh"
-          target: ${{ secrets.PROD_DEPLOY_PATH }}
+          target: ${{ secrets.PRODUCTION_DEPLOY_PATH }}
           strip_components: 0
           overwrite: true
 
@@ -188,41 +188,41 @@ jobs:
           WEB_IMAGE: ${{ needs.build-web.outputs.image }}
           API_IMAGE: ${{ needs.build-api.outputs.image }}
           PORTFOLIO_IMAGE: ${{ needs.build-portfolio.outputs.image }}
-          PORTFOLIO_DOMAIN: ${{ secrets.PROD_PORTFOLIO_DOMAIN }}
-          APP_DOMAIN: ${{ secrets.PROD_APP_DOMAIN }}
-          API_DOMAIN: ${{ secrets.PROD_API_DOMAIN }}
-          APP_ORIGIN: ${{ secrets.PROD_APP_ORIGIN }}
-          API_ORIGIN: ${{ secrets.PROD_API_ORIGIN }}
-          POSTGRES_DB: ${{ secrets.PROD_POSTGRES_DB }}
-          POSTGRES_USER: ${{ secrets.PROD_POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.PROD_POSTGRES_PASSWORD }}
-          JWT_SECRET: ${{ secrets.PROD_JWT_SECRET }}
-          FILE_SIGNING_SECRET: ${{ secrets.PROD_FILE_SIGNING_SECRET }}
-          GHCR_USERNAME: ${{ secrets.PROD_GHCR_USERNAME }}
-          GHCR_TOKEN: ${{ secrets.PROD_GHCR_TOKEN }}
-          MAIL_ENABLED: ${{ secrets.PROD_MAIL_ENABLED }}
-          MAIL_PROVIDER: ${{ secrets.PROD_MAIL_PROVIDER }}
-          MAIL_DAILY_LIMIT: ${{ secrets.PROD_MAIL_DAILY_LIMIT }}
-          MAIL_FROM_EMAIL: ${{ secrets.PROD_MAIL_FROM_EMAIL }}
-          MAIL_FROM_NAME: ${{ secrets.PROD_MAIL_FROM_NAME }}
-          RESEND_API_KEY: ${{ secrets.PROD_RESEND_API_KEY }}
-          REDIS_PASSWORD: ${{ secrets.PROD_REDIS_PASSWORD }}
-          LOG_LEVEL: ${{ secrets.PROD_LOG_LEVEL }}
-          AUDIT_LOG_RETENTION_DAYS: ${{ secrets.PROD_AUDIT_LOG_RETENTION_DAYS }}
-          ERROR_ALERT_THRESHOLD: ${{ secrets.PROD_ERROR_ALERT_THRESHOLD }}
-          ERROR_ALERT_WINDOW_MS: ${{ secrets.PROD_ERROR_ALERT_WINDOW_MS }}
-          ERROR_ALERT_COOLDOWN_MS: ${{ secrets.PROD_ERROR_ALERT_COOLDOWN_MS }}
-          ERROR_ALERT_WEBHOOK_URL: ${{ secrets.PROD_ERROR_ALERT_WEBHOOK_URL }}
-          CERTBOT_EMAIL: ${{ secrets.PROD_CERTBOT_EMAIL }}
+          PORTFOLIO_DOMAIN: ${{ secrets.PRODUCTION_PORTFOLIO_DOMAIN }}
+          APP_DOMAIN: ${{ secrets.PRODUCTION_APP_DOMAIN }}
+          API_DOMAIN: ${{ secrets.PRODUCTION_API_DOMAIN }}
+          APP_ORIGIN: ${{ secrets.PRODUCTION_APP_ORIGIN }}
+          API_ORIGIN: ${{ secrets.PRODUCTION_API_ORIGIN }}
+          POSTGRES_DB: ${{ secrets.PRODUCTION_POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.PRODUCTION_POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.PRODUCTION_POSTGRES_PASSWORD }}
+          JWT_SECRET: ${{ secrets.PRODUCTION_JWT_SECRET }}
+          FILE_SIGNING_SECRET: ${{ secrets.PRODUCTION_FILE_SIGNING_SECRET }}
+          GHCR_USERNAME: ${{ secrets.PRODUCTION_GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.PRODUCTION_GHCR_TOKEN }}
+          MAIL_ENABLED: ${{ secrets.PRODUCTION_MAIL_ENABLED }}
+          MAIL_PROVIDER: ${{ secrets.PRODUCTION_MAIL_PROVIDER }}
+          MAIL_DAILY_LIMIT: ${{ secrets.PRODUCTION_MAIL_DAILY_LIMIT }}
+          MAIL_FROM_EMAIL: ${{ secrets.PRODUCTION_MAIL_FROM_EMAIL }}
+          MAIL_FROM_NAME: ${{ secrets.PRODUCTION_MAIL_FROM_NAME }}
+          RESEND_API_KEY: ${{ secrets.PRODUCTION_RESEND_API_KEY }}
+          REDIS_PASSWORD: ${{ secrets.PRODUCTION_REDIS_PASSWORD }}
+          LOG_LEVEL: ${{ secrets.PRODUCTION_LOG_LEVEL }}
+          AUDIT_LOG_RETENTION_DAYS: ${{ secrets.PRODUCTION_AUDIT_LOG_RETENTION_DAYS }}
+          ERROR_ALERT_THRESHOLD: ${{ secrets.PRODUCTION_ERROR_ALERT_THRESHOLD }}
+          ERROR_ALERT_WINDOW_MS: ${{ secrets.PRODUCTION_ERROR_ALERT_WINDOW_MS }}
+          ERROR_ALERT_COOLDOWN_MS: ${{ secrets.PRODUCTION_ERROR_ALERT_COOLDOWN_MS }}
+          ERROR_ALERT_WEBHOOK_URL: ${{ secrets.PRODUCTION_ERROR_ALERT_WEBHOOK_URL }}
+          CERTBOT_EMAIL: ${{ secrets.PRODUCTION_CERTBOT_EMAIL }}
         with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USER }}
-          key: ${{ secrets.PROD_SSH_KEY }}
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
           envs: WEB_IMAGE,API_IMAGE,PORTFOLIO_IMAGE,PORTFOLIO_DOMAIN,APP_DOMAIN,API_DOMAIN,APP_ORIGIN,API_ORIGIN,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,FILE_SIGNING_SECRET,GHCR_USERNAME,GHCR_TOKEN,MAIL_ENABLED,MAIL_PROVIDER,MAIL_DAILY_LIMIT,MAIL_FROM_EMAIL,MAIL_FROM_NAME,RESEND_API_KEY,REDIS_PASSWORD,LOG_LEVEL,AUDIT_LOG_RETENTION_DAYS,ERROR_ALERT_THRESHOLD,ERROR_ALERT_WINDOW_MS,ERROR_ALERT_COOLDOWN_MS,ERROR_ALERT_WEBHOOK_URL,CERTBOT_EMAIL
           script_stop: true
           script: |
             set -Eeuo pipefail
-            DEPLOY_PATH="${{ secrets.PROD_DEPLOY_PATH }}"
+            DEPLOY_PATH="${{ secrets.PRODUCTION_DEPLOY_PATH }}"
             mkdir -p "${DEPLOY_PATH}/deploy/nginx/certs" "${DEPLOY_PATH}/deploy/nginx/www"
             cd "${DEPLOY_PATH}"
 
