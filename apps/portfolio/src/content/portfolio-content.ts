@@ -230,7 +230,7 @@ export const content = {
 
   footer: {
     name: "Than Nguyen",
-    year: 2025,
+    year: new Date().getFullYear(),
     tagline: "Built with Next.js · Deployed on thannguyen.org",
     github: "https://github.com/thannguyen9x-vn-dev",
   },
