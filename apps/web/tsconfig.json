@@ -4,6 +4,7 @@
     "composite": true,
     "noEmit": true,
     "baseUrl": ".",
+    "types": ["@testing-library/jest-dom"],
     "paths": {
       "@/*": ["./src/*"],
       "@supportops/types": ["../../packages/types/dist"],
