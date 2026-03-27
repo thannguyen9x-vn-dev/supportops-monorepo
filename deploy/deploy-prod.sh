@@ -15,6 +15,8 @@ COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
 ENV_FILE="${ENV_FILE:-.env.prod}"
 RUN_MIGRATIONS="${RUN_MIGRATIONS:-1}"
 API_MIGRATE_CMD="${API_MIGRATE_CMD:-pnpm --filter @supportops/api exec prisma migrate deploy}"
+RUN_SEED="${RUN_SEED:-0}"
+API_SEED_CMD="${API_SEED_CMD:-pnpm --filter @supportops/api prisma:seed}"
 SMOKE_SCRIPT="${SMOKE_SCRIPT:-deploy/smoke-test.sh}"
 SMOKE_PORT="${SMOKE_PORT:-80}"
 CERTBOT_EMAIL="${CERTBOT_EMAIL:-}"
@@ -73,6 +75,11 @@ if [ "${RUN_MIGRATIONS}" = "1" ]; then
 
   log "Running database migrations"
   docker compose -p supportops_prod -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" run --rm api sh -lc "${API_MIGRATE_CMD}"
+fi
+
+if [ "${RUN_SEED}" = "1" ]; then
+  log "Seeding database"
+  docker compose -p supportops_prod -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" run --rm api sh -lc "${API_SEED_CMD}"
 fi
 
 log "Starting services"

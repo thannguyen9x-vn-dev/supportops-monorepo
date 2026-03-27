@@ -101,6 +101,12 @@ export const content = {
       github:
         "https://github.com/thannguyen9x-vn-dev/supportops-monorepo",
     },
+    screenshots: [
+      { src: "/screenshots/dashboard.png", alt: "Dashboard overview" },
+      { src: "/screenshots/request-list.png", alt: "Service requests list with filters and SLA status" },
+      { src: "/screenshots/request-detail.png", alt: "Request detail with SLA tracking and activity timeline" },
+      { src: "/screenshots/admin-panel.png", alt: "Admin panel — tenant and member management" },
+    ],
   },
 
   demonstrates: {
