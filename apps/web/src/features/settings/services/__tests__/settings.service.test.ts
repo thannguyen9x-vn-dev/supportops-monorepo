@@ -31,11 +31,11 @@ describe("settingsService", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGet.mockResolvedValue({ data: { id: "user-1", language: "en" } });
-    mockPut.mockResolvedValue({ data: { id: "user-1", firstName: "Ops", language: "vi" } });
+    mockGet.mockResolvedValue({ data: { id: "user-1", assignmentAlerts: true } });
+    mockPut.mockResolvedValue({ data: { id: "user-1", firstName: "Ops", assignmentAlerts: false } });
     mockUpload.mockResolvedValue({ data: { url: "https://cdn.example.com/avatar.png" } });
     mockDelete.mockResolvedValue({ data: null });
-    mockGraphqlQuery.mockResolvedValue({ meSettings: { language: "vi" } });
+    mockGraphqlQuery.mockResolvedValue({ meSettings: { assignmentAlerts: false } });
   });
 
   it("gets and updates profile", async () => {
@@ -62,14 +62,14 @@ describe("settingsService", () => {
 
   it("handles preferences and graphql preferences", async () => {
     const preferences = await settingsService.getPreferences();
-    const updated = await settingsService.updatePreferences({ language: "vi" });
+    const updated = await settingsService.updatePreferences({ assignmentAlerts: false });
     const gql = await settingsService.getPreferencesGraphql();
 
     expect(mockGet).toHaveBeenCalledWith("/users/me/preferences");
-    expect(mockPut).toHaveBeenCalledWith("/users/me/preferences", { language: "vi" });
-    expect(preferences.data.language).toBe("en");
-    expect(updated.data.language).toBe("vi");
-    expect(gql.data.language).toBe("vi");
+    expect(mockPut).toHaveBeenCalledWith("/users/me/preferences", { assignmentAlerts: false });
+    expect(preferences.data.assignmentAlerts).toBe(true);
+    expect(updated.data.assignmentAlerts).toBe(false);
+    expect(gql.data.assignmentAlerts).toBe(false);
   });
 
   it("lists and revokes sessions", async () => {
