@@ -46,7 +46,7 @@ import {
   RequestStatusChangedEvent,
   RequestWorkLogAddedEvent,
 } from './events/request.events';
-import type { RequestTabKey } from './dto/request-query.dto';
+import type { RequestTabKey, SortableRequestField } from './dto/request-query.dto';
 
 type RequestWithServiceType = Prisma.ServiceRequestGetPayload<{
   include: {
@@ -140,7 +140,7 @@ export class RequestService {
             },
           },
         },
-        orderBy: { updatedAt: 'desc' },
+        orderBy: this.buildOrderBy(query.sortBy, query.sortOrder),
         skip,
         take: size,
       }),
@@ -1183,6 +1183,23 @@ export class RequestService {
           }
         : {}),
     };
+  }
+
+  private buildOrderBy(
+    sortBy: SortableRequestField | undefined,
+    sortOrder: 'asc' | 'desc' | undefined,
+  ): Prisma.ServiceRequestOrderByWithRelationInput {
+    const dir = sortOrder ?? 'desc';
+    switch (sortBy) {
+      case 'serviceType':
+        return { serviceType: { name: dir } };
+      case 'assignee':
+        return { assignee: { fullName: dir } };
+      case 'location':
+        return { locationId: dir };
+      default:
+        return { [sortBy ?? 'updatedAt']: dir };
+    }
   }
 
   private buildTabWhere(tab?: RequestTabKey): Prisma.ServiceRequestWhereInput {

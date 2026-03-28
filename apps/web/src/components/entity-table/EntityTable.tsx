@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useMemo, type ReactNode } from "react";
+import { useEffect, useRef, useMemo, useCallback, type ReactNode } from "react";
 import { flexRender } from "@tanstack/react-table";
 import type { CellContext, ColumnDef, HeaderContext } from "@tanstack/react-table";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -220,6 +220,20 @@ export function EntityTable<TData extends object, TFilters extends object>({
 
   // ── TanStack table instance ───────────────────────────────────────────────
 
+  // Extract onTableStateChange so useCallback dep tracks the function value,
+  // not the _tableConfig object reference (which is always new).
+  const onTableStateChange = _tableConfig.onTableStateChange;
+  const onStateChange = useCallback(
+    (state: { pagination: { pageIndex: number; pageSize: number }; sorting: typeof sorting }) => {
+      onTableStateChange?.({
+        pageIndex: state.pagination.pageIndex,
+        pageSize: state.pagination.pageSize,
+        sorting: state.sorting,
+      });
+    },
+    [onTableStateChange],
+  );
+
   const { table } = useDataTable<TData>({
     data: _tableConfig.data,
     columns: tanstackColumns,
@@ -228,12 +242,7 @@ export function EntityTable<TData extends object, TFilters extends object>({
     pageSize: _tableConfig.pageSize,
     serverSide: _tableConfig.serverSide,
     totalRows: _tableConfig.totalRows,
-    onStateChange: (state) => {
-      _tableConfig.onTableStateChange?.({
-        pageIndex: state.pagination.pageIndex,
-        pageSize: state.pagination.pageSize,
-      });
-    },
+    onStateChange,
     enableSelection: true,
     pinnedColumns: _tableConfig.pinnedColumns,
     defaultColumn: _tableConfig.defaultColumn,

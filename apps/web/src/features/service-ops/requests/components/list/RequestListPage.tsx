@@ -6,7 +6,8 @@ import { FormDialog } from "@supportops/ui-dialog";
 import { useDialog } from "@supportops/ui";
 import type { RequestAssignee } from "@supportops/types";
 import { useParams, useRouter } from "next/navigation";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
+import type { SortingState } from "@tanstack/react-table";
 import { useTranslations } from "next-intl";
 
 import { EntityTable, useEntityTable } from "@/components/entity-table";
@@ -39,6 +40,7 @@ export function RequestListPage() {
   const { setActiveTabForQuery, setPageIndex } = filters;
   const [assigneesById, setAssigneesById] = useState<Record<string, RequestAssignee>>({});
   const [isAssigneesReady, setIsAssigneesReady] = useState(false);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -65,6 +67,7 @@ export function RequestListPage() {
     debouncedSearch: filters.debouncedSearch,
     pageIndex: filters.pageIndex,
     pageSize: filters.pageSize,
+    sorting,
     t,
     enabled: isAssigneesReady,
   });
@@ -77,6 +80,24 @@ export function RequestListPage() {
 
   const columns = useRequestTableColumns(locale);
 
+  const handleTableStateChange = useCallback((state: { pageIndex: number; pageSize: number; sorting: SortingState }) => {
+    filters.setPageIndex(state.pageIndex);
+    filters.setPageSize(state.pageSize);
+    // Use functional update to keep the same reference when sorting hasn't changed,
+    // preventing spurious re-renders that cascade through entityTable → entityTableWithFilters.
+    setSorting((prev) => {
+      if (
+        prev.length === state.sorting.length &&
+        prev.every((s, i) => s.id === state.sorting[i]?.id && s.desc === state.sorting[i]?.desc)
+      ) {
+        return prev;
+      }
+      return state.sorting;
+    });
+  // filters.setPageIndex and filters.setPageSize are useState setters — always stable
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const entityTable = useEntityTable({
     data: query.rows,
     columns,
@@ -85,10 +106,7 @@ export function RequestListPage() {
     pageSize: filters.pageSize,
     totalRows: query.totalRows,
     serverSide: true,
-    onTableStateChange: (state) => {
-      filters.setPageIndex(state.pageIndex);
-      filters.setPageSize(state.pageSize);
-    },
+    onTableStateChange: handleTableStateChange,
     initialFilters: INITIAL_FILTERS,
     rowDensity: "comfortable",
     pinnedColumns: { left: ["requestCode"], right: ["actions"] },
@@ -98,27 +116,42 @@ export function RequestListPage() {
     columnSizingStorageKey: "table-columns-sizing-requests",
   });
 
-  const entityTableWithFilters = {
+  const setDraftFilter = useCallback((key: keyof typeof filters.draftFilters, value: string | boolean) => {
+    filters.setDraftFilters((prev) => ({ ...prev, [key]: value }));
+  // filters.setDraftFilters is a useState setter — always stable
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const applyFilters = useCallback(() => {
+    filters.setPageIndex(0);
+    filters.setAppliedFilters((prev) => ({ ...filters.draftFilters, search: prev.search }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.draftFilters]);
+
+  const cancelDraftFilters = useCallback(() => {
+    filters.setDraftFilters((prev) => ({ ...filters.appliedFilters, search: prev.search }));
+    filters.setIsFilterPanelOpen(() => false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.appliedFilters]);
+
+  const clearFilters = useCallback(() => {
+    filters.setPageIndex(0);
+    filters.setDraftFilters(INITIAL_FILTERS);
+    filters.setAppliedFilters(INITIAL_FILTERS);
+  // filters.set* are useState setters — always stable
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const entityTableWithFilters = useMemo(() => ({
     ...entityTable,
     draftFilters: filters.draftFilters,
     appliedFilters: filters.appliedFilters,
-    setDraftFilter: (key: keyof typeof filters.draftFilters, value: string | boolean) =>
-      filters.setDraftFilters((prev) => ({ ...prev, [key]: value })),
-    applyFilters: () => {
-      filters.setPageIndex(0);
-      filters.setAppliedFilters((prev) => ({ ...filters.draftFilters, search: prev.search }));
-    },
-    cancelDraftFilters: () => {
-      filters.setDraftFilters((prev) => ({ ...filters.appliedFilters, search: prev.search }));
-      filters.setIsFilterPanelOpen(() => false);
-    },
-    clearFilters: () => {
-      filters.setPageIndex(0);
-      filters.setDraftFilters(INITIAL_FILTERS);
-      filters.setAppliedFilters(INITIAL_FILTERS);
-    },
+    setDraftFilter,
+    applyFilters,
+    cancelDraftFilters,
+    clearFilters,
     hasActiveFilters: filters.hasActiveFilters,
-  };
+  }), [entityTable, filters.draftFilters, filters.appliedFilters, setDraftFilter, applyFilters, cancelDraftFilters, clearFilters, filters.hasActiveFilters]);
 
   const serviceTypeOptions = Array.from(new Map(query.rows.map((row) => [row.serviceTypeCode, row.serviceType])).entries()).filter(([value]) => Boolean(value)).map(([value, label]) => ({ value, label }));
   const assigneeOptions = Array.from(new Set(query.rows.map((row) => row.assignee))).filter(Boolean).map((value) => ({ value, label: value }));

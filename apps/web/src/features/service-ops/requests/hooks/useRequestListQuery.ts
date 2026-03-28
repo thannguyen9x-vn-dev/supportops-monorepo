@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import type { SortingState } from "@tanstack/react-table";
 import type { RequestAssignee, ServiceRequest } from "@supportops/types";
 
 import { ApiError } from "@/lib/api";
@@ -15,6 +16,7 @@ type UseRequestListQueryProps = {
   enabled: boolean;
   pageIndex: number;
   pageSize: number;
+  sorting: SortingState;
   t: (key: string) => string;
 };
 
@@ -26,6 +28,7 @@ export function useRequestListQuery({
   enabled,
   pageIndex,
   pageSize,
+  sorting,
   t,
 }: UseRequestListQueryProps) {
   const [rows, setRows] = useState<ReturnType<typeof mapServiceRequestToRow>[]>([]);
@@ -44,6 +47,9 @@ export function useRequestListQuery({
         (assignee) => assignee.fullName?.trim() === appliedFilters.assignee,
       );
 
+      const sortField = sorting[0]?.id;
+      const sortOrder = sorting[0] ? (sorting[0].desc ? "desc" : "asc") : undefined;
+
       const { data, meta } = await requestService.list({
         page: pageIndex + 1,
         size: pageSize,
@@ -55,6 +61,8 @@ export function useRequestListQuery({
         slaHealth: mapUiSlaHealthToApi(appliedFilters.slaHealth),
         updatedToday: appliedFilters.updatedToday || undefined,
         tab: activeTabForQuery,
+        sortBy: sortField,
+        sortOrder,
       });
 
       setTotalRows(meta?.total ?? data.length);
@@ -68,7 +76,7 @@ export function useRequestListQuery({
     } finally {
       setIsLoadingRows(false);
     }
-  }, [activeTabForQuery, appliedFilters, assigneesById, debouncedSearch, enabled, pageIndex, pageSize, t]);
+  }, [activeTabForQuery, appliedFilters, assigneesById, debouncedSearch, enabled, pageIndex, pageSize, sorting, t]);
 
   const loadTabCounts = useCallback(async () => {
     if (!enabled) return;

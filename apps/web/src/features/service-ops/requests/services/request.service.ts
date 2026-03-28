@@ -36,6 +36,8 @@ export const requestService = {
     slaHealth?: "ON_TRACK" | "AT_RISK" | "BREACHED";
     updatedToday?: boolean;
     tab?: RequestListTabKey;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
   }) =>
     apiClient.get<ServiceRequest[]>(ENDPOINTS.REQUESTS.LIST, {
       params: {
@@ -49,6 +51,8 @@ export const requestService = {
         slaHealth: params?.slaHealth,
         updatedToday: params?.updatedToday,
         tab: params?.tab,
+        sortBy: params?.sortBy,
+        sortOrder: params?.sortOrder,
       },
     }),
 

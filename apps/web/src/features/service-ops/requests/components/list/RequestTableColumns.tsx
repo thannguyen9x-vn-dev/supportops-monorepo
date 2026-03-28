@@ -85,8 +85,8 @@ export function useRequestTableColumns(locale: string) {
     },
     { accessorKey: "location", header: t("columns.location"), cell: ({ row }) => row.original.location, sortable: true, hideable: true },
     { accessorKey: "updatedAt", header: t("columns.updatedAt"), sortable: true, hideable: true },
-    { accessorKey: "slaHealth", header: t("columns.slaHealth"), cell: ({ row }) => <SlaBadge value={row.original.slaHealth} />, sortable: true, hideable: true },
-    { accessorKey: "slaDue", header: t("columns.slaDue"), cell: ({ row }) => <Box sx={{ color: row.original.slaHealth === "Overdue" ? "error.main" : "inherit" }}>{row.original.slaDue}</Box>, sortable: true, hideable: true },
+    { accessorKey: "slaHealth", header: t("columns.slaHealth"), cell: ({ row }) => <SlaBadge value={row.original.slaHealth} />, sortable: false, hideable: true },
+    { accessorKey: "slaDue", header: t("columns.slaDue"), cell: ({ row }) => <Box sx={{ color: row.original.slaHealth === "Overdue" ? "error.main" : "inherit" }}>{row.original.slaDue}</Box>, sortable: false, hideable: true },
     {
       id: "actions",
       header: t("columns.actions"),

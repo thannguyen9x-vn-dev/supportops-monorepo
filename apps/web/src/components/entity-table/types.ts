@@ -161,7 +161,7 @@ export type EntityTableConfig<TData extends object, TFilters extends object> = {
   pageSize?: number;
   totalRows?: number;
   serverSide?: boolean;
-  onTableStateChange?: (state: { pageIndex: number; pageSize: number }) => void;
+  onTableStateChange?: (state: { pageIndex: number; pageSize: number; sorting: SortingState }) => void;
 
   // ── Row form ─────────────────────────────────────────────────────────────
   /**
