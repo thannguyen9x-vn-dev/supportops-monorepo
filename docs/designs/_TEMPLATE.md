@@ -135,7 +135,25 @@ features/[name]/
 
 ---
 
-## 7. Risks & Constraints
+## 7. Testing Plan
+
+### 7.1 Backend — Service Tests
+
+| Test case | Expected |
+|---|---|
+| Happy path: [mô tả] | return [result] |
+| Error: [entity] not found | throw NotFoundException |
+| Error: permission denied | throw ForbiddenException |
+
+### 7.2 Frontend — Component Tests
+
+| Component | Test cases |
+|---|---|
+| [ComponentName] | render đúng / interaction [action] → [result] / loading state / error state |
+
+---
+
+## 8. Risks & Constraints
 
 | Risk | Mức độ | Mitigation |
 |---|---|---|
@@ -143,9 +161,10 @@ features/[name]/
 
 ---
 
-## 8. Forbidden Actions
+## 9. Forbidden Actions
 
 - [ ] KHÔNG tạo migration mới nếu không cần thiết
 - [ ] KHÔNG sửa legacy modules (`Product`, `Kanban`, `Billing`, v.v.)
 - [ ] KHÔNG thêm npm dependency mới mà không confirm với PO
 - [ ] KHÔNG bỏ `tenantId` filter trên bất kỳ query nào
+- [ ] KHÔNG thiếu @Permissions() trên bất kỳ endpoint mới nào

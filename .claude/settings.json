@@ -12,7 +12,12 @@
       "Bash(mkdir -p /Users/thannguyennham/projects/supportops/supportops-monorepo/apps/portfolio/public)",
       "Bash(touch /Users/thannguyennham/projects/supportops/supportops-monorepo/apps/portfolio/public/.gitkeep)",
       "Bash(pnpm --filter @supportops/web add @tanstack/react-query)",
-      "Bash(pnpm --filter @supportops/web typecheck)"
+      "Bash(pnpm --filter @supportops/web typecheck)",
+      "Read(//Users/thannguyennham/.claude/**)",
+      "WebSearch"
+    ],
+    "additionalDirectories": [
+      "/Users/thannguyennham/.claude"
     ]
   }
 }
