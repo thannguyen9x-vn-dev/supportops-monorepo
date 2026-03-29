@@ -21,6 +21,7 @@ interface MentionTextAreaProps {
   minRows?: number;
   maxRows?: number;
   onChange: (nextValue: string) => void;
+  onKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void;
 }
 
 function readMentionContext(value: string, cursorPosition: number): MentionContext | null {
@@ -49,6 +50,7 @@ export function MentionTextArea({
   minRows = 3,
   maxRows = 10,
   onChange,
+  onKeyDown,
 }: MentionTextAreaProps) {
   const t = useTranslations("pages.requests.detail");
   const [mentionContext, setMentionContext] = useState<MentionContext | null>(null);
@@ -93,17 +95,28 @@ export function MentionTextArea({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (!isMentionListOpen) return;
+    const dispatchExternal = () => {
+      if (!event.defaultPrevented) {
+        onKeyDown?.(event);
+      }
+    };
+
+    if (!isMentionListOpen) {
+      dispatchExternal();
+      return;
+    }
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
       setActiveIndex((current) => (current + 1) % filteredOptions.length);
+      dispatchExternal();
       return;
     }
 
     if (event.key === "ArrowUp") {
       event.preventDefault();
       setActiveIndex((current) => (current - 1 + filteredOptions.length) % filteredOptions.length);
+      dispatchExternal();
       return;
     }
 
@@ -111,13 +124,18 @@ export function MentionTextArea({
       event.preventDefault();
       const selectedOption = filteredOptions[activeIndex];
       if (selectedOption) applyMention(selectedOption);
+      dispatchExternal();
       return;
     }
 
     if (event.key === "Escape") {
       event.preventDefault();
       setMentionContext(null);
+      dispatchExternal();
+      return;
     }
+
+    dispatchExternal();
   };
 
   return (

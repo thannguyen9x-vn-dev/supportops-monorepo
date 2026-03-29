@@ -15,5 +15,14 @@ export * from "./service-ops/endpoints";
 
 export * from "./schemas/auth.schema";
 export * from "./schemas/user.schema";
+export * from "./enums/notification.enums";
+export * from "./types/notification.types";
+export * from "./schemas/notification.schema";
+export * from "./types/knowledge-base.types";
+export * from "./schemas/knowledge-base.schema";
+export * from "./types/canned-response.types";
+export * from "./schemas/canned-response.schema";
+export * from "./types/reporting.types";
+export * from "./types/watcher.types";
 
 export * from "./endpoints";

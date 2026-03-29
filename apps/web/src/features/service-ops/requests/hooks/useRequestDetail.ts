@@ -8,6 +8,7 @@ import type {
   RequestWorkflowActor,
   RequestWorkflowAttachment,
   ServiceRequest,
+  UpdateRequestStatusInput,
   UserRole,
 } from "@supportops/types";
 import { useParams, useRouter } from "next/navigation";
@@ -523,7 +524,7 @@ export function useRequestDetail(requestId: string) {
   const handleHeaderAction = useCallback((action: HeaderAction) => {
     if (!serviceRequest) return;
 
-    const statusMap: Partial<Record<HeaderAction, RequestStatus>> = {
+    const statusMap: Partial<Record<HeaderAction, UpdateRequestStatusInput["status"]>> = {
       SUBMIT: "SUBMITTED",
       START_PROGRESS: "IN_PROGRESS",
       RESOLVE: "RESOLVED",

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { CommentVisibility, Prisma, RequestActivityType, RequestStatus } from '@prisma/client';
+import { NotificationFanoutService } from '../../../notification/notification-fanout.service';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { REQUEST_EVENTS } from './request-events.constants';
 import {
@@ -8,6 +9,7 @@ import {
   RequestCommentAddedEvent,
   RequestCreatedEvent,
   RequestEscalatedEvent,
+  RequestMentionedEvent,
   RequestResolutionReopenedEvent,
   RequestResolutionSubmittedEvent,
   RequestStatusChangedEvent,
@@ -19,10 +21,14 @@ import {
 export class RequestActivityListener {
   private readonly logger = new Logger(RequestActivityListener.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationFanoutService: NotificationFanoutService,
+  ) {}
 
   @OnEvent(REQUEST_EVENTS.CREATED, { async: true })
   async onRequestCreated(event: RequestCreatedEvent): Promise<void> {
+    await this.notificationFanoutService.handleRequestCreated(event);
     await this.prisma.requestActivity.create({
       data: {
         tenantId: event.tenantId,
@@ -37,6 +43,7 @@ export class RequestActivityListener {
 
   @OnEvent(REQUEST_EVENTS.ASSIGNED, { async: true })
   async onRequestAssigned(event: RequestAssignedEvent): Promise<void> {
+    await this.notificationFanoutService.handleRequestAssigned(event);
     const isAssigned = event.assigneeId !== null;
     const type = event.previousAssigneeId ? RequestActivityType.REASSIGNED : RequestActivityType.ASSIGNED;
     const title = isAssigned
@@ -68,6 +75,7 @@ export class RequestActivityListener {
 
   @OnEvent(REQUEST_EVENTS.STATUS_CHANGED, { async: true })
   async onStatusChanged(event: RequestStatusChangedEvent): Promise<void> {
+    await this.notificationFanoutService.handleStatusChanged(event);
     await this.prisma.requestActivity.create({
       data: {
         tenantId: event.tenantId,
@@ -87,6 +95,7 @@ export class RequestActivityListener {
 
   @OnEvent(REQUEST_EVENTS.COMMENT_ADDED, { async: true })
   async onCommentAdded(event: RequestCommentAddedEvent): Promise<void> {
+    await this.notificationFanoutService.handleCommented(event);
     await this.prisma.requestActivity.create({
       data: {
         tenantId: event.tenantId,
@@ -122,6 +131,11 @@ export class RequestActivityListener {
         }),
       },
     });
+  }
+
+  @OnEvent(REQUEST_EVENTS.MENTIONED, { async: true })
+  async onMentioned(event: RequestMentionedEvent): Promise<void> {
+    await this.notificationFanoutService.handleMentioned(event);
   }
 
   @OnEvent(REQUEST_EVENTS.RESOLUTION_SUBMITTED, { async: true })
@@ -162,6 +176,7 @@ export class RequestActivityListener {
 
   @OnEvent(REQUEST_EVENTS.SLA_BREACHED, { async: true })
   async onSlaBreached(event: SlaBreachedEvent): Promise<void> {
+    await this.notificationFanoutService.handleSlaBreached(event);
     await this.prisma.requestActivity.create({
       data: {
         tenantId: event.tenantId,

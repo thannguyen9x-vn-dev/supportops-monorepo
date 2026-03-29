@@ -10,6 +10,7 @@ export type RequestStatus =
   | "TRIAGE"
   | "ASSIGNED"
   | "IN_PROGRESS"
+  | "WAITING_FOR_CUSTOMER"
   | "RESOLVED"
   | "CLOSED"
   | "WAITING_EXTERNAL_VENDOR"
@@ -18,7 +19,7 @@ export type RequestStatus =
 
 export type RequestPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT" | "CRITICAL";
 export type CommentVisibility = "PUBLIC" | "INTERNAL";
-export type SlaState = "ON_TRACK" | "AT_RISK" | "BREACHED";
+export type SlaState = "ON_TRACK" | "AT_RISK" | "BREACHED" | "NEAR_BREACH" | "PAUSED";
 
 export type HeaderAction =
   | "EDIT_DRAFT"
@@ -105,12 +106,14 @@ export interface RequestDetail {
       targetAt?: string;
       targetMinutes: number;
       remainingSeconds: number;
+      totalPausedSeconds?: number;
       state: SlaState;
     };
     resolutionSla?: {
       targetAt?: string;
       targetMinutes: number;
       remainingSeconds: number;
+      totalPausedSeconds?: number;
       state: SlaState;
     };
     escalationRules: string[];
@@ -199,6 +202,7 @@ export const REQUEST_STATUSES: RequestStatus[] = [
   "TRIAGE",
   "ASSIGNED",
   "IN_PROGRESS",
+  "WAITING_FOR_CUSTOMER",
   "WAITING_EXTERNAL_VENDOR",
   "RESOLVED",
   "CLOSED",
@@ -230,5 +234,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 export const SLA_STATE_LABELS: Record<SlaState, string> = {
   ON_TRACK: "On track",
   AT_RISK: "At risk",
+  NEAR_BREACH: "Near breach",
+  PAUSED: "Paused",
   BREACHED: "Breached",
 };

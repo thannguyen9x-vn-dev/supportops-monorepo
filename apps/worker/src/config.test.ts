@@ -1,38 +1,46 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import { loadConfig } from './config';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-describe('loadConfig', () => {
+describe('worker config', () => {
   const envBackup = { ...process.env };
 
-  afterEach(() => {
+  afterEach(async () => {
     process.env = { ...envBackup };
+    vi.resetModules();
   });
 
-  it('uses defaults when env vars are missing', () => {
-    delete process.env.REDIS_URL;
-    delete process.env.WORKER_QUEUE_NAME;
-    delete process.env.WORKER_SLA_CHECK_EVERY_MS;
-    delete process.env.WORKER_ESCALATION_CHECK_EVERY_MS;
+  it('exports queue names and default redis config', async () => {
+    delete process.env.REDIS_HOST;
+    delete process.env.REDIS_PORT;
+    delete process.env.REDIS_PASSWORD;
 
-    expect(loadConfig()).toEqual({
-      redisUrl: 'redis://localhost:6379',
-      queueName: 'supportops-sla-monitor',
-      slaCheckEveryMs: 300000,
-      escalationCheckEveryMs: 900000,
+    vi.resetModules();
+    const { QUEUE_NAMES, redisConfig } = await import('./config');
+
+    expect(QUEUE_NAMES).toEqual({
+      NOTIFICATION_FANOUT: 'notification-fanout',
+      EMAIL_IMMEDIATE: 'email-immediate',
+      EMAIL_DIGEST: 'email-digest',
+      SLA_MONITOR: 'sla-monitor',
+    });
+    expect(redisConfig).toEqual({
+      host: 'localhost',
+      port: 6379,
+      password: undefined,
     });
   });
 
-  it('reads env vars and keeps only positive numeric intervals', () => {
-    process.env.REDIS_URL = 'redis://example:6379';
-    process.env.WORKER_QUEUE_NAME = 'custom-queue';
-    process.env.WORKER_SLA_CHECK_EVERY_MS = '60000';
-    process.env.WORKER_ESCALATION_CHECK_EVERY_MS = '-1';
+  it('reads redis env values and validates invalid REDIS_PORT', async () => {
+    process.env.REDIS_HOST = 'redis.internal';
+    process.env.REDIS_PORT = 'invalid';
+    process.env.REDIS_PASSWORD = 'secret';
 
-    expect(loadConfig()).toEqual({
-      redisUrl: 'redis://example:6379',
-      queueName: 'custom-queue',
-      slaCheckEveryMs: 60000,
-      escalationCheckEveryMs: 900000,
+    vi.resetModules();
+    const { redisConfig } = await import('./config');
+
+    expect(redisConfig).toEqual({
+      host: 'redis.internal',
+      port: 6379,
+      password: 'secret',
     });
   });
 });

@@ -1,108 +1,92 @@
 "use client";
 
-import { useFormatter, useTranslations } from "next-intl";
+import { Alert, Button, Grid, Skeleton, Stack, Typography } from "@mui/material";
+import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
 
-import { Alert, Button, Chip, CircularProgress } from "@mui/material";
+import type { ReportOverviewQuery } from "@supportops/types";
 
-import { useReportData, type ReportPeriod } from "@/features/reports/hooks/useReportData";
+import { useReportData } from "../hooks/useReportData";
+import { ReportFilters } from "./ReportFilters";
+import { ReportServiceTypeChart } from "./ReportServiceTypeChart";
+import { ReportSummaryCards } from "./ReportSummaryCards";
+import { ReportTrendChart } from "./ReportTrendChart";
+import { ReportVolumeChart } from "./ReportVolumeChart";
 
-import styles from "./report-view.module.css";
+function defaultRange(): ReportOverviewQuery {
+  const to = new Date();
+  const from = new Date();
+  from.setDate(to.getDate() - 30);
 
-type ReportViewProps = {
-  period: ReportPeriod;
-  titleKey: "title" | "overviewTitle" | "performanceTitle";
-};
+  const toIso = to.toISOString().slice(0, 10);
+  const fromIso = from.toISOString().slice(0, 10);
 
-function getStatusColor(status: "COMPLETED" | "IN_PROGRESS" | "CANCELLED") {
-  if (status === "COMPLETED") {
-    return "success";
-  }
-
-  if (status === "IN_PROGRESS") {
-    return "warning";
-  }
-
-  return "default";
+  return {
+    from: fromIso,
+    to: toIso,
+  };
 }
 
-export function ReportView({ period, titleKey }: ReportViewProps) {
-  const t = useTranslations("pages.reportsPage");
-  const format = useFormatter();
-  const { data, loadState, reload } = useReportData(period);
+function validateRange(filters: ReportOverviewQuery) {
+  const from = new Date(filters.from).getTime();
+  const to = new Date(filters.to).getTime();
 
-  if (loadState === "loading") {
-    return (
-      <div className={styles.centeredState}>
-        <CircularProgress size={28} />
-        <p>{t("state.loading")}</p>
-      </div>
-    );
-  }
+  const diffDays = (to - from) / (1000 * 60 * 60 * 24);
+  return diffDays >= 0 && diffDays <= 90;
+}
 
-  if (loadState === "error") {
-    return (
-      <div className={styles.centeredState}>
-        <Alert severity="error">{t("state.error")}</Alert>
-        <Button onClick={() => void reload()} variant="contained">
-          {t("action.retry")}
-        </Button>
-      </div>
-    );
-  }
+export function ReportView() {
+  const t = useTranslations("reports");
+  const [draftFilters, setDraftFilters] = useState<ReportOverviewQuery>(defaultRange());
+  const [appliedFilters, setAppliedFilters] = useState<ReportOverviewQuery>(defaultRange());
 
-  const points = data.salesSummary?.dataPoints ?? [];
-  const totalTemplates = points.reduce((acc, item) => acc + item.templates, 0);
-  const totalInvoicing = points.reduce((acc, item) => acc + item.invoicing, 0);
+  const isValidRange = useMemo(() => validateRange(draftFilters), [draftFilters]);
+  const report = useReportData(appliedFilters);
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>{t(titleKey)}</h1>
-        <Button onClick={() => void reload()} size="small" variant="outlined">
-          {t("action.refresh")}
-        </Button>
-      </div>
+    <Stack spacing={2}>
+      <Stack alignItems="center" direction={{ xs: "column", md: "row" }} justifyContent="space-between" spacing={1}>
+        <Typography variant="h4">{t("title")}</Typography>
+        <ReportFilters onApply={() => setAppliedFilters(draftFilters)} onChange={setDraftFilters} value={draftFilters} />
+      </Stack>
 
-      <section className={styles.card}>
-        <div className={styles.statRow}>
-          <div className={styles.statItem}>
-            <p className={styles.label}>{t("summary.points")}</p>
-            <p className={styles.value}>{format.number(points.length)}</p>
-          </div>
-          <div className={styles.statItem}>
-            <p className={styles.label}>{t("summary.templates")}</p>
-            <p className={styles.value}>{format.number(totalTemplates)}</p>
-          </div>
-          <div className={styles.statItem}>
-            <p className={styles.label}>{t("summary.invoicing")}</p>
-            <p className={styles.value}>{format.number(totalInvoicing)}</p>
-          </div>
-        </div>
-      </section>
+      {isValidRange ? null : <Alert severity="warning">{t("filters.maxRangeHint")}</Alert>}
 
-      <section className={styles.card}>
-        <h2 className={styles.title}>{t("activity.title")}</h2>
-        <div className={styles.rowList}>
-          {data.transactions.map((transaction) => (
-            <div className={styles.row} key={transaction.id}>
-              <div>
-                <p className={styles.value}>{transaction.description}</p>
-                <p className={styles.label}>
-                  {format.dateTime(new Date(transaction.dateTime), { dateStyle: "medium" })}
-                </p>
-              </div>
-              <div>
-                <p className={styles.value}>{format.number(transaction.amount)}</p>
-                <Chip
-                  color={getStatusColor(transaction.status)}
-                  label={t(`activity.status.${transaction.status}`)}
-                  size="small"
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-    </div>
+      {report.isLoading ? (
+        <Stack data-testid="report-loading-skeleton" spacing={1.5}>
+          <Skeleton height={120} variant="rounded" />
+          <Skeleton height={300} variant="rounded" />
+          <Skeleton height={300} variant="rounded" />
+        </Stack>
+      ) : null}
+
+      {report.isError ? (
+        <Stack spacing={1}>
+          <Alert severity="error">{t("error")}</Alert>
+          <Button onClick={() => report.refetch()} variant="outlined">Retry</Button>
+        </Stack>
+      ) : null}
+
+      {report.data ? (
+        <Stack spacing={2}>
+          <ReportSummaryCards summary={report.data.summary} />
+          <Grid container spacing={1.5}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <ReportVolumeChart byStatus={report.data.byStatus} />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <ReportTrendChart points={report.data.volumeTrend} />
+            </Grid>
+            <Grid size={{ xs: 12 }}>
+              <ReportServiceTypeChart byServiceType={report.data.byServiceType} />
+            </Grid>
+          </Grid>
+        </Stack>
+      ) : null}
+
+      {report.data?.summary && report.data.summary.totalRequests === 0 ? (
+        <Alert severity="info">{t("empty")}</Alert>
+      ) : null}
+    </Stack>
   );
 }

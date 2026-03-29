@@ -19,11 +19,32 @@ enum RequestStatus {
   TRIAGE
   ASSIGNED
   IN_PROGRESS
+  WAITING_FOR_CUSTOMER
   RESOLVED
   CLOSED
   WAITING_EXTERNAL_VENDOR
   REOPENED
   CANCELLED
+}
+
+enum NotificationEventType {
+  REQUEST_CREATED
+  REQUEST_ASSIGNED
+  REQUEST_STATUS_CHANGED
+  REQUEST_COMMENTED
+  REQUEST_MENTIONED
+  SLA_NEAR_BREACH_RESPONSE
+  SLA_NEAR_BREACH_RESOLUTION
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+}
+
+enum KnowledgeBaseStatus {
+  DRAFT
+  PUBLISHED
 }
 
 enum RequestPriority {
@@ -109,12 +130,12 @@ enum AssetStatus {
 }
 
 model Tenant {
-  id                         String              @id @default(uuid())
+  id                         String                   @id @default(uuid())
   name                       String
-  slug                       String              @unique
-  status                     TenantStatus        @default(ACTIVE)
-  createdAt                  DateTime            @default(now())
-  updatedAt                  DateTime            @updatedAt
+  slug                       String                   @unique
+  status                     TenantStatus             @default(ACTIVE)
+  createdAt                  DateTime                 @default(now())
+  updatedAt                  DateTime                 @updatedAt
   users                      User[]
   memberships                Membership[]
   invites                    Invite[]
@@ -136,6 +157,11 @@ model Tenant {
   requestSequences           RequestSequence[]
   assetTypes                 AssetType[]
   assets                     Asset[]
+  notifications              Notification[]
+  notificationPreferences    NotificationPreference[]
+  watchers                   RequestWatcher[]
+  knowledgeArticles          KnowledgeArticle[]
+  cannedResponses            CannedResponse[]
 
   @@index([status])
 }
@@ -187,6 +213,10 @@ model User {
   assignmentHistoryTo        AssignmentHistory[]      @relation("AssignmentTo")
   assignmentHistoryChangedBy AssignmentHistory[]      @relation("AssignmentChangedBy")
   auditLogs                  AuditLog[]               @relation("AuditLogActor")
+  notifications              Notification[]
+  notificationPreferences    NotificationPreference[]
+  watchedRequests            RequestWatcher[]
+  knowledgeArticles          KnowledgeArticle[]
 
   @@unique([tenantId, email], name: "tenantId_email")
   @@index([email])
@@ -291,21 +321,21 @@ model Invite {
 }
 
 model UserPreference {
-  id               String   @id @default(uuid())
-  userId           String   @unique
-  tenantId         String
-  assignmentAlerts      Boolean  @default(true)
-  statusUpdateAlerts  Boolean  @default(true)
-  slaRiskAlerts   Boolean  @default(false)
-  escalationAlerts      Boolean  @default(true)
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  tenantId             String
+  assignmentAlerts     Boolean  @default(true)
+  statusUpdateAlerts   Boolean  @default(true)
+  slaRiskAlerts        Boolean  @default(false)
+  escalationAlerts     Boolean  @default(true)
   resolutionReminders  Boolean  @default(true)
   requestUpdateDigest  Boolean  @default(true)
   commentNotifications Boolean  @default(true)
   mentionNotifications Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
 }
@@ -394,16 +424,17 @@ model ServiceType {
 }
 
 model SlaPolicy {
-  id                     String   @id @default(uuid())
-  tenantId               String
-  serviceTypeCode        String
-  responseMinutes        Int
-  resolutionMinutes      Int
-  escalationAfterMinutes Int
-  isActive               Boolean  @default(true)
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
-  tenant                 Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id                         String   @id @default(uuid())
+  tenantId                   String
+  serviceTypeCode            String
+  responseMinutes            Int
+  resolutionMinutes          Int
+  escalationAfterMinutes     Int
+  nearBreachThresholdMinutes Int      @default(30)
+  isActive                   Boolean  @default(true)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+  tenant                     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, serviceTypeCode])
   @@index([tenantId, isActive])
@@ -430,10 +461,10 @@ model RequestQueue {
   id          String
   name        String
   description String?
-  isActive    Boolean        @default(true)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   requests    ServiceRequest[]
 
   @@id([tenantId, id])
@@ -478,6 +509,7 @@ model ServiceRequest {
   slaRecords        SlaRecord[]
   assignmentHistory AssignmentHistory[]
   auditLogs         AuditLog[]
+  watchers          RequestWatcher[]
 
   @@unique([tenantId, requestCode])
   @@index([tenantId, status])
@@ -554,23 +586,113 @@ model WorkLog {
 }
 
 model SlaRecord {
-  id               String         @id @default(uuid())
-  tenantId         String
-  requestId        String
-  type             SlaType
-  health           SlaHealth      @default(ON_TRACK)
-  targetAt         DateTime
-  breachedAt       DateTime?
-  pausedAt         DateTime?
-  resumedAt        DateTime?
-  lastCalculatedAt DateTime?
-  isBreached       Boolean        @default(false)
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  tenant           Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  request          ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  id                   String         @id @default(uuid())
+  tenantId             String
+  requestId            String
+  type                 SlaType
+  health               SlaHealth      @default(ON_TRACK)
+  targetAt             DateTime
+  breachedAt           DateTime?
+  pausedAt             DateTime?
+  resumedAt            DateTime?
+  totalPausedSeconds   Int            @default(0)
+  nearBreachNotifiedAt DateTime?
+  lastCalculatedAt     DateTime?
+  isBreached           Boolean        @default(false)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  tenant               Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  request              ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, requestId, type])
+}
+
+model Notification {
+  id        String                @id @default(uuid())
+  tenantId  String
+  userId    String
+  type      NotificationEventType
+  title     String
+  body      String
+  requestId String?
+  actorId   String?
+  metadata  Json?
+  isRead    Boolean               @default(false)
+  readAt    DateTime?
+  createdAt DateTime              @default(now())
+  tenant    Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId, isRead, createdAt])
+  @@index([tenantId, requestId])
+}
+
+model NotificationPreference {
+  id        String                @id @default(uuid())
+  tenantId  String
+  userId    String
+  eventType NotificationEventType
+  inApp     Boolean               @default(true)
+  email     Boolean               @default(true)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  tenant    Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventType])
+  @@index([tenantId, userId])
+}
+
+model RequestWatcher {
+  id        String         @id @default(uuid())
+  tenantId  String
+  requestId String
+  userId    String
+  autoWatch Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  request   ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, userId])
+  @@index([tenantId, requestId])
+  @@index([tenantId, userId])
+}
+
+model KnowledgeArticle {
+  id        String              @id @default(uuid())
+  tenantId  String
+  title     String
+  body      String
+  category  String?
+  tags      String[]
+  status    KnowledgeBaseStatus @default(DRAFT)
+  authorId  String
+  isDeleted Boolean             @default(false)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  tenant    Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  author    User                @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, status, isDeleted])
+  @@index([tenantId, category])
+}
+
+model CannedResponse {
+  id        String   @id @default(uuid())
+  tenantId  String
+  title     String
+  body      String
+  category  String?
+  tags      String[]
+  shortcut  String?
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, shortcut])
+  @@index([tenantId, isDeleted])
 }
 
 model AssignmentHistory {
@@ -636,23 +758,23 @@ model AssetType {
 }
 
 model Asset {
-  id                 String      @id @default(uuid())
+  id                 String           @id @default(uuid())
   tenantId           String
   assetCode          String
   name               String
   assetTypeId        String
   locationId         String
-  status             AssetStatus @default(ACTIVE)
+  status             AssetStatus      @default(ACTIVE)
   serialNumber       String?
   model              String?
   assignedDepartment String?
   responsibleTeam    String?
   installedAt        DateTime?
   description        String?
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
-  tenant             Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  assetType          AssetType   @relation(fields: [assetTypeId], references: [id], onDelete: Restrict)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  tenant             Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assetType          AssetType        @relation(fields: [assetTypeId], references: [id], onDelete: Restrict)
   requests           ServiceRequest[]
 
   @@unique([tenantId, assetCode])

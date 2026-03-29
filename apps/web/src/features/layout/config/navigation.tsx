@@ -6,6 +6,9 @@ import AltRouteOutlinedIcon from "@mui/icons-material/AltRouteOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import HandymanOutlinedIcon from "@mui/icons-material/HandymanOutlined";
+import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
+import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
+import ShortTextOutlinedIcon from "@mui/icons-material/ShortTextOutlined";
 
 import type { NavGroup } from "../types";
 
@@ -32,6 +35,12 @@ export const navigationConfig: NavGroup[] = [
         allowedRoles: ["EMPLOYEE", "OPS_COORDINATOR", "TECHNICIAN", "TENANT_ADMIN"],
       },
       {
+        label: "nav.knowledgeBase",
+        href: "/knowledge-base",
+        icon: <MenuBookOutlinedIcon fontSize="small" />,
+        allowedRoles: ["EMPLOYEE", "OPS_COORDINATOR", "TECHNICIAN", "TENANT_ADMIN"],
+      },
+      {
         label: "nav.team",
         href: "/admin/user",
         icon: <PeopleOutlinedIcon fontSize="small" />,
@@ -55,10 +64,22 @@ export const navigationConfig: NavGroup[] = [
             allowedRoles: ["TENANT_ADMIN"],
           },
           {
+            label: "nav.notificationSettings",
+            href: "/settings/notifications",
+            icon: <NotificationsOutlinedIcon fontSize="small" />,
+            allowedRoles: ["EMPLOYEE", "OPS_COORDINATOR", "TECHNICIAN", "TENANT_ADMIN"],
+          },
+          {
             label: "nav.slaPolicy",
             href: "/settings/sla",
             icon: <AccessTimeOutlinedIcon fontSize="small" />,
             allowedRoles: ["TENANT_ADMIN"],
+          },
+          {
+            label: "nav.cannedResponses",
+            href: "/settings/canned-responses",
+            icon: <ShortTextOutlinedIcon fontSize="small" />,
+            allowedRoles: ["OPS_COORDINATOR", "TENANT_ADMIN"],
           },
           {
             label: "nav.serviceTypes",

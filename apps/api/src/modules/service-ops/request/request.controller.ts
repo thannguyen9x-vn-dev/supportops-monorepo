@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -28,6 +29,8 @@ import { RequestTabCountsResponseDto } from './dto/request-tab-counts-response.d
 import { RequestWorkflowDetailResponseDto } from './dto/request-workflow-detail-response.dto';
 import { RequestWorkLogResponseDto } from './dto/request-work-log-response.dto';
 import { UpdateRequestStatusDto } from './dto/update-request-status.dto';
+import { WatchRequestResponseDto } from './dto/watch-request-response.dto';
+import { WatcherListResponseDto } from './dto/watcher-list-response.dto';
 import { RequestService } from './request.service';
 
 @ApiTags('Service Requests')
@@ -101,6 +104,38 @@ export class RequestController {
     @Param('id', ParseUUIDPipe) requestId: string,
   ): Promise<RequestWorkflowDetailResponseDto> {
     return this.requestService.detailWorkflow(tenantId, requesterId, permissions, requestId);
+  }
+
+  @Post(':id/watch')
+  @Permissions({ all: ['request.watch'] })
+  @ApiOperation({ summary: 'Watch a request' })
+  watch(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser('sub') userId: string,
+    @Param('id', ParseUUIDPipe) requestId: string,
+  ): Promise<WatchRequestResponseDto> {
+    return this.requestService.watchRequest(tenantId, userId, requestId);
+  }
+
+  @Delete(':id/watch')
+  @Permissions({ all: ['request.watch'] })
+  @ApiOperation({ summary: 'Unwatch a request' })
+  unwatch(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser('sub') userId: string,
+    @Param('id', ParseUUIDPipe) requestId: string,
+  ): Promise<WatchRequestResponseDto> {
+    return this.requestService.unwatchRequest(tenantId, userId, requestId);
+  }
+
+  @Get(':id/watchers')
+  @Permissions({ all: ['request.watchers.read'] })
+  @ApiOperation({ summary: 'List watchers of a request' })
+  listWatchers(
+    @CurrentTenant() tenantId: string,
+    @Param('id', ParseUUIDPipe) requestId: string,
+  ): Promise<WatcherListResponseDto[]> {
+    return this.requestService.getWatchers(tenantId, requestId);
   }
 
   @Patch(':id/status')

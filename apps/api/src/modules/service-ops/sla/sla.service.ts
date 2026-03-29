@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, SlaHealth } from '@prisma/client';
+import { Prisma, SlaHealth, SlaRecord } from '@prisma/client';
 import { PageMeta, pageMetaOf } from '../../../common/dto/page-meta.dto';
 import { NotFoundException } from '../../../common/exceptions/not-found.exception';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -14,6 +14,77 @@ export class SlaService {
   private static readonly ESCALATION_AFTER_MINUTES = 60;
 
   constructor(private readonly prisma: PrismaService) {}
+
+  async pauseSla(tenantId: string, requestId: string): Promise<void> {
+    await this.prisma.slaRecord.updateMany({
+      where: {
+        tenantId,
+        requestId,
+        pausedAt: null,
+        isBreached: false,
+      },
+      data: {
+        pausedAt: new Date(),
+      },
+    });
+  }
+
+  async resumeSla(tenantId: string, requestId: string): Promise<void> {
+    const records = await this.prisma.slaRecord.findMany({
+      where: {
+        tenantId,
+        requestId,
+        pausedAt: { not: null },
+      },
+      select: {
+        id: true,
+        pausedAt: true,
+        totalPausedSeconds: true,
+      },
+    });
+
+    if (records.length === 0) {
+      return;
+    }
+
+    const now = new Date();
+    await this.prisma.$transaction(
+      records.map((record) => {
+        const pausedAt = record.pausedAt as Date;
+        const pausedSeconds = Math.max(0, Math.floor((now.getTime() - pausedAt.getTime()) / 1000));
+        return this.prisma.slaRecord.update({
+          where: { id: record.id },
+          data: {
+            totalPausedSeconds: record.totalPausedSeconds + pausedSeconds,
+            pausedAt: null,
+          },
+        });
+      }),
+    );
+  }
+
+  calculateAdjustedTargetAt(originalTargetAt: Date, totalPausedSeconds: number): Date {
+    return new Date(originalTargetAt.getTime() + totalPausedSeconds * 1000);
+  }
+
+  isNearBreach(record: SlaRecord, thresholdMinutes: number): boolean {
+    if (record.isBreached || record.pausedAt !== null) {
+      return false;
+    }
+
+    const adjustedTargetAt = this.calculateAdjustedTargetAt(record.targetAt, record.totalPausedSeconds);
+    const minutesRemaining = (adjustedTargetAt.getTime() - Date.now()) / 60000;
+    return minutesRemaining > 0 && minutesRemaining <= thresholdMinutes;
+  }
+
+  async markNearBreachNotified(tenantId: string, recordId: string): Promise<void> {
+    await this.prisma.slaRecord.update({
+      where: { id: recordId, tenantId },
+      data: {
+        nearBreachNotifiedAt: new Date(),
+      },
+    });
+  }
 
   async listPolicies(tenantId: string): Promise<SlaPolicyResponseDto[]> {
     const serviceTypes = await this.prisma.serviceType.findMany({

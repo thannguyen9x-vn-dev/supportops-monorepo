@@ -26,6 +26,9 @@ import { AuthCoreModule } from './modules/core/auth/auth-core.module';
 import { AuditCoreModule } from './modules/core/audit/audit-core.module';
 import { CommentCoreModule } from './modules/core/comment/comment-core.module';
 import { NotificationCoreModule } from './modules/core/notification/notification-core.module';
+import { NotificationModule } from './modules/notification/notification.module';
+import { KnowledgeBaseModule } from './modules/knowledge-base/knowledge-base.module';
+import { CannedResponseModule } from './modules/canned-response/canned-response.module';
 import { PermissionCoreModule } from './modules/core/permission/permission-core.module';
 import { RoleCoreModule } from './modules/core/role/role-core.module';
 import { TenantCoreModule } from './modules/core/tenant/tenant-core.module';
@@ -37,6 +40,7 @@ import { AssetModule } from './modules/service-ops/asset/asset.module';
 import { AssignmentModule } from './modules/service-ops/assignment/assignment.module';
 import { DashboardModule } from './modules/service-ops/dashboard/dashboard.module';
 import { EscalationModule } from './modules/service-ops/escalation/escalation.module';
+import { ReportingModule } from './modules/service-ops/reporting/reporting.module';
 import { RequestModule } from './modules/service-ops/request/request.module';
 import { ResolutionModule } from './modules/service-ops/resolution/resolution.module';
 import { SlaModule } from './modules/service-ops/sla/sla.module';
@@ -87,12 +91,16 @@ import { PrismaModule } from './prisma/prisma.module';
     CommentCoreModule,
     NotificationCoreModule,
     AuditCoreModule,
+    NotificationModule,
+    KnowledgeBaseModule,
+    CannedResponseModule,
     // ServiceOps business layer
     RequestModule,
     AssignmentModule,
     SlaModule,
     SettingsModule,
     EscalationModule,
+    ReportingModule,
     AssetModule,
     WorkLogModule,
     ResolutionModule,

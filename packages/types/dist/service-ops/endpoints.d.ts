@@ -62,4 +62,40 @@ export declare const SERVICE_OPS_ENDPOINTS: {
         readonly DETAIL: (id: string) => string;
     };
 };
+export declare const NOTIFICATION_ENDPOINTS: {
+    readonly list: "/notifications";
+    readonly stream: "/notifications/stream";
+    readonly unreadCount: "/notifications/unread-count";
+    readonly markRead: (id: string) => string;
+    readonly markAllRead: "/notifications/read-all";
+};
+export declare const NOTIFICATION_PREFERENCE_ENDPOINTS: {
+    readonly get: "/notification-preferences";
+    readonly update: "/notification-preferences";
+};
+export declare const WATCHER_ENDPOINTS: {
+    readonly watch: (requestId: string) => string;
+    readonly unwatch: (requestId: string) => string;
+    readonly list: (requestId: string) => string;
+};
+export declare const KNOWLEDGE_BASE_ENDPOINTS: {
+    readonly list: "/knowledge-base";
+    readonly search: "/knowledge-base/search";
+    readonly create: "/knowledge-base";
+    readonly detail: (id: string) => string;
+    readonly update: (id: string) => string;
+    readonly publish: (id: string) => string;
+    readonly unpublish: (id: string) => string;
+    readonly delete: (id: string) => string;
+};
+export declare const CANNED_RESPONSE_ENDPOINTS: {
+    readonly list: "/canned-responses";
+    readonly search: "/canned-responses/search";
+    readonly create: "/canned-responses";
+    readonly update: (id: string) => string;
+    readonly delete: (id: string) => string;
+};
+export declare const REPORT_ENDPOINTS: {
+    readonly overview: "/reports/overview";
+};
 //# sourceMappingURL=endpoints.d.ts.map

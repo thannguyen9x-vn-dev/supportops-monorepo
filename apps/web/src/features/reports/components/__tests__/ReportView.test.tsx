@@ -1,9 +1,32 @@
 import userEvent from "@testing-library/user-event";
-
 import { render, screen } from "@testing-library/react";
 
 jest.mock("@/features/reports/hooks/useReportData", () => ({
   useReportData: jest.fn(),
+}));
+
+jest.mock("../ReportFilters", () => ({
+  ReportFilters: ({ onApply }: { onApply: () => void }) => (
+    <button onClick={onApply} type="button">
+      apply-filter
+    </button>
+  ),
+}));
+
+jest.mock("../ReportSummaryCards", () => ({
+  ReportSummaryCards: () => <div>summary-cards</div>,
+}));
+
+jest.mock("../ReportVolumeChart", () => ({
+  ReportVolumeChart: () => <div>volume-chart</div>,
+}));
+
+jest.mock("../ReportTrendChart", () => ({
+  ReportTrendChart: () => <div>trend-chart</div>,
+}));
+
+jest.mock("../ReportServiceTypeChart", () => ({
+  ReportServiceTypeChart: () => <div>service-type-chart</div>,
 }));
 
 import { useReportData } from "@/features/reports/hooks/useReportData";
@@ -17,62 +40,94 @@ describe("ReportView", () => {
     jest.clearAllMocks();
   });
 
-  it("renders loading state", () => {
+  it("renders loading skeleton", () => {
     useReportDataMock.mockReturnValue({
-      data: { salesSummary: null, transactions: [] },
-      loadState: "loading",
-      reload: jest.fn(),
+      isLoading: true,
+      isError: false,
+      data: undefined,
+      refetch: jest.fn(),
     });
 
-    render(<ReportView period="day" titleKey="title" />);
+    render(<ReportView />);
 
-    expect(screen.getByText("state.loading")).toBeInTheDocument();
+    expect(screen.getByTestId("report-loading-skeleton")).toBeInTheDocument();
   });
 
-  it("renders error state and retry", async () => {
-    const reload = jest.fn();
+  it("renders error state and handles retry", async () => {
+    const refetch = jest.fn();
     useReportDataMock.mockReturnValue({
-      data: { salesSummary: null, transactions: [] },
-      loadState: "error",
-      reload,
+      isLoading: false,
+      isError: true,
+      data: undefined,
+      refetch,
     });
 
-    render(<ReportView period="day" titleKey="title" />);
+    render(<ReportView />);
 
-    await userEvent.click(screen.getByRole("button", { name: "action.retry" }));
+    expect(screen.getByText("error")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
 
-    expect(reload).toHaveBeenCalled();
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 
-  it("renders summary and transactions", () => {
+  it("renders empty state when totalRequests = 0", () => {
     useReportDataMock.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
       data: {
-        salesSummary: {
-          dataPoints: [
-            { label: "A", templates: 2, invoicing: 5 },
-            { label: "B", templates: 3, invoicing: 10 },
-          ],
+        summary: {
+          totalRequests: 0,
+          openRequests: 0,
+          resolvedRequests: 0,
+          closedRequests: 0,
+          slaComplianceRate: 1,
+          slaBreachCount: 0,
+          slaBreachActiveCount: 0,
+          avgFirstResponseMinutes: 0,
+          avgResolutionMinutes: 0,
         },
-        transactions: [
-          {
-            id: "txn-1",
-            description: "Subscription",
-            amount: 120,
-            status: "COMPLETED",
-            dateTime: "2026-03-01T00:00:00.000Z",
-          },
-        ],
+        byStatus: [],
+        byPriority: [],
+        byServiceType: [],
+        volumeTrend: [],
       },
-      loadState: "ready",
-      reload: jest.fn(),
     });
 
-    render(<ReportView period="month" titleKey="overviewTitle" />);
+    render(<ReportView />);
 
-    expect(screen.getByText("overviewTitle")).toBeInTheDocument();
-    expect(screen.getByText("Subscription")).toBeInTheDocument();
-    expect(screen.getByText("summary.templates")).toBeInTheDocument();
-    expect(screen.getByText("5")).toBeInTheDocument();
-    expect(screen.getByText("15")).toBeInTheDocument();
+    expect(screen.getByText("empty")).toBeInTheDocument();
+  });
+
+  it("renders summary and chart sections", () => {
+    useReportDataMock.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+      data: {
+        summary: {
+          totalRequests: 10,
+          openRequests: 4,
+          resolvedRequests: 6,
+          closedRequests: 6,
+          slaComplianceRate: 0.873,
+          slaBreachCount: 2,
+          slaBreachActiveCount: 1,
+          avgFirstResponseMinutes: 45,
+          avgResolutionMinutes: 180,
+        },
+        byStatus: [{ status: "OPEN", count: 4 }],
+        byPriority: [{ priority: "HIGH", count: 2 }],
+        byServiceType: [{ serviceTypeCode: "it", serviceTypeName: "IT", count: 10 }],
+        volumeTrend: [{ date: "2026-03-01", created: 3, resolved: 2 }],
+      },
+    });
+
+    render(<ReportView />);
+
+    expect(screen.getByText("summary-cards")).toBeInTheDocument();
+    expect(screen.getByText("volume-chart")).toBeInTheDocument();
+    expect(screen.getByText("trend-chart")).toBeInTheDocument();
+    expect(screen.getByText("service-type-chart")).toBeInTheDocument();
   });
 });

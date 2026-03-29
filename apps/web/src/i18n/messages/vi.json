@@ -170,8 +170,11 @@
     "settings": "Cài đặt",
     "requests": "Yêu cầu",
     "assets": "Tài sản",
+    "knowledgeBase": "Kho tri thức",
     "workflowConfig": "Cấu hình workflow",
+    "notificationSettings": "Thông báo",
     "slaPolicy": "Chính sách SLA",
+    "cannedResponses": "Mẫu trả lời",
     "serviceTypes": "Loại dịch vụ"
   },
   "header": {
@@ -198,6 +201,120 @@
     "settings": "Cài đặt",
     "updatePassword": "Cập nhật mật khẩu",
     "signOut": "Đăng xuất"
+  },
+  "notifications": {
+    "ariaLabel": "Thông báo",
+    "title": "Thông báo",
+    "markAllRead": "Đánh dấu đã đọc tất cả",
+    "loadMore": "Xem thêm",
+    "empty": "Không có thông báo",
+    "emptyUnread": "Không có thông báo chưa đọc",
+    "tabs": {
+      "all": "Tất cả",
+      "unread": "Chưa đọc"
+    },
+    "eventType": {
+      "REQUEST_CREATED": "Yêu cầu mới được tạo",
+      "REQUEST_ASSIGNED": "Yêu cầu được phân công cho bạn",
+      "REQUEST_STATUS_CHANGED": "Trạng thái yêu cầu đã cập nhật",
+      "REQUEST_COMMENTED": "Có bình luận mới",
+      "REQUEST_MENTIONED": "Bạn được nhắc tên",
+      "SLA_NEAR_BREACH_RESPONSE": "SLA phản hồi sắp vi phạm",
+      "SLA_NEAR_BREACH_RESOLUTION": "SLA xử lý sắp vi phạm"
+    }
+  },
+  "notificationPreferences": {
+    "title": "Tùy chọn thông báo",
+    "subtitle": "Chọn cách bạn muốn nhận thông báo",
+    "columns": {
+      "event": "Sự kiện",
+      "inApp": "Trong ứng dụng",
+      "email": "Email"
+    },
+    "events": {
+      "REQUEST_CREATED": "Yêu cầu mới được tạo",
+      "REQUEST_ASSIGNED": "Yêu cầu phân công cho bạn",
+      "REQUEST_STATUS_CHANGED": "Yêu cầu đổi trạng thái",
+      "REQUEST_COMMENTED": "Bình luận mới",
+      "REQUEST_MENTIONED": "Được nhắc tên trong bình luận",
+      "SLA_NEAR_BREACH_RESPONSE": "SLA phản hồi gần vi phạm",
+      "SLA_NEAR_BREACH_RESOLUTION": "SLA xử lý gần vi phạm"
+    },
+    "save": "Lưu thay đổi",
+    "saved": "Đã lưu tùy chọn"
+  },
+  "knowledgeBase": {
+    "title": "Kho tri thức",
+    "new": "Bài viết mới",
+    "search": "Tìm bài viết...",
+    "statusLabel": "Trạng thái",
+    "status": {
+      "DRAFT": "Nháp",
+      "PUBLISHED": "Đã xuất bản"
+    },
+    "picker": {
+      "title": "Chèn bài viết kho tri thức",
+      "placeholder": "Tìm theo tiêu đề hoặc từ khóa...",
+      "empty": "Không tìm thấy bài viết"
+    },
+    "form": {
+      "title": "Tiêu đề",
+      "body": "Nội dung",
+      "category": "Danh mục",
+      "tags": "Thẻ",
+      "saveDraft": "Lưu nháp",
+      "publish": "Xuất bản"
+    }
+  },
+  "cannedResponses": {
+    "title": "Mẫu trả lời",
+    "new": "Mẫu trả lời mới",
+    "edit": "Sửa mẫu trả lời",
+    "titleField": "Tiêu đề",
+    "shortcut": "Phím tắt",
+    "shortcutHint": "Gõ /shortcut trong bình luận để dùng",
+    "shortcutInvalid": "Chỉ dùng a-z, 0-9, _ hoặc -",
+    "category": "Danh mục",
+    "tags": "Thẻ",
+    "body": "Nội dung phản hồi",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "picker": {
+      "placeholder": "Gõ để tìm...",
+      "empty": "Không có mẫu phù hợp"
+    },
+    "variables": {
+      "hint": "Biến hỗ trợ: {{requester_name}}, {{request_code}}, {{assignee_name}}"
+    }
+  },
+  "reports": {
+    "title": "Báo cáo",
+    "overview": "Tổng quan",
+    "filters": {
+      "from": "Từ ngày",
+      "to": "Đến ngày",
+      "assignee": "Người phụ trách",
+      "apply": "Áp dụng",
+      "maxRangeHint": "Khoảng thời gian tối đa: 90 ngày"
+    },
+    "summary": {
+      "totalRequests": "Tổng yêu cầu",
+      "openRequests": "Đang mở",
+      "resolvedRequests": "Đã xử lý",
+      "slaCompliance": "Tuân thủ SLA",
+      "slaBreached": "Vi phạm SLA",
+      "avgFirstResponse": "TB phản hồi đầu tiên",
+      "avgResolution": "TB thời gian xử lý"
+    },
+    "charts": {
+      "volumeByStatus": "Số lượng theo trạng thái",
+      "trend": "Xu hướng yêu cầu",
+      "created": "Đã tạo",
+      "resolved": "Đã xử lý",
+      "byServiceType": "Theo loại dịch vụ"
+    },
+    "empty": "Không có yêu cầu trong khoảng thời gian này",
+    "error": "Không thể tải dữ liệu báo cáo"
   },
   "pages": {
     "dashboardComingSoon": "Bảng điều khiển - sắp ra mắt",
@@ -325,6 +442,7 @@
           "TRIAGE": "Phân loại",
           "ASSIGNED": "Đã phân công",
           "IN_PROGRESS": "Đang xử lý",
+          "WAITING_FOR_CUSTOMER": "Đang chờ khách hàng",
           "RESOLVED": "Đã xử lý",
           "CLOSED": "Đã đóng",
           "WAITING_EXTERNAL_VENDOR": "Đang chờ nhà cung cấp ngoài",
@@ -406,6 +524,7 @@
           "TRIAGE": "Phân loại",
           "ASSIGNED": "Đã phân công",
           "IN_PROGRESS": "Đang xử lý",
+          "WAITING_FOR_CUSTOMER": "Đang chờ khách hàng",
           "WAITING_EXTERNAL_VENDOR": "Chờ nhà cung cấp",
           "RESOLVED": "Đã xử lý",
           "CLOSED": "Đã đóng",
@@ -421,6 +540,17 @@
         },
         "assignment": {
           "assigneeRole": "Người xử lý"
+        },
+        "sla": {
+          "title": "SLA",
+          "assignment": "SLA phân công",
+          "resolution": "SLA xử lý",
+          "breached": "Đã vi phạm SLA",
+          "nearBreach": "Sắp vi phạm",
+          "paused": "Tạm dừng SLA",
+          "minutesLeft": "Còn {minutes} phút",
+          "hoursLeft": "Còn {hours} giờ {minutes} phút",
+          "pausedReason": "Đang chờ phản hồi từ khách hàng"
         },
         "assignDialog": {
           "titleAssign": "Phân công yêu cầu",
