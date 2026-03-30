@@ -405,7 +405,14 @@
             "view": "View",
             "edit": "Edit",
             "assign": "Assign",
-            "cancelRequest": "Cancel Request"
+            "reassign": "Reassign",
+            "assignToMe": "Assign to me",
+            "submit": "Submit",
+            "startProgress": "Start progress",
+            "resolve": "Resolve",
+            "close": "Close",
+            "reopen": "Reopen",
+            "escalate": "Escalate"
           }
         },
         "filters": {
@@ -1066,13 +1073,15 @@
           "actions": {
             "edit": "Edit Asset",
             "delete": "Delete Asset",
-            "confirmDelete": "Are you sure you want to delete this asset?"
+            "confirmDelete": "Are you sure you want to delete this asset?",
+            "cancel": "Cancel"
           },
           "feedback": {
             "loading": "Loading asset...",
             "loadError": "Unable to load asset detail.",
             "deleteSuccess": "Asset deleted.",
-            "deleteError": "Unable to delete asset."
+            "deleteError": "Unable to delete asset.",
+            "deleting": "Deleting..."
           }
         },
         "form": {

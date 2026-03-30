@@ -112,7 +112,10 @@ export class RequestResponseDto {
   @ApiProperty({ nullable: true })
   slaDueAt!: string | null;
 
-  static from(request: RequestModelWithServiceType): RequestResponseDto {
+  @ApiProperty({ type: [String], required: false })
+  allowedActions?: string[];
+
+  static from(request: RequestModelWithServiceType, options?: { allowedActions?: string[] }): RequestResponseDto {
     const slaHealth = request.slaRecords?.some((item) => item.health === 'BREACHED')
       ? 'BREACHED'
       : request.slaRecords?.some((item) => item.health === 'AT_RISK')
@@ -157,6 +160,7 @@ export class RequestResponseDto {
       updatedAt: request.updatedAt.toISOString(),
       slaHealth,
       slaDueAt: earliestTargetAt !== null ? new Date(earliestTargetAt).toISOString() : null,
+      allowedActions: options?.allowedActions,
     };
   }
 }

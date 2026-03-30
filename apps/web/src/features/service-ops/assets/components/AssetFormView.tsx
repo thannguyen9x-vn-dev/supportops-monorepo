@@ -165,9 +165,7 @@ export function AssetFormView(props: AssetFormViewProps) {
   const title = props.mode === "create" ? t("createTitle") : t("editTitle");
   const showPageChrome = !props.modal;
   const backHref =
-    props.mode === "create"
-      ? `/${locale}/assets/list`
-      : `/${locale}/assets/${props.assetId}`;
+    `/${locale}/assets/list`;
 
   if (loadingAsset) {
     return (

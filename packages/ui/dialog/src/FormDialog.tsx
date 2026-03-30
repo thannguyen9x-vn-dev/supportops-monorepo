@@ -75,6 +75,12 @@ export function FormDialog({
     <Dialog
       fullWidth={fullWidth}
       maxWidth={maxWidth}
+      onClick={(event) => {
+        event.stopPropagation();
+      }}
+      onMouseDown={(event) => {
+        event.stopPropagation();
+      }}
       onClose={dialog.close}
       open={dialog.isOpen}
       slotProps={{

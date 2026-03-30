@@ -122,6 +122,8 @@ export class RequestService {
           }
         : where;
 
+    const actorRoleCode = await this.resolveActiveRoleCode(tenantId, requesterId);
+
     const [items, total] = await this.prisma.$transaction([
       this.prisma.serviceRequest.findMany({
         where: finalWhere,
@@ -155,7 +157,11 @@ export class RequestService {
     ]);
 
     return {
-      data: items.map((item) => RequestResponseDto.from(item)),
+      data: items.map((item) =>
+        RequestResponseDto.from(item, {
+          allowedActions: this.resolveWorkflowAllowedActions(permissions, requesterId, item, actorRoleCode),
+        }),
+      ),
       meta: pageMetaOf({ page, size, total }),
     };
   }
