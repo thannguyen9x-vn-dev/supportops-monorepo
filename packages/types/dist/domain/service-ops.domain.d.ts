@@ -31,6 +31,7 @@ export interface ServiceRequest {
     closedAt?: string | null;
     createdAt: string;
     updatedAt: string;
+    allowedActions?: string[];
 }
 export interface RequestComment {
     id: string;

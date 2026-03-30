@@ -79,6 +79,7 @@ const WORKFLOW_ACTION_ORDER: Record<RequestStatus, string[]> = {
   [RequestStatus.ASSIGNED]: ['START_PROGRESS', 'ASSIGN', 'REASSIGN', 'ESCALATE', 'ADD_NOTE', 'ASSIGN_TO_ME'],
   [RequestStatus.IN_PROGRESS]: ['RESOLVE', 'REASSIGN', 'ESCALATE', 'ADD_NOTE'],
   [RequestStatus.WAITING_EXTERNAL_VENDOR]: ['RESOLVE', 'REASSIGN', 'ADD_NOTE'],
+  [RequestStatus.WAITING_FOR_CUSTOMER]: ['RESOLVE', 'REASSIGN', 'ADD_NOTE'],
   [RequestStatus.RESOLVED]: ['CLOSE', 'REOPEN', 'ADD_NOTE'],
   [RequestStatus.CLOSED]: ['REOPEN', 'ADD_NOTE'],
   [RequestStatus.REOPENED]: ['START_PROGRESS', 'ASSIGN', 'REASSIGN', 'ESCALATE', 'ADD_NOTE', 'ASSIGN_TO_ME'],
@@ -115,6 +116,8 @@ export class RequestService {
           }
         : where;
 
+    const actorRoleCode = await this.resolveActiveRoleCode(tenantId, requesterId);
+
     const [items, total] = await this.prisma.$transaction([
       this.prisma.serviceRequest.findMany({
         where: finalWhere,
@@ -148,7 +151,11 @@ export class RequestService {
     ]);
 
     return {
-      data: items.map((item) => RequestResponseDto.from(item)),
+      data: items.map((item) =>
+        RequestResponseDto.from(item, {
+          allowedActions: this.resolveWorkflowAllowedActions(permissions, requesterId, item, actorRoleCode),
+        }),
+      ),
       meta: pageMetaOf({ page, size, total }),
     };
   }
@@ -1235,6 +1242,11 @@ export class RequestService {
         RequestStatus.CANCELLED,
       ],
       [RequestStatus.WAITING_EXTERNAL_VENDOR]: [
+        RequestStatus.IN_PROGRESS,
+        RequestStatus.RESOLVED,
+        RequestStatus.CANCELLED,
+      ],
+      [RequestStatus.WAITING_FOR_CUSTOMER]: [
         RequestStatus.IN_PROGRESS,
         RequestStatus.RESOLVED,
         RequestStatus.CANCELLED,

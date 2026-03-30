@@ -5,6 +5,8 @@ export type SlaHealth = "On Track" | "At Risk" | "Overdue";
 
 export type RequestListItem = {
   id: string;
+  requesterId: string;
+  allowedActions: string[];
   requestCode: string;
   title: string;
   serviceTypeCode: string;

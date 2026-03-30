@@ -20,7 +20,7 @@ import { SelectOptionField, TextInputField } from "@supportops/ui-form";
 import { useForm } from "react-hook-form";
 
 import { useToast } from "@/features/common/toast/useToast";
-import { EntityTableActionMenu } from "@/components/entity-actions";
+import { EntityTableActionCell } from "@/components/entity-actions";
 import { EntityTable, useEntityTable, type EntityColumnDef } from "@/components/entity-table";
 import { ConfirmSelectPopupAction } from "@/components/table-select";
 import { EntityLayout } from "@/features/layout/components/EntityLayout/EntityLayout";
@@ -312,17 +312,17 @@ export default function AdminUserPage() {
       },
       {
         id: "actions",
-        header: t("table.actions"),
-        size: 90,
-        minSize: 90,
-        maxSize: 90,
+        header: " ",
+        size: 52,
+        minSize: 52,
+        maxSize: 52,
         sortable: false,
         hideable: false,
         resizable: false,
         cell: ({ row }) => {
           const canDeactivate = row.original.userStatus !== "DEACTIVATED";
           return (
-            <EntityTableActionMenu
+            <EntityTableActionCell
               actions={[
                 canDeactivate
                   ? {
@@ -343,6 +343,7 @@ export default function AdminUserPage() {
                       },
                     },
               ]}
+              tooltip={t("table.actions")}
             />
           );
         },

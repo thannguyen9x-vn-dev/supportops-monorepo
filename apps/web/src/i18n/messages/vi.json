@@ -288,7 +288,14 @@
             "view": "Xem",
             "edit": "Chỉnh sửa",
             "assign": "Phân công",
-            "cancelRequest": "Hủy yêu cầu"
+            "reassign": "Phân công lại",
+            "assignToMe": "Nhận xử lý",
+            "submit": "Gửi",
+            "startProgress": "Bắt đầu xử lý",
+            "resolve": "Đánh dấu đã xử lý",
+            "close": "Đóng",
+            "reopen": "Mở lại",
+            "escalate": "Leo thang"
           }
         },
         "filters": {
@@ -832,13 +839,15 @@
           "actions": {
             "edit": "Chỉnh sửa",
             "delete": "Xóa tài sản",
-            "confirmDelete": "Bạn có chắc muốn xóa tài sản này không?"
+            "confirmDelete": "Bạn có chắc muốn xóa tài sản này không?",
+            "cancel": "Hủy"
           },
           "feedback": {
             "loading": "Đang tải tài sản...",
             "loadError": "Không thể tải chi tiết tài sản.",
             "deleteSuccess": "Đã xóa tài sản.",
-            "deleteError": "Không thể xóa tài sản."
+            "deleteError": "Không thể xóa tài sản.",
+            "deleting": "Đang xóa..."
           }
         },
         "form": {

@@ -125,6 +125,12 @@ function FormDialog({
     {
       fullWidth,
       maxWidth,
+      onClick: (event) => {
+        event.stopPropagation();
+      },
+      onMouseDown: (event) => {
+        event.stopPropagation();
+      },
       onClose: dialog.close,
       open: dialog.isOpen,
       slotProps: {

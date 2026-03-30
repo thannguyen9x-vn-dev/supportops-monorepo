@@ -97,6 +97,8 @@ export function mapServiceRequestToRow(
 
   return {
     id: request.id,
+    requesterId: request.requesterId,
+    allowedActions: request.allowedActions ?? [],
     requestCode: request.requestCode ?? request.id,
     title: request.title,
     serviceTypeCode: request.serviceTypeCode ?? request.serviceTypeId,

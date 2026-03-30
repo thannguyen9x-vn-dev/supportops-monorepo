@@ -62,7 +62,7 @@ function SlaBadge({ value }: { value: SlaHealth }) {
   );
 }
 
-export function useRequestTableColumns(locale: string) {
+export function useRequestTableColumns(locale: string, onActionCompleted?: () => void) {
   const t = useTranslations("pages.requests.list");
 
   return useMemo<EntityColumnDef<RequestListItem>[]>(() => [
@@ -89,14 +89,14 @@ export function useRequestTableColumns(locale: string) {
     { accessorKey: "slaDue", header: t("columns.slaDue"), cell: ({ row }) => <Box sx={{ color: row.original.slaHealth === "Overdue" ? "error.main" : "inherit" }}>{row.original.slaDue}</Box>, sortable: false, hideable: true },
     {
       id: "actions",
-      header: t("columns.actions"),
+      header: " ",
       size: 52,
       minSize: 52,
       maxSize: 52,
       sortable: false,
       hideable: false,
       resizable: false,
-      cell: ({ row }) => <RequestRowActions id={row.original.id} locale={locale} />,
+      cell: ({ row }) => <RequestRowActions locale={locale} onActionCompleted={onActionCompleted} request={row.original} />,
     },
-  ], [locale, t]);
+  ], [locale, onActionCompleted, t]);
 }

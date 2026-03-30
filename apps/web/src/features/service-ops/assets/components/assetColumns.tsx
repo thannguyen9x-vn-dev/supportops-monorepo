@@ -10,7 +10,7 @@ import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import type { EntityColumnDef } from "@/components/entity-table";
-import { EntityTableActionMenu } from "@/components/entity-actions";
+import { EntityTableActionCell } from "@/components/entity-actions";
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "-";
@@ -66,7 +66,7 @@ function AssetRowActions({ id, locale, canManage }: { id: string; locale: string
   const t = useTranslations("pages.serviceOps.assets.list");
 
   return (
-    <EntityTableActionMenu
+    <EntityTableActionCell
       actions={[
         {
           key: "view",
@@ -85,6 +85,7 @@ function AssetRowActions({ id, locale, canManage }: { id: string; locale: string
             ]
           : []),
       ]}
+      tooltip={t("columns.actions")}
     />
   );
 }
@@ -148,7 +149,7 @@ export function useAssetColumns({ canManage, locale }: { canManage: boolean; loc
       },
       {
         id: "actions",
-        header: t("columns.actions"),
+        header: " ",
         size: 52,
         minSize: 52,
         maxSize: 52,
