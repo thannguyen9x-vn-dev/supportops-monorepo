@@ -79,7 +79,6 @@ const WORKFLOW_ACTION_ORDER: Record<RequestStatus, string[]> = {
   [RequestStatus.ASSIGNED]: ['START_PROGRESS', 'ASSIGN', 'REASSIGN', 'ESCALATE', 'ADD_NOTE', 'ASSIGN_TO_ME'],
   [RequestStatus.IN_PROGRESS]: ['RESOLVE', 'REASSIGN', 'ESCALATE', 'ADD_NOTE'],
   [RequestStatus.WAITING_EXTERNAL_VENDOR]: ['RESOLVE', 'REASSIGN', 'ADD_NOTE'],
-  [RequestStatus.WAITING_FOR_CUSTOMER]: ['RESOLVE', 'REASSIGN', 'ADD_NOTE'],
   [RequestStatus.RESOLVED]: ['CLOSE', 'REOPEN', 'ADD_NOTE'],
   [RequestStatus.CLOSED]: ['REOPEN', 'ADD_NOTE'],
   [RequestStatus.REOPENED]: ['START_PROGRESS', 'ASSIGN', 'REASSIGN', 'ESCALATE', 'ADD_NOTE', 'ASSIGN_TO_ME'],
@@ -1242,11 +1241,6 @@ export class RequestService {
         RequestStatus.CANCELLED,
       ],
       [RequestStatus.WAITING_EXTERNAL_VENDOR]: [
-        RequestStatus.IN_PROGRESS,
-        RequestStatus.RESOLVED,
-        RequestStatus.CANCELLED,
-      ],
-      [RequestStatus.WAITING_FOR_CUSTOMER]: [
         RequestStatus.IN_PROGRESS,
         RequestStatus.RESOLVED,
         RequestStatus.CANCELLED,
