@@ -1319,6 +1319,22 @@
           }
         }
       }
+    },
+    "ai": {
+      "title": "AI Assistant Settings",
+      "description": "Choose the default AI model for the AI Assistant in your dashboard. You can also override it per-session in the chat panel.",
+      "modelHelperText": "This model will be used by default when opening a new chat session.",
+      "save": "Save",
+      "saving": "Saving...",
+      "saveSuccess": "AI settings saved successfully.",
+      "nav": "AI Assistant"
     }
+  },
+  "aiAssistant": {
+    "title": "AI Assistant",
+    "clearConversation": "Clear conversation",
+    "emptyState": "Ask me anything about your operational data — request volume, SLA health, team performance, and more.",
+    "inputPlaceholder": "Ask about your data...",
+    "thinking": "Thinking..."
   }
 }

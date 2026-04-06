@@ -47,6 +47,7 @@ import { SlaModule } from './modules/service-ops/sla/sla.module';
 import { SettingsModule } from './modules/service-ops/settings/settings.module';
 import { WorkLogModule } from './modules/service-ops/work-log/work-log.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   controllers: [AppController],
@@ -106,6 +107,7 @@ import { PrismaModule } from './prisma/prisma.module';
     ResolutionModule,
     FileModule,
     DashboardModule,
+    AiModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

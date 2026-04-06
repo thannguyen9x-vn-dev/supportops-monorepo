@@ -106,3 +106,8 @@ export const CANNED_RESPONSE_ENDPOINTS = {
 export const REPORT_ENDPOINTS = {
   overview: "/reports/overview"
 } as const;
+
+export const AI_ENDPOINTS = {
+  ask: "/ai/ask",
+  settings: "/ai/settings",
+} as const;

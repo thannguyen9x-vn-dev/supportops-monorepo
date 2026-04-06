@@ -70,12 +70,39 @@ services:
       ERROR_ALERT_COOLDOWN_MS: ${ERROR_ALERT_COOLDOWN_MS:-900000}
       ERROR_ALERT_WEBHOOK_URL: ${ERROR_ALERT_WEBHOOK_URL:-}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      AI_SERVICE_URL: http://ai-service:8000
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8081/api/v1/health"]
       interval: 15s
       timeout: 5s
       retries: 10
       start_period: 20s
+    networks:
+      - supportops_net
+
+  ai-service:
+    image: ${AI_SERVICE_IMAGE:-ghcr.io/your-org/supportops-ai-service:local}
+    build:
+      context: .
+      dockerfile: apps/ai-service/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    environment:
+      PORT: 8000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-supportops}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - supportops_net
 

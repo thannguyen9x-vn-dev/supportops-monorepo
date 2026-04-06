@@ -23,6 +23,8 @@ export declare const RBAC_PERMISSIONS: {
     readonly SLA_MANAGE: "sla.manage";
     readonly ROLE_MANAGE: "role.manage";
     readonly AUDIT_READ: "audit.read";
+    readonly REPORT_READ: "report.read";
+    readonly AI_ASK: "ai.ask";
 };
 export type RbacPermission = (typeof RBAC_PERMISSIONS)[keyof typeof RBAC_PERMISSIONS];
 export declare const ROLE_PERMISSION_MATRIX: Record<SystemRole, RbacPermission[]>;

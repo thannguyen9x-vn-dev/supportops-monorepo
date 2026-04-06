@@ -19,5 +19,6 @@ export * from "./types/canned-response.types";
 export * from "./schemas/canned-response.schema";
 export * from "./types/reporting.types";
 export * from "./types/watcher.types";
+export * from "./types/ai.types";
 export * from "./endpoints";
 //# sourceMappingURL=index.d.ts.map

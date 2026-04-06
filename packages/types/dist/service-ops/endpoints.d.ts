@@ -98,4 +98,8 @@ export declare const CANNED_RESPONSE_ENDPOINTS: {
 export declare const REPORT_ENDPOINTS: {
     readonly overview: "/reports/overview";
 };
+export declare const AI_ENDPOINTS: {
+    readonly ask: "/ai/ask";
+    readonly settings: "/ai/settings";
+};
 //# sourceMappingURL=endpoints.d.ts.map

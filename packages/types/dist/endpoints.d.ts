@@ -1,3 +1,5 @@
+import { AI_ENDPOINTS } from "./service-ops/endpoints";
+export { AI_ENDPOINTS };
 export declare const LEGACY_ENDPOINTS: {
     readonly AUTH: {
         readonly LOGIN: "/auth/login";
