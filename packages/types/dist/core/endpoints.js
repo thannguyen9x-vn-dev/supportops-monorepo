@@ -49,4 +49,9 @@ export const CORE_ENDPOINTS = {
         LIST: "/audit-logs",
         DETAIL: (id) => `/audit-logs/${id}`,
     },
+    EXPORT: {
+        CSV: "/export/csv",
+        EXCEL: "/export/excel",
+        PDF: "/export/pdf",
+    },
 };

@@ -9,6 +9,8 @@ import HandymanOutlinedIcon from "@mui/icons-material/HandymanOutlined";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
 import ShortTextOutlinedIcon from "@mui/icons-material/ShortTextOutlined";
+import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
+import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 
 import type { NavGroup } from "../types";
 
@@ -21,6 +23,12 @@ export const navigationConfig: NavGroup[] = [
         href: "/dashboard",
         icon: <DashboardOutlinedIcon fontSize="small" />,
         allowedRoles: ["TENANT_ADMIN", "OPS_COORDINATOR", "TECHNICIAN"],
+      },
+      {
+        label: "nav.reports",
+        href: "/reports",
+        icon: <BarChartOutlinedIcon fontSize="small" />,
+        allowedRoles: ["TENANT_ADMIN"],
       },
       {
         label: "nav.requests",
@@ -85,6 +93,12 @@ export const navigationConfig: NavGroup[] = [
             label: "nav.serviceTypes",
             href: "/settings/service-types",
             icon: <CategoryOutlinedIcon fontSize="small" />,
+            allowedRoles: ["TENANT_ADMIN"],
+          },
+          {
+            label: "nav.aiSettings",
+            href: "/settings/ai",
+            icon: <AutoAwesomeOutlinedIcon fontSize="small" />,
             allowedRoles: ["TENANT_ADMIN"],
           },
         ],

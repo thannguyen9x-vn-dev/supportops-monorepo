@@ -271,6 +271,11 @@ class HttpClient {
     const response = await this.fetchWithAuthRetry("GET", endpoint, config);
     return response.blob();
   }
+
+  async postBlob(endpoint: string, body?: unknown, config?: RequestConfig): Promise<Blob> {
+    const response = await this.fetchWithAuthRetry("POST", endpoint, { ...config, body });
+    return response.blob();
+  }
 }
 
 export const apiClient = new HttpClient(env.NEXT_PUBLIC_API_BASE_URL);

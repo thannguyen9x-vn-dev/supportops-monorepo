@@ -175,7 +175,37 @@
     "notificationSettings": "Notifications",
     "slaPolicy": "SLA Policy",
     "cannedResponses": "Canned Responses",
-    "serviceTypes": "Service Types"
+    "serviceTypes": "Service Types",
+    "aiSettings": "AI Assistant"
+  },
+  "reports": {
+    "pageTitle": "Reports",
+    "pageDescription": "Export operational data for your tenant",
+    "filters": {
+      "fromDate": "From Date",
+      "toDate": "To Date",
+      "metrics": "Metrics to Include",
+      "allMetrics": "All Metrics"
+    },
+    "metrics": {
+      "request_volume": "Request Volume",
+      "status_breakdown": "Status Breakdown",
+      "sla_health": "SLA Health",
+      "team_performance": "Team Performance",
+      "service_type_breakdown": "Service Type Breakdown"
+    },
+    "actions": {
+      "exportCsv": "Export CSV",
+      "exportExcel": "Export Excel",
+      "exportPdf": "Export PDF",
+      "exporting": "Exporting..."
+    },
+    "errors": {
+      "invalidDateRange": "End date must be on or after start date",
+      "exportFailed": "Export failed. Please try again.",
+      "unexpected": "Something went wrong",
+      "tryAgain": "Try again"
+    }
   },
   "header": {
     "searchPlaceholder": "Search...",

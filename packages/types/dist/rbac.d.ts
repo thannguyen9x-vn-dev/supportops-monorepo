@@ -24,6 +24,7 @@ export declare const RBAC_PERMISSIONS: {
     readonly ROLE_MANAGE: "role.manage";
     readonly AUDIT_READ: "audit.read";
     readonly REPORT_READ: "report.read";
+    readonly REPORT_EXPORT: "report.export";
     readonly AI_ASK: "ai.ask";
 };
 export type RbacPermission = (typeof RBAC_PERMISSIONS)[keyof typeof RBAC_PERMISSIONS];

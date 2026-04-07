@@ -21,6 +21,7 @@ export const RBAC_PERMISSIONS = {
     ROLE_MANAGE: "role.manage",
     AUDIT_READ: "audit.read",
     REPORT_READ: "report.read",
+    REPORT_EXPORT: "report.export",
     AI_ASK: "ai.ask",
 };
 export const ROLE_PERMISSION_MATRIX = {

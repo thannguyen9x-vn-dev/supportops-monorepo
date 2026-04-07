@@ -20,4 +20,6 @@ export * from "./schemas/canned-response.schema";
 export * from "./types/reporting.types";
 export * from "./types/watcher.types";
 export * from "./types/ai.types";
+export { ALL_EXPORT_METRICS } from "./types/export.types";
+export { EXPORT_METRIC } from "./types/export.types";
 export * from "./endpoints";

@@ -16,6 +16,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers.ask import router as ask_router
+from routers.export import router as export_router
 
 load_dotenv()
 
@@ -41,6 +42,7 @@ app.add_middleware(
 )
 
 app.include_router(ask_router)
+app.include_router(export_router)
 
 
 @app.on_event("startup")

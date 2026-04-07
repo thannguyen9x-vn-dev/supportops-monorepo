@@ -49,5 +49,10 @@ export declare const CORE_ENDPOINTS: {
         readonly LIST: "/audit-logs";
         readonly DETAIL: (id: string) => string;
     };
+    readonly EXPORT: {
+        readonly CSV: "/export/csv";
+        readonly EXCEL: "/export/excel";
+        readonly PDF: "/export/pdf";
+    };
 };
 //# sourceMappingURL=endpoints.d.ts.map

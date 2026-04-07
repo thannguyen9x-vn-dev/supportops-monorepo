@@ -59,6 +59,7 @@ const permissions: Array<{ code: string; description: string }> = [
   { code: 'audit.read', description: 'Read audit logs.' },
   { code: 'asset.manage', description: 'Create, update and delete assets and asset types.' },
   { code: 'report.read', description: 'Read reporting and analytics data.' },
+  { code: 'report.export', description: 'Export operational reports (CSV/Excel/PDF).' },
   { code: 'ai.ask', description: 'Use AI assistant to query operational data.' },
 ];
 

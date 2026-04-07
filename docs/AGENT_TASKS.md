@@ -1001,3 +1001,14 @@ pnpm --filter @supportops/api build         # nếu sửa backend
 - [x] AC-TQ.5: Tất cả endpoints mới có security checklist pass
 - [x] AC-TQ.6: Không có tenantId isolation gap
 - [x] AC-TQ.7: Worker start không crash
+
+### AC-EXP — Export Reports (REQ-00004)
+- [ ] AC-001: TENANT_ADMIN gọi POST /api/v1/export/csv nhận file .csv với Content-Disposition attachment (đã implement, chưa verify e2e do thiếu runtime env đồng bộ)
+- [ ] AC-002: TENANT_ADMIN gọi POST /api/v1/export/excel nhận file .xlsx có các sheet yêu cầu (đã implement, chưa verify e2e)
+- [ ] AC-003: TENANT_ADMIN gọi POST /api/v1/export/pdf nhận file .pdf có section title + bảng dữ liệu (đã implement, chưa verify e2e)
+- [x] AC-004: to_date < from_date trả HTTP 400 message "to_date must be >= from_date" (đã implement ở Python + Nest validation path)
+- [x] AC-005: metrics không hợp lệ trả 422 (Pydantic validator đã implement ở Python router)
+- [x] AC-006: user không có permission report.export bị 403 (Nest controller đã gắn @Permissions + guard)
+- [ ] AC-007: Tenant isolation A/B verify bằng JWT thực tế (đã giữ thiết kế x-tenant-id từ proxy + query theo tenant, chưa chạy test tích hợp A/B)
+- [x] AC-008: Filename đúng format report_{from_date}_{to_date}.{ext} (đã implement ở Python router)
+- [x] AC-009: 0 records vẫn trả file hợp lệ (exporters xử lý fallback no-data, không crash trong smoke unit)

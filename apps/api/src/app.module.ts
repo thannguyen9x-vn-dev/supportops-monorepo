@@ -48,6 +48,7 @@ import { SettingsModule } from './modules/service-ops/settings/settings.module';
 import { WorkLogModule } from './modules/service-ops/work-log/work-log.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AiModule } from './modules/ai/ai.module';
+import { ExportModule } from './modules/export/export.module';
 
 @Module({
   controllers: [AppController],
@@ -108,6 +109,7 @@ import { AiModule } from './modules/ai/ai.module';
     FileModule,
     DashboardModule,
     AiModule,
+    ExportModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
