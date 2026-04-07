@@ -936,3 +936,68 @@ pnpm --filter @supportops/api build         # nếu sửa backend
 ---
 
 **Tổng cộng: 16 tasks chính, chia 4 giai đoạn, ước lượng 12–16 tuần.**
+
+---
+
+## PHẦN I — V2 ACCEPTANCE CHECKLIST (REQ-00002)
+
+### AC-E1 — Notification
+- [x] AC-E1.1: User nhận in-app notification khi request được assign cho họ
+- [x] AC-E1.2: User nhận in-app notification khi request họ tạo có comment mới
+- [x] AC-E1.3: User nhận notification khi được @mention trong comment
+- [x] AC-E1.4: OPS nhận notification khi request mới tạo vào queue của họ (fallback: all OPS_COORDINATOR)
+- [x] AC-E1.5: User có thể mark notification là đã đọc (single + all)
+- [x] AC-E1.6: Unread count hiển thị trên bell icon, update realtime qua SSE
+- [x] AC-E1.7: User có thể tắt/bật từng loại notification (in-app + email)
+
+### AC-E2 — Email Notification
+- [x] AC-E2.1: Email gửi ngay cho REQUEST_ASSIGNED, REQUEST_MENTIONED, SLA_NEAR_BREACH_*
+- [x] AC-E2.2: Email digest gom events trong 5 phút cho REQUEST_CREATED, STATUS_CHANGED, COMMENTED
+- [x] AC-E2.3: Rate limit: max 5 emails/user/request/giờ
+- [x] AC-E2.4: Không gửi email nếu user tắt email preference cho event đó
+
+### AC-E3 — SLA Near-breach
+- [x] AC-E3.1: Notification gửi khi SLA còn ≤ nearBreachThresholdMinutes (default 30m)
+- [x] AC-E3.2: Không gửi duplicate near-breach notification (idempotency guard)
+- [x] AC-E3.3: SLA tự động pause khi request → WAITING_FOR_CUSTOMER
+- [x] AC-E3.4: SLA tự động resume khi request rời WAITING_FOR_CUSTOMER
+- [x] AC-E3.5: SLA badge trong UI hiển thị đúng state: ON_TRACK / NEAR_BREACH / PAUSED / BREACHED
+- [x] AC-E3.6: Countdown timer trong RequestDetail cập nhật real-time (mỗi 30 giây)
+
+### AC-E4 — Request Watcher
+- [x] AC-E4.1: User có thể watch/unwatch request
+- [x] AC-E4.2: Creator auto-watch khi tạo request
+- [x] AC-E4.3: Assignee auto-watch khi được assign
+- [x] AC-E4.4: Watcher nhận notification giống assignee
+
+### AC-E5 — Knowledge Base
+- [x] AC-E5.1: TECHNICIAN+ có thể tạo/edit/delete bài viết
+- [x] AC-E5.2: EMPLOYEE chỉ xem PUBLISHED articles
+- [x] AC-E5.3: Full-text search hoạt động (title + body)
+- [x] AC-E5.4: KB Picker trong CommentComposer — chèn article link
+- [x] AC-E5.5: Soft delete — không xóa vĩnh viễn
+
+### AC-E6 — Canned Response
+- [x] AC-E6.1: OPS_COORDINATOR+ có thể tạo/edit/delete canned response
+- [x] AC-E6.2: TECHNICIAN có thể dùng (read) nhưng không edit
+- [x] AC-E6.3: Gõ "/" trong CommentComposer → picker dropdown hiện ra
+- [x] AC-E6.4: Chọn response → text được chèn với {{variables}} đã resolved
+- [x] AC-E6.5: Shortcut unique per tenant
+
+### AC-E7 — Reporting
+- [x] AC-E7.1: OPS_COORDINATOR+ xem được dashboard
+- [x] AC-E7.2: Filter theo date range (max 90 ngày)
+- [x] AC-E7.3: 7 KPI summary cards hiển thị đúng
+- [x] AC-E7.4: Volume by Status chart
+- [x] AC-E7.5: Trend (Created vs Resolved) line chart
+- [x] AC-E7.6: Volume by Service Type chart (Gap 5 fix)
+- [x] AC-E7.7: Filter theo assignee (OPS_COORDINATOR+)
+
+### AC-TQ — Technical Quality
+- [x] AC-TQ.1: pnpm typecheck → 0 errors
+- [x] AC-TQ.2: pnpm lint → 0 errors
+- [x] AC-TQ.3: api test coverage ≥ 80% cho code mới
+- [x] AC-TQ.4: web test cho tất cả new components
+- [x] AC-TQ.5: Tất cả endpoints mới có security checklist pass
+- [x] AC-TQ.6: Không có tenantId isolation gap
+- [x] AC-TQ.7: Worker start không crash

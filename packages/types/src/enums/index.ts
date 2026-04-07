@@ -1,2 +1,3 @@
 export * from "./auth.enums";
+export * from "./notification.enums";
 export * from "./service-ops.enums";

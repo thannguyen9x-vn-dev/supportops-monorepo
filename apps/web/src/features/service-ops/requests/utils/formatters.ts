@@ -44,6 +44,12 @@ export function resolveSlaSummaryState(sla: RequestDetail["sla"]): SlaState {
   if (states.includes("BREACHED")) {
     return "BREACHED";
   }
+  if (states.includes("PAUSED")) {
+    return "PAUSED";
+  }
+  if (states.includes("NEAR_BREACH")) {
+    return "NEAR_BREACH";
+  }
   if (states.includes("AT_RISK")) {
     return "AT_RISK";
   }

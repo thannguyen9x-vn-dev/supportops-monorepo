@@ -1,49 +1,29 @@
-import { Job, Queue, Worker } from 'bullmq';
-import { PrismaClient } from '@prisma/client';
-import { loadConfig } from './config';
-import { log } from './logger';
-import { createWorkerConnection, processWorkerJob, upsertRecurringJobs } from './worker-runtime';
+import { Worker } from 'bullmq';
+import { startWorkers } from './worker-runtime';
 
-const config = loadConfig();
-const prisma = new PrismaClient();
-const connection = createWorkerConnection(config);
+const workers = startWorkers();
 
-const queue = new Queue(config.queueName, { connection });
+function registerWorkerEvents(worker: Worker): void {
+  const queueName = worker.name;
 
-const processor = async (job: Job): Promise<void> => {
-  await processWorkerJob(job, prisma);
-};
+  worker.on('ready', () => {
+    console.info(`Worker connected to Redis (${queueName})`);
+  });
 
-const worker = new Worker(config.queueName, processor, {
-  connection,
-  concurrency: 1,
-});
-
-async function shutdown(signal: string): Promise<void> {
-  log('INFO', 'Worker shutdown requested', { signal });
-
-  await worker.close();
-  await queue.close();
-  await prisma.$disconnect();
-
-  log('INFO', 'Worker shutdown complete');
+  worker.on('error', (error: Error) => {
+    console.error(`Worker error (${queueName}):`, error.message);
+  });
 }
 
-worker.on('ready', () => {
-  log('INFO', 'Worker is ready', { queueName: config.queueName });
-});
+async function shutdown(signal: string): Promise<void> {
+  console.info(`Worker shutdown requested (${signal})`);
+  await Promise.all(workers.map((worker) => worker.close()));
+  console.info('Worker shutdown complete');
+}
 
-worker.on('completed', (job) => {
-  log('INFO', 'Job completed', { jobId: job.id, jobName: job.name });
-});
-
-worker.on('failed', (job, error) => {
-  log('ERROR', 'Job failed', {
-    jobId: job?.id,
-    jobName: job?.name,
-    error: error.message,
-  });
-});
+for (const worker of workers) {
+  registerWorkerEvents(worker);
+}
 
 process.on('SIGINT', () => {
   void shutdown('SIGINT').finally(() => process.exit(0));
@@ -51,9 +31,4 @@ process.on('SIGINT', () => {
 
 process.on('SIGTERM', () => {
   void shutdown('SIGTERM').finally(() => process.exit(0));
-});
-
-void upsertRecurringJobs(queue, config).catch((error: Error) => {
-  log('ERROR', 'Failed to initialize worker jobs', { error: error.message });
-  process.exit(1);
 });

@@ -19,6 +19,7 @@ const routeRoleAccess: Array<{ pathPrefix: string; roles: UserRole[]; redirectTo
   { pathPrefix: "/settings/workflow", roles: ["TENANT_ADMIN"] },
   { pathPrefix: "/settings/sla", roles: ["TENANT_ADMIN"] },
   { pathPrefix: "/settings/service-types", roles: ["TENANT_ADMIN"] },
+  { pathPrefix: "/settings/canned-responses", roles: ["OPS_COORDINATOR", "TENANT_ADMIN"] },
 ];
 
 function getPathWithoutLocale(pathname: string): string {

@@ -62,3 +62,44 @@ export const SERVICE_OPS_ENDPOINTS = {
         DETAIL: (id) => `/workflow-transitions/${id}`,
     },
 };
+// ─── V2 Endpoints (append sau existing exports) ───────────────────
+export const NOTIFICATION_ENDPOINTS = {
+    list: "/notifications",
+    stream: "/notifications/stream",
+    unreadCount: "/notifications/unread-count",
+    markRead: (id) => `/notifications/${id}/read`,
+    markAllRead: "/notifications/read-all"
+};
+export const NOTIFICATION_PREFERENCE_ENDPOINTS = {
+    get: "/notification-preferences",
+    update: "/notification-preferences"
+};
+export const WATCHER_ENDPOINTS = {
+    watch: (requestId) => `/requests/${requestId}/watch`,
+    unwatch: (requestId) => `/requests/${requestId}/watch`,
+    list: (requestId) => `/requests/${requestId}/watchers`
+};
+export const KNOWLEDGE_BASE_ENDPOINTS = {
+    list: "/knowledge-base",
+    search: "/knowledge-base/search",
+    create: "/knowledge-base",
+    detail: (id) => `/knowledge-base/${id}`,
+    update: (id) => `/knowledge-base/${id}`,
+    publish: (id) => `/knowledge-base/${id}/publish`,
+    unpublish: (id) => `/knowledge-base/${id}/unpublish`,
+    delete: (id) => `/knowledge-base/${id}`
+};
+export const CANNED_RESPONSE_ENDPOINTS = {
+    list: "/canned-responses",
+    search: "/canned-responses/search",
+    create: "/canned-responses",
+    update: (id) => `/canned-responses/${id}`,
+    delete: (id) => `/canned-responses/${id}`
+};
+export const REPORT_ENDPOINTS = {
+    overview: "/reports/overview"
+};
+export const AI_ENDPOINTS = {
+    ask: "/ai/ask",
+    settings: "/ai/settings",
+};

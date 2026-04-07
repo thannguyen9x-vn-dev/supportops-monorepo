@@ -18,6 +18,7 @@ import { ConflictException } from '../../../common/exceptions/conflict.exception
 import { ForbiddenException } from '../../../common/exceptions/forbidden.exception';
 import { NotFoundException } from '../../../common/exceptions/not-found.exception';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { SlaService } from '../sla/sla.service';
 import { AssignRequestDto } from './dto/assign-request.dto';
 import { CreateRequestDto, CreateRequestMode } from './dto/create-request.dto';
 import { CreateRequestCommentDto } from './dto/create-request-comment.dto';
@@ -38,11 +39,14 @@ import {
 } from './dto/request-workflow-detail-response.dto';
 import { RequestWorkLogResponseDto } from './dto/request-work-log-response.dto';
 import { UpdateRequestStatusDto } from './dto/update-request-status.dto';
+import { WatchRequestResponseDto } from './dto/watch-request-response.dto';
+import { WatcherListResponseDto } from './dto/watcher-list-response.dto';
 import { REQUEST_EVENTS } from './events/request-events.constants';
 import {
   RequestAssignedEvent,
   RequestCommentAddedEvent,
   RequestCreatedEvent,
+  RequestMentionedEvent,
   RequestStatusChangedEvent,
   RequestWorkLogAddedEvent,
 } from './events/request.events';
@@ -78,6 +82,7 @@ const WORKFLOW_ACTION_ORDER: Record<RequestStatus, string[]> = {
   [RequestStatus.TRIAGE]: ['ASSIGN', 'REASSIGN', 'ESCALATE', 'ADD_NOTE', 'ASSIGN_TO_ME'],
   [RequestStatus.ASSIGNED]: ['START_PROGRESS', 'ASSIGN', 'REASSIGN', 'ESCALATE', 'ADD_NOTE', 'ASSIGN_TO_ME'],
   [RequestStatus.IN_PROGRESS]: ['RESOLVE', 'REASSIGN', 'ESCALATE', 'ADD_NOTE'],
+  [RequestStatus.WAITING_FOR_CUSTOMER]: ['START_PROGRESS', 'RESOLVE', 'REASSIGN', 'ADD_NOTE'],
   [RequestStatus.WAITING_EXTERNAL_VENDOR]: ['RESOLVE', 'REASSIGN', 'ADD_NOTE'],
   [RequestStatus.RESOLVED]: ['CLOSE', 'REOPEN', 'ADD_NOTE'],
   [RequestStatus.CLOSED]: ['REOPEN', 'ADD_NOTE'],
@@ -91,10 +96,12 @@ export class RequestService {
   private static readonly RESOLUTION_SLA_MINUTES = 8 * 60;
   private static readonly ESCALATION_AFTER_MINUTES = 60;
   private static readonly ASSIGNABLE_ROLE_CODES = ['TECHNICIAN', 'OPS_COORDINATOR'] as const;
+  private static readonly UUID_PATTERN = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}';
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly slaService: SlaService,
   ) {}
 
   async list(
@@ -327,6 +334,7 @@ export class RequestService {
       REQUEST_EVENTS.CREATED,
       new RequestCreatedEvent(tenantId, created.id, requesterId, shouldSubmit),
     );
+    await this.autoWatch(tenantId, requesterId, created.id, true);
 
     if (shouldSubmit) {
       await this.eventEmitter.emitAsync(
@@ -681,6 +689,14 @@ export class RequestService {
       return updatedRequest;
     });
 
+    if (dto.status === RequestStatus.WAITING_FOR_CUSTOMER) {
+      await this.slaService.pauseSla(tenantId, request.id);
+    }
+
+    if (request.status === RequestStatus.WAITING_FOR_CUSTOMER && dto.status !== RequestStatus.WAITING_FOR_CUSTOMER) {
+      await this.slaService.resumeSla(tenantId, request.id);
+    }
+
     await this.eventEmitter.emitAsync(
       REQUEST_EVENTS.STATUS_CHANGED,
       new RequestStatusChangedEvent(
@@ -761,6 +777,20 @@ export class RequestService {
         created.id,
       ),
     );
+    const mentionedUserIds = await this.resolveMentionedUserIds(tenantId, body);
+    if (mentionedUserIds.length > 0) {
+      await this.eventEmitter.emitAsync(
+        REQUEST_EVENTS.MENTIONED,
+        new RequestMentionedEvent(
+          tenantId,
+          requestId,
+          authorId,
+          body,
+          created.id,
+          mentionedUserIds,
+        ),
+      );
+    }
 
     return RequestCommentResponseDto.from(created);
   }
@@ -991,6 +1021,7 @@ export class RequestService {
       REQUEST_EVENTS.ASSIGNED,
       new RequestAssignedEvent(tenantId, request.id, dto.assigneeId, actorId, request.assigneeId),
     );
+    await this.autoWatch(tenantId, dto.assigneeId, request.id, true);
 
     if (nextStatus && nextStatus !== request.status) {
       await this.eventEmitter.emitAsync(
@@ -1096,6 +1127,183 @@ export class RequestService {
     }
 
     return RequestResponseDto.from(updated);
+  }
+
+  async watchRequest(tenantId: string, userId: string, requestId: string): Promise<WatchRequestResponseDto> {
+    const request = await this.prisma.serviceRequest.findFirst({
+      where: {
+        tenantId,
+        id: requestId,
+      },
+      select: {
+        id: true,
+        requesterId: true,
+      },
+    });
+
+    if (!request) {
+      throw new NotFoundException('ServiceRequest', requestId);
+    }
+
+    const actorRoleCode = await this.resolveActiveRoleCode(tenantId, userId);
+    if (actorRoleCode === 'EMPLOYEE' && request.requesterId !== userId) {
+      throw new ForbiddenException('Employees can only watch their own requests');
+    }
+
+    await this.prisma.requestWatcher.upsert({
+      where: {
+        requestId_userId: {
+          requestId,
+          userId,
+        },
+      },
+      create: {
+        tenantId,
+        requestId,
+        userId,
+        autoWatch: false,
+      },
+      update: {},
+    });
+
+    return { requestId, userId, watching: true };
+  }
+
+  async unwatchRequest(tenantId: string, userId: string, requestId: string): Promise<WatchRequestResponseDto> {
+    const request = await this.prisma.serviceRequest.findFirst({
+      where: {
+        tenantId,
+        id: requestId,
+      },
+      select: {
+        id: true,
+        requesterId: true,
+      },
+    });
+
+    if (!request) {
+      throw new NotFoundException('ServiceRequest', requestId);
+    }
+
+    const actorRoleCode = await this.resolveActiveRoleCode(tenantId, userId);
+    if (actorRoleCode === 'EMPLOYEE' && request.requesterId !== userId) {
+      throw new ForbiddenException('Employees can only unwatch their own requests');
+    }
+
+    await this.prisma.requestWatcher.deleteMany({
+      where: {
+        tenantId,
+        requestId,
+        userId,
+      },
+    });
+
+    return { requestId, userId, watching: false };
+  }
+
+  async getWatchers(tenantId: string, requestId: string): Promise<WatcherListResponseDto[]> {
+    const request = await this.prisma.serviceRequest.findFirst({
+      where: {
+        tenantId,
+        id: requestId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!request) {
+      throw new NotFoundException('ServiceRequest', requestId);
+    }
+
+    const watchers = await this.prisma.requestWatcher.findMany({
+      where: {
+        tenantId,
+        requestId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    return watchers.map((item) => {
+      const fallbackName = [item.user.firstName, item.user.lastName].filter(Boolean).join(' ').trim();
+      return {
+        userId: item.userId,
+        userName: item.user.fullName?.trim() || fallbackName || item.user.email,
+        autoWatch: item.autoWatch,
+        createdAt: item.createdAt.toISOString(),
+      };
+    });
+  }
+
+  async autoWatch(tenantId: string, userId: string, requestId: string, autoWatch = true): Promise<void> {
+    await this.prisma.requestWatcher.upsert({
+      where: {
+        requestId_userId: {
+          requestId,
+          userId,
+        },
+      },
+      create: {
+        tenantId,
+        requestId,
+        userId,
+        autoWatch,
+      },
+      update: {
+        autoWatch,
+      },
+    });
+  }
+
+  private async resolveMentionedUserIds(tenantId: string, body: string): Promise<string[]> {
+    const ids = new Set<string>();
+    const inlineRegex = new RegExp(`@(${RequestService.UUID_PATTERN})`, 'g');
+    const bracketRegex = new RegExp(`<@(${RequestService.UUID_PATTERN})>`, 'g');
+    const markdownRegex = new RegExp(`@\\[[^\\]]+\\]\\((${RequestService.UUID_PATTERN})\\)`, 'g');
+
+    const collect = (regex: RegExp): void => {
+      for (const match of body.matchAll(regex)) {
+        const id = match[1];
+        if (id) {
+          ids.add(id);
+        }
+      }
+    };
+
+    collect(inlineRegex);
+    collect(bracketRegex);
+    collect(markdownRegex);
+
+    if (ids.size === 0) {
+      return [];
+    }
+
+    const memberships = await this.prisma.membership.findMany({
+      where: {
+        tenantId,
+        userId: { in: [...ids] },
+        status: MembershipStatus.ACTIVE,
+        user: { status: UserStatus.ACTIVE },
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    return memberships.map((item) => item.userId);
   }
 
   private async findRequestById(
@@ -1235,9 +1443,15 @@ export class RequestService {
       [RequestStatus.TRIAGE]: [RequestStatus.ASSIGNED, RequestStatus.IN_PROGRESS, RequestStatus.CANCELLED],
       [RequestStatus.ASSIGNED]: [RequestStatus.TRIAGE, RequestStatus.IN_PROGRESS, RequestStatus.CANCELLED],
       [RequestStatus.IN_PROGRESS]: [
+        RequestStatus.WAITING_FOR_CUSTOMER,
         RequestStatus.WAITING_EXTERNAL_VENDOR,
         RequestStatus.RESOLVED,
         RequestStatus.ASSIGNED,
+        RequestStatus.CANCELLED,
+      ],
+      [RequestStatus.WAITING_FOR_CUSTOMER]: [
+        RequestStatus.IN_PROGRESS,
+        RequestStatus.RESOLVED,
         RequestStatus.CANCELLED,
       ],
       [RequestStatus.WAITING_EXTERNAL_VENDOR]: [
@@ -1305,6 +1519,12 @@ export class RequestService {
         (permissions.includes('request.escalate') || permissions.includes('request.resolve'));
     }
 
+    if (target === RequestStatus.WAITING_FOR_CUSTOMER) {
+      return (isTechnician || isOpsCoordinator || isTenantAdmin) &&
+        (permissions.includes('request.start_work') || permissions.includes('request.resolve')) &&
+        (canReadAll || isAssignee);
+    }
+
     if (target === RequestStatus.CANCELLED) {
       if (isTenantAdmin) {
         return true;
@@ -1358,6 +1578,7 @@ export class RequestService {
     if (
       status === RequestStatus.ASSIGNED ||
       status === RequestStatus.IN_PROGRESS ||
+      status === RequestStatus.WAITING_FOR_CUSTOMER ||
       status === RequestStatus.WAITING_EXTERNAL_VENDOR
     ) {
       return RequestStatus.TRIAGE;

@@ -93,6 +93,9 @@ export const CommentsPanel = forwardRef<CommentsPanelRef, {
           onCommentChange={setComment}
           onInternalChange={setIsInternalNote}
           onSubmit={handleSubmit}
+          requestCode={request.requestCode}
+          requesterName={request.requester.name}
+          assigneeName={request.assignee?.name ?? ""}
         />
       </Box>
     </SectionCard>

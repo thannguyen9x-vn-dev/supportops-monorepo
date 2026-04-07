@@ -1,58 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import type { ReportOverviewQuery } from "@supportops/types";
 
-import type { DashboardTransaction, SalesSummary } from "@supportops/types";
+import { reportService } from "../services/report.service";
 
-import { dashboardService } from "@/features/dashboard/services/dashboard.service";
-
-type LoadState = "loading" | "ready" | "error";
-
-export type ReportPeriod = "day" | "month" | "year";
-
-type ReportData = {
-  salesSummary: SalesSummary | null;
-  transactions: DashboardTransaction[];
-};
-
-const INITIAL_DATA: ReportData = {
-  salesSummary: null,
-  transactions: []
-};
-
-export function useReportData(period: ReportPeriod) {
-  const [loadState, setLoadState] = useState<LoadState>("loading");
-  const [data, setData] = useState<ReportData>(INITIAL_DATA);
-
-  const reload = useCallback(async () => {
-    setLoadState("loading");
-
-    try {
-      const [{ data: salesSummary }, { data: transactions }] = await Promise.all([
-        dashboardService.getSalesSummary(period),
-        dashboardService.getTransactions(1, 10)
-      ]);
-
-      setData({ salesSummary, transactions });
-      setLoadState("ready");
-    } catch {
-      setLoadState("error");
-    }
-  }, [period]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      void reload();
-    }, 0);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [reload]);
-
-  return {
-    data,
-    loadState,
-    reload
-  };
+export function useReportData(filters: ReportOverviewQuery) {
+  return useQuery({
+    queryKey: ["report-overview", filters],
+    queryFn: () => reportService.getOverview(filters),
+    staleTime: 5 * 60 * 1000,
+    enabled: Boolean(filters.from && filters.to),
+  });
 }

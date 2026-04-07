@@ -1,87 +1,116 @@
-import { Job } from 'bullmq';
 import { PrismaClient } from '@prisma/client';
-import { WorkerConfig } from './config';
-import { runEscalationCheck } from './jobs/escalation-check.job';
-import { runSlaCheck } from './jobs/sla-check.job';
-import { log } from './logger';
+import { Job, Queue, Worker } from 'bullmq';
+import { QUEUE_NAMES, redisConfig } from './config';
+import {
+  EmailImmediateJobData,
+  MailServiceLike,
+  processEmailDigestWorker,
+  processImmediateEmail,
+  RedisLike,
+} from './jobs/email-dispatch.job';
+import { runSlaCheckJob } from './jobs/sla-check.job';
 
-export type WorkerJobName = 'sla-check' | 'escalation-check';
-
-export type WorkerConnection = {
-  url: string;
-  maxRetriesPerRequest: null;
-  enableReadyCheck: false;
-};
-
-export const RECURRING_JOB_RETRY_OPTIONS = {
-  attempts: 3,
-  backoff: {
-    type: 'exponential' as const,
-    delay: 30_000,
-  },
-};
-
-export function createWorkerConnection(config: WorkerConfig): WorkerConnection {
-  return {
-    url: config.redisUrl,
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
+function createPlaceholderProcessor(queueName: string): (job: Job) => Promise<void> {
+  return async (job: Job): Promise<void> => {
+    console.info(`[worker] Placeholder processor for "${queueName}" received job ${String(job.id ?? '')}`);
   };
 }
 
-export async function processWorkerJob(job: Job, prisma: PrismaClient): Promise<void> {
-  if (job.name === 'sla-check') {
-    await runSlaCheck(prisma);
-    return;
-  }
-
-  if (job.name === 'escalation-check') {
-    await runEscalationCheck(prisma);
-    return;
-  }
-
-  log('WARN', 'Received unknown job name', { jobName: job.name });
+async function scheduleSlaCheck(queue: Queue): Promise<void> {
+  await queue.add('sla-check', {}, { repeat: { every: 60_000 }, jobId: 'sla-check-recurring' });
 }
 
-type QueueLike = {
-  add: (
-    name: WorkerJobName,
-    data: Record<string, never>,
-    options: {
-      jobId: WorkerJobName;
-      repeat: { every: number };
-      removeOnComplete: number;
-      removeOnFail: number;
-      attempts: number;
-      backoff: { type: 'exponential'; delay: number };
+function createRedisAdapter(queue: Queue): RedisLike {
+  return {
+    async get(key: string): Promise<string | null> {
+      const client = await queue.client;
+      return client.get(key);
     },
-  ) => Promise<unknown>;
-};
+    async set(key: string, value: string, options?: { exSeconds?: number; keepTtl?: boolean }): Promise<void> {
+      const client = await queue.client;
+      if (options?.exSeconds) {
+        await client.set(key, value, 'EX', options.exSeconds);
+        return;
+      }
+      if (options?.keepTtl) {
+        await client.set(key, value, 'KEEPTTL');
+        return;
+      }
+      await client.set(key, value);
+    },
+    async del(key: string): Promise<void> {
+      const client = await queue.client;
+      await client.del(key);
+    },
+    async incr(key: string): Promise<number> {
+      const client = await queue.client;
+      return client.incr(key);
+    },
+    async expire(key: string, seconds: number): Promise<void> {
+      const client = await queue.client;
+      await client.expire(key, seconds);
+    },
+  };
+}
 
-export async function upsertRecurringJobs(queue: QueueLike, config: WorkerConfig): Promise<void> {
-  const jobs: Array<{ name: WorkerJobName; everyMs: number }> = [
-    { name: 'sla-check', everyMs: config.slaCheckEveryMs },
-    { name: 'escalation-check', everyMs: config.escalationCheckEveryMs },
-  ];
+function createMailService(): MailServiceLike {
+  return {
+    async send(payload: { to: string; subject: string; html: string }): Promise<void> {
+      void payload.html;
+      console.info(`[worker] Email dispatched to ${payload.to}: ${payload.subject}`);
+    },
+  };
+}
 
-  for (const job of jobs) {
-    await queue.add(
-      job.name,
-      {},
-      {
-        jobId: job.name,
-        repeat: { every: job.everyMs },
-        removeOnComplete: 100,
-        removeOnFail: 100,
-        ...RECURRING_JOB_RETRY_OPTIONS,
-      },
-    );
-  }
+export function startWorkers(): Worker[] {
+  const connection = redisConfig;
+  const prisma = new PrismaClient();
+  const workers: Worker[] = [];
+  const notificationQueue = new Queue(QUEUE_NAMES.NOTIFICATION_FANOUT, { connection });
+  const slaQueue = new Queue(QUEUE_NAMES.SLA_MONITOR, { connection });
+  const digestQueue = new Queue(QUEUE_NAMES.EMAIL_DIGEST, { connection });
+  const redis = createRedisAdapter(digestQueue);
+  const mailService = createMailService();
 
-  log('INFO', 'Recurring jobs scheduled', {
-    queueName: config.queueName,
-    slaCheckEveryMs: config.slaCheckEveryMs,
-    escalationCheckEveryMs: config.escalationCheckEveryMs,
-    ...RECURRING_JOB_RETRY_OPTIONS,
+  void scheduleSlaCheck(slaQueue).catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[worker] Failed to schedule recurring SLA check: ${message}`);
   });
+
+  workers.push(
+    new Worker(
+      QUEUE_NAMES.SLA_MONITOR,
+      async (job: Job) => {
+        if (job.name === 'sla-check') {
+          await runSlaCheckJob(prisma, notificationQueue);
+          return;
+        }
+
+        await createPlaceholderProcessor(QUEUE_NAMES.SLA_MONITOR)(job);
+      },
+      { connection },
+    ),
+  );
+
+  workers.push(
+    new Worker(
+      QUEUE_NAMES.EMAIL_IMMEDIATE,
+      async (job: Job) => {
+        await processImmediateEmail(job.data as EmailImmediateJobData, { redis, mailService });
+      },
+      { connection },
+    ),
+  );
+
+  workers.push(
+    new Worker(
+      QUEUE_NAMES.EMAIL_DIGEST,
+      async (job: Job) => {
+        await processEmailDigestWorker(job, { redis, mailService, digestQueue });
+      },
+      { connection },
+    ),
+  );
+
+  return workers;
 }

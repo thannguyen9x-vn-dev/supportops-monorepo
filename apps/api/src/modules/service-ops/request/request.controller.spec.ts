@@ -14,6 +14,9 @@ describe('RequestController', () => {
     addWorkLog: jest.fn(),
     assign: jest.fn(),
     unassign: jest.fn(),
+    watchRequest: jest.fn(),
+    unwatchRequest: jest.fn(),
+    getWatchers: jest.fn(),
   };
 
   let controller: RequestController;
@@ -50,10 +53,16 @@ describe('RequestController', () => {
     await controller.addWorkLog('t1', 'u1', ['request.start_work'], 'r1', { content: 'fixing' } as any);
     await controller.assign('t1', 'u1', ['request.assign'], 'r1', { assigneeId: 'u2' } as any);
     await controller.unassign('t1', 'u1', ['request.assign'], 'r1');
+    await controller.watch('t1', 'u1', 'r1');
+    await controller.unwatch('t1', 'u1', 'r1');
+    await controller.listWatchers('t1', 'r1');
 
     expect(service.addComment).toHaveBeenCalled();
     expect(service.addWorkLog).toHaveBeenCalled();
     expect(service.assign).toHaveBeenCalledWith('t1', 'u1', ['request.assign'], 'r1', { assigneeId: 'u2' });
     expect(service.unassign).toHaveBeenCalledWith('t1', 'u1', ['request.assign'], 'r1');
+    expect(service.watchRequest).toHaveBeenCalledWith('t1', 'u1', 'r1');
+    expect(service.unwatchRequest).toHaveBeenCalledWith('t1', 'u1', 'r1');
+    expect(service.getWatchers).toHaveBeenCalledWith('t1', 'r1');
   });
 });

@@ -43,6 +43,17 @@ export class RequestCommentAddedEvent {
   ) {}
 }
 
+export class RequestMentionedEvent {
+  constructor(
+    public readonly tenantId: string,
+    public readonly requestId: string,
+    public readonly actorId: string,
+    public readonly body: string,
+    public readonly commentId: string,
+    public readonly mentionedUserIds: string[],
+  ) {}
+}
+
 export class RequestWorkLogAddedEvent {
   constructor(
     public readonly tenantId: string,

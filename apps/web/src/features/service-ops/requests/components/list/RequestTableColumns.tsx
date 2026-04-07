@@ -7,6 +7,7 @@ import type { EntityColumnDef } from "@/components/entity-table";
 
 import type { RequestListItem, RequestPriority, SlaHealth } from "./request-list.types";
 import { RequestRowActions } from "./RequestRowActions";
+import { SlaStateChip } from "../shared/SlaStateChip";
 
 function StatusBadge({ value }: { value: RequestListItem["status"] }) {
   const t = useTranslations("pages.requests.list");
@@ -16,6 +17,7 @@ function StatusBadge({ value }: { value: RequestListItem["status"] }) {
     TRIAGE: "warning",
     ASSIGNED: "info",
     IN_PROGRESS: "success",
+    WAITING_FOR_CUSTOMER: "warning",
     WAITING_EXTERNAL_VENDOR: "warning",
     RESOLVED: "success",
     CLOSED: "default",
@@ -64,6 +66,11 @@ function SlaBadge({ value }: { value: SlaHealth }) {
 
 export function useRequestTableColumns(locale: string, onActionCompleted?: () => void) {
   const t = useTranslations("pages.requests.list");
+  const mapSlaHealthToState = (health: SlaHealth) => {
+    if (health === "Overdue") return "BREACHED" as const;
+    if (health === "At Risk") return "NEAR_BREACH" as const;
+    return "ON_TRACK" as const;
+  };
 
   return useMemo<EntityColumnDef<RequestListItem>[]>(() => [
     { accessorKey: "requestCode", header: t("columns.requestCode"), size: 160, minSize: 120, maxSize: 280, sortable: true, hideable: false },
@@ -71,6 +78,13 @@ export function useRequestTableColumns(locale: string, onActionCompleted?: () =>
     { accessorKey: "serviceType", header: t("columns.serviceType"), cell: ({ row }) => row.original.serviceType, sortable: true, hideable: true },
     { accessorKey: "status", header: t("columns.status"), cell: ({ row }) => <StatusBadge value={row.original.status} />, sortable: true, hideable: true },
     { accessorKey: "priority", header: t("columns.priority"), cell: ({ row }) => <PriorityBadge value={row.original.priority} />, sortable: true, hideable: true },
+    {
+      id: "slaIndicator",
+      header: t("columns.slaHealth"),
+      cell: ({ row }) => <SlaStateChip state={mapSlaHealthToState(row.original.slaHealth)} />,
+      sortable: false,
+      hideable: true,
+    },
     {
       accessorKey: "assignee",
       header: t("columns.assignee"),

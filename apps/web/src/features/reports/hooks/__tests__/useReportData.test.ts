@@ -1,73 +1,114 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { createElement } from "react";
 
-jest.mock("@/features/dashboard/services/dashboard.service", () => ({
-  dashboardService: {
-    getSalesSummary: jest.fn(),
-    getTransactions: jest.fn(),
+jest.mock("../../services/report.service", () => ({
+  reportService: {
+    getOverview: jest.fn(),
   },
 }));
 
-import { dashboardService } from "@/features/dashboard/services/dashboard.service";
+import type { ReportOverview } from "@supportops/types";
+
+import { reportService } from "../../services/report.service";
 import { useReportData } from "../useReportData";
 
+function createWrapper(queryClient: QueryClient) {
+  function QueryWrapper({ children }: { children: ReactNode }) {
+    return createElement(QueryClientProvider, { client: queryClient }, children);
+  }
+
+  QueryWrapper.displayName = "QueryWrapper";
+  return QueryWrapper;
+}
+
+const reportSample: ReportOverview = {
+  summary: {
+    totalRequests: 10,
+    openRequests: 4,
+    resolvedRequests: 6,
+    closedRequests: 6,
+    slaComplianceRate: 0.873,
+    slaBreachCount: 2,
+    slaBreachActiveCount: 1,
+    avgFirstResponseMinutes: 45,
+    avgResolutionMinutes: 180,
+  },
+  byStatus: [
+    { status: "OPEN", count: 4 },
+    { status: "RESOLVED", count: 6 },
+  ],
+  byPriority: [{ priority: "HIGH", count: 2 }],
+  byServiceType: [{ serviceTypeCode: "it", serviceTypeName: "IT", count: 10 }],
+  volumeTrend: [{ date: "2026-03-01", created: 3, resolved: 2 }],
+};
+
 describe("useReportData", () => {
-  const getSalesSummary = dashboardService.getSalesSummary as jest.Mock;
-  const getTransactions = dashboardService.getTransactions as jest.Mock;
+  const getOverviewMock = reportService.getOverview as jest.Mock;
 
   beforeEach(() => {
-    jest.useFakeTimers();
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
+  it("does not call API when from/to are missing", async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    renderHook(() => useReportData({ from: "", to: "" }), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    await waitFor(() => {
+      expect(getOverviewMock).not.toHaveBeenCalled();
+    });
   });
 
-  it("loads report data", async () => {
-    getSalesSummary.mockResolvedValue({ data: { dataPoints: [{ label: "A", templates: 1, invoicing: 2 }] } });
-    getTransactions.mockResolvedValue({ data: [{ id: "txn-1" }] });
-
-    const { result } = renderHook(() => useReportData("month"));
-
-    await act(async () => {
-      jest.runAllTimers();
+  it("loads report data when filters are valid", async () => {
+    getOverviewMock.mockResolvedValue(reportSample);
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
     });
 
-    await waitFor(() => expect(result.current.loadState).toBe("ready"));
-    expect(getSalesSummary).toHaveBeenCalledWith("month");
-    expect(result.current.data.transactions[0]?.id).toBe("txn-1");
+    const { result } = renderHook(
+      () => useReportData({ from: "2026-03-01", to: "2026-03-31" }),
+      { wrapper: createWrapper(queryClient) }
+    );
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(getOverviewMock).toHaveBeenCalledWith({ from: "2026-03-01", to: "2026-03-31" });
+    expect(result.current.data?.summary.totalRequests).toBe(10);
   });
 
-  it("sets error state when fetch fails", async () => {
-    getSalesSummary.mockRejectedValue(new Error("boom"));
-    getTransactions.mockResolvedValue({ data: [] });
+  it("reuses cache for 5 minutes", async () => {
+    getOverviewMock.mockResolvedValue(reportSample);
 
-    const { result } = renderHook(() => useReportData("day"));
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const wrapper = createWrapper(queryClient);
 
-    await act(async () => {
-      jest.runAllTimers();
+    const first = renderHook(() => useReportData({ from: "2026-03-01", to: "2026-03-31" }), {
+      wrapper,
     });
 
-    await waitFor(() => expect(result.current.loadState).toBe("error"));
-  });
+    await waitFor(() => {
+      expect(first.result.current.isSuccess).toBe(true);
+    });
+    first.unmount();
 
-  it("reload resets loading then ready", async () => {
-    getSalesSummary.mockResolvedValue({ data: { dataPoints: [] } });
-    getTransactions.mockResolvedValue({ data: [] });
-
-    const { result } = renderHook(() => useReportData("year"));
-
-    await act(async () => {
-      jest.runAllTimers();
+    const second = renderHook(() => useReportData({ from: "2026-03-01", to: "2026-03-31" }), {
+      wrapper,
     });
 
-    await waitFor(() => expect(result.current.loadState).toBe("ready"));
-
-    await act(async () => {
-      await result.current.reload();
+    await waitFor(() => {
+      expect(second.result.current.isSuccess).toBe(true);
     });
 
-    expect(result.current.loadState).toBe("ready");
-    expect(getSalesSummary).toHaveBeenCalledTimes(2);
+    expect(getOverviewMock).toHaveBeenCalledTimes(1);
   });
 });

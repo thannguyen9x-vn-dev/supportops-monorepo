@@ -11,6 +11,12 @@ node_modules
 **/.next/
 **/next-env.d.ts
 
+# Local AI tooling settings
+.claude/settings.json
+
+# Generated test artifacts for published type package
+packages/types/dist/__tests__/
+
 # Local file storage - never commit uploaded files
 apps/api/storage/uploads/
 apps/api/storage/avatars/

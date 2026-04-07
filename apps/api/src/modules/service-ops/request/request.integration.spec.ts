@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { SlaService } from '../sla/sla.service';
 import { RequestController } from './request.controller';
 import { RequestService } from './request.service';
 
@@ -21,6 +22,7 @@ describe('RequestModule Integration', () => {
           },
         },
         { provide: EventEmitter2, useValue: { emitAsync: jest.fn() } },
+        { provide: SlaService, useValue: { pauseSla: jest.fn(), resumeSla: jest.fn() } },
       ],
     }).compile();
   });

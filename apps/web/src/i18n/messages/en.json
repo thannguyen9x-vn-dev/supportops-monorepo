@@ -170,8 +170,11 @@
     "settings": "Settings",
     "requests": "Requests",
     "assets": "Assets",
+    "knowledgeBase": "Knowledge Base",
     "workflowConfig": "Workflow Config",
+    "notificationSettings": "Notifications",
     "slaPolicy": "SLA Policy",
+    "cannedResponses": "Canned Responses",
     "serviceTypes": "Service Types"
   },
   "header": {
@@ -198,6 +201,120 @@
     "settings": "Settings",
     "updatePassword": "Update password",
     "signOut": "Sign out"
+  },
+  "notifications": {
+    "ariaLabel": "Notifications",
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "loadMore": "Load more",
+    "empty": "No notifications",
+    "emptyUnread": "No unread notifications",
+    "tabs": {
+      "all": "All",
+      "unread": "Unread"
+    },
+    "eventType": {
+      "REQUEST_CREATED": "New request created",
+      "REQUEST_ASSIGNED": "Request assigned to you",
+      "REQUEST_STATUS_CHANGED": "Request status updated",
+      "REQUEST_COMMENTED": "New comment on request",
+      "REQUEST_MENTIONED": "You were mentioned",
+      "SLA_NEAR_BREACH_RESPONSE": "SLA response deadline approaching",
+      "SLA_NEAR_BREACH_RESOLUTION": "SLA resolution deadline approaching"
+    }
+  },
+  "notificationPreferences": {
+    "title": "Notification Preferences",
+    "subtitle": "Choose how you want to be notified",
+    "columns": {
+      "event": "Event",
+      "inApp": "In-App",
+      "email": "Email"
+    },
+    "events": {
+      "REQUEST_CREATED": "New request created",
+      "REQUEST_ASSIGNED": "Request assigned to you",
+      "REQUEST_STATUS_CHANGED": "Request status changed",
+      "REQUEST_COMMENTED": "New comment",
+      "REQUEST_MENTIONED": "Mentioned in comment",
+      "SLA_NEAR_BREACH_RESPONSE": "SLA response near breach",
+      "SLA_NEAR_BREACH_RESOLUTION": "SLA resolution near breach"
+    },
+    "save": "Save Changes",
+    "saved": "Preferences saved"
+  },
+  "knowledgeBase": {
+    "title": "Knowledge Base",
+    "new": "New Article",
+    "search": "Search articles...",
+    "statusLabel": "Status",
+    "status": {
+      "DRAFT": "Draft",
+      "PUBLISHED": "Published"
+    },
+    "picker": {
+      "title": "Insert Knowledge Base Article",
+      "placeholder": "Search by title or keyword...",
+      "empty": "No articles found"
+    },
+    "form": {
+      "title": "Title",
+      "body": "Content",
+      "category": "Category",
+      "tags": "Tags",
+      "saveDraft": "Save as Draft",
+      "publish": "Publish"
+    }
+  },
+  "cannedResponses": {
+    "title": "Canned Responses",
+    "new": "New Canned Response",
+    "edit": "Edit Canned Response",
+    "titleField": "Title",
+    "shortcut": "Shortcut",
+    "shortcutHint": "Type /shortcut in comments to use",
+    "shortcutInvalid": "Use only a-z, 0-9, _ or -",
+    "category": "Category",
+    "tags": "Tags",
+    "body": "Response Content",
+    "cancel": "Cancel",
+    "save": "Save",
+    "picker": {
+      "placeholder": "Type to search...",
+      "empty": "No matching responses"
+    },
+    "variables": {
+      "hint": "Available variables: {{requester_name}}, {{request_code}}, {{assignee_name}}"
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "overview": "Overview",
+    "filters": {
+      "from": "From",
+      "to": "To",
+      "assignee": "Assignee",
+      "apply": "Apply",
+      "maxRangeHint": "Maximum range: 90 days"
+    },
+    "summary": {
+      "totalRequests": "Total Requests",
+      "openRequests": "Open",
+      "resolvedRequests": "Resolved",
+      "slaCompliance": "SLA Compliance",
+      "slaBreached": "SLA Breached",
+      "avgFirstResponse": "Avg First Response",
+      "avgResolution": "Avg Resolution"
+    },
+    "charts": {
+      "volumeByStatus": "Volume by Status",
+      "trend": "Request Trend",
+      "created": "Created",
+      "resolved": "Resolved",
+      "byServiceType": "By Service Type"
+    },
+    "empty": "No requests in this period",
+    "error": "Failed to load report data"
   },
   "pages": {
     "dashboardComingSoon": "Dashboard - coming soon",
@@ -332,6 +449,7 @@
           "TRIAGE": "Triage",
           "ASSIGNED": "Assigned",
           "IN_PROGRESS": "In Progress",
+          "WAITING_FOR_CUSTOMER": "Waiting for customer",
           "RESOLVED": "Resolved",
           "CLOSED": "Closed",
           "WAITING_EXTERNAL_VENDOR": "Waiting External Vendor",
@@ -413,6 +531,7 @@
           "TRIAGE": "Triage",
           "ASSIGNED": "Assigned",
           "IN_PROGRESS": "In progress",
+          "WAITING_FOR_CUSTOMER": "Waiting for customer",
           "WAITING_EXTERNAL_VENDOR": "Waiting vendor",
           "RESOLVED": "Resolved",
           "CLOSED": "Closed",
@@ -428,6 +547,17 @@
         },
         "assignment": {
           "assigneeRole": "Assignee"
+        },
+        "sla": {
+          "title": "SLA",
+          "assignment": "Assignment SLA",
+          "resolution": "Resolution SLA",
+          "breached": "SLA Breached",
+          "nearBreach": "Near breach",
+          "paused": "SLA paused",
+          "minutesLeft": "{minutes}m remaining",
+          "hoursLeft": "{hours}h {minutes}m remaining",
+          "pausedReason": "Waiting for customer response"
         },
         "assignDialog": {
           "titleAssign": "Assign request",
@@ -1189,6 +1319,22 @@
           }
         }
       }
+    },
+    "ai": {
+      "title": "AI Assistant Settings",
+      "description": "Choose the default AI model for the AI Assistant in your dashboard. You can also override it per-session in the chat panel.",
+      "modelHelperText": "This model will be used by default when opening a new chat session.",
+      "save": "Save",
+      "saving": "Saving...",
+      "saveSuccess": "AI settings saved successfully.",
+      "nav": "AI Assistant"
     }
+  },
+  "aiAssistant": {
+    "title": "AI Assistant",
+    "clearConversation": "Clear conversation",
+    "emptyState": "Ask me anything about your operational data — request volume, SLA health, team performance, and more.",
+    "inputPlaceholder": "Ask about your data...",
+    "thinking": "Thinking..."
   }
 }
