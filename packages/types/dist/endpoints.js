@@ -1,5 +1,6 @@
 import { CORE_ENDPOINTS } from "./core/endpoints";
-import { SERVICE_OPS_ENDPOINTS } from "./service-ops/endpoints";
+import { AI_ENDPOINTS, SERVICE_OPS_ENDPOINTS } from "./service-ops/endpoints";
+export { AI_ENDPOINTS };
 export const LEGACY_ENDPOINTS = {
     AUTH: {
         LOGIN: "/auth/login",

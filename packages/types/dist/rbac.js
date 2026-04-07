@@ -20,6 +20,8 @@ export const RBAC_PERMISSIONS = {
     SLA_MANAGE: "sla.manage",
     ROLE_MANAGE: "role.manage",
     AUDIT_READ: "audit.read",
+    REPORT_READ: "report.read",
+    AI_ASK: "ai.ask",
 };
 export const ROLE_PERMISSION_MATRIX = {
     EMPLOYEE: [

@@ -1319,6 +1319,22 @@
           }
         }
       }
+    },
+    "ai": {
+      "title": "Cài đặt AI Assistant",
+      "description": "Chọn model AI mặc định cho AI Assistant trong dashboard. Bạn có thể thay đổi theo từng phiên chat trong chat panel.",
+      "modelHelperText": "Model này sẽ được sử dụng mặc định khi mở phiên chat mới.",
+      "save": "Lưu",
+      "saving": "Đang lưu...",
+      "saveSuccess": "Đã lưu cài đặt AI thành công.",
+      "nav": "AI Assistant"
     }
+  },
+  "aiAssistant": {
+    "title": "AI Assistant",
+    "clearConversation": "Xóa cuộc hội thoại",
+    "emptyState": "Hỏi tôi về dữ liệu vận hành của bạn — số lượng request, tình trạng SLA, hiệu suất đội nhóm và nhiều hơn nữa.",
+    "inputPlaceholder": "Hỏi về dữ liệu của bạn...",
+    "thinking": "Đang suy nghĩ..."
   }
 }
