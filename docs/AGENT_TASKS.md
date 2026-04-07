@@ -1012,3 +1012,36 @@ pnpm --filter @supportops/api build         # nếu sửa backend
 - [ ] AC-007: Tenant isolation A/B verify bằng JWT thực tế (đã giữ thiết kế x-tenant-id từ proxy + query theo tenant, chưa chạy test tích hợp A/B)
 - [x] AC-008: Filename đúng format report_{from_date}_{to_date}.{ext} (đã implement ở Python router)
 - [x] AC-009: 0 records vẫn trả file hợp lệ (exporters xử lý fallback no-data, không crash trong smoke unit)
+
+### AC-IMP — Bulk Import Service Requests (REQ-00005)
+- [x] AC-001: EMPLOYEE không thể gọi import API (guard + permission `request.import` được áp dụng cho import endpoints)
+- [x] AC-002: OPS_COORDINATOR và TENANT_ADMIN thấy nút "Import" trên Requests List (đã verify qua `ImportRequestButton.test.tsx`)
+- [x] AC-003: Download template CSV có đúng columns + 1 row ví dụ (đã verify trong `RequestImportService.downloadTemplate`)
+- [x] AC-004: Upload CSV hợp lệ hiển thị preview table (đã verify qua hook/component tests cho trạng thái `preview_ready`)
+- [x] AC-005: Row serviceTypeCode không hợp lệ được highlight đỏ trong preview (đã verify qua worker + preview table tests)
+- [x] AC-006: Confirm import tạo rows hợp lệ với đúng tenantId từ JWT/job payload (đã verify qua worker + import service tests)
+- [x] AC-007: Import result modal hiển thị số thành công/thất bại (đã verify qua `ImportResultStep.test.tsx`)
+- [x] AC-008: File > 5MB bị reject trước upload (đã verify qua `ImportUploadStep.test.tsx`)
+- [x] AC-009: `POST /requests/bulk` với items hợp lệ trả `created > 0, failed = 0` (đã verify qua `request-bulk.service.spec.ts`)
+- [x] AC-010: Bulk item thiếu dữ liệu bị fail, item khác vẫn được tạo (đã verify qua `request-bulk.service.spec.ts`)
+- [x] AC-011: Upload file trả `{ jobId, status: "queued" }` ngay (đã verify qua `request-import.service.spec.ts`)
+- [x] AC-011b: Worker xử lý async và ghi notification completion (đã verify qua `import-requests.job.spec.ts`)
+- [x] AC-011c: Import audit log ghi nhận userId, tenantId, timestamp, counts (đã verify qua service/worker tests)
+- [x] AC-012: `pnpm typecheck` pass toàn monorepo
+- [x] AC-013: `pnpm lint` pass toàn monorepo
+- [x] AC-014: i18n import text có trong `en.json` và `vi.json`
+
+### AC-PYTEST — Python Test Suite AI Service (REQ-00006)
+- [x] AC-001: Chạy `pytest` từ `apps/ai-service/` -> 0 failures, 0 errors (`38 passed`)
+- [x] AC-002: Coverage >= 80% với `pytest --cov --cov-fail-under=80` (`80.42%`)
+- [x] AC-003: Không có test nào thực hiện external HTTP call (network bị chặn trong `tests/conftest.py`)
+- [x] AC-004: Không có test nào kết nối PostgreSQL thật (chặn `asyncpg.create_pool`, chỉ dùng mocked pool/connection)
+- [x] AC-005: Toàn bộ test suite chạy < 10 giây (local runtime ~0.72s cho `pytest -v`)
+- [x] AC-006: `pytest.ini` có `asyncio_mode = auto`
+- [x] AC-007: `requirements.txt` có đủ test dependencies: `pytest`, `pytest-asyncio`, `pytest-mock`, `httpx`, `pytest-cov`
+- [x] AC-008: `tests/conftest.py` có reusable fixtures cho mock DB pool, mock adapters, async client
+- [x] AC-009: Adapter tests verify `MAX_ITERATIONS = 5` cho Anthropic và OpenAI
+- [x] AC-010: Router tests verify tenant isolation từ header `x-tenant-id` vào query layer
+- [x] AC-011: Startup/shutdown tests cho `main.py` đã cover các nhánh success/failure bắt buộc
+- [x] AC-012: GitHub Actions đã thêm job `ai-service-tests` chạy pytest + coverage gate 80%
+- [x] AC-013: Hardening adapter mocks bằng shared factories trong `tests/_sdk_fakes/*`

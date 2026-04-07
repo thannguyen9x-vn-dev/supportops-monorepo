@@ -19,12 +19,12 @@ describe('NotificationPreferenceService', () => {
     service = new NotificationPreferenceService(prisma as unknown as PrismaService);
   });
 
-  it('getPreferences returns all 7 event types when user has no rows', async () => {
+  it('getPreferences returns all event types when user has no rows', async () => {
     prisma.notificationPreference.findMany.mockResolvedValue([]);
 
     const result = await service.getPreferences('t1', 'u1');
 
-    expect(result).toHaveLength(7);
+    expect(result).toHaveLength(Object.values(NotificationEventType).length);
     expect(result.every((item) => item.inApp === true && item.email === true)).toBe(true);
   });
 

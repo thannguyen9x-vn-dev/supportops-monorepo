@@ -514,7 +514,46 @@
           "previous": "Trang trước",
           "next": "Trang sau"
         },
-        "emptyState": "Không có yêu cầu phù hợp với bộ lọc hiện tại."
+        "emptyState": "Không có yêu cầu phù hợp với bộ lọc hiện tại.",
+        "import": {
+          "button": "Import",
+          "modal": {
+            "title": "Import Service Requests"
+          },
+          "upload": {
+            "title": "Tải lên file CSV hoặc Excel",
+            "hint": "Tối đa 5MB · 500 dòng · CSV hoặc .xlsx",
+            "downloadTemplate": "Tải template"
+          },
+          "processing": {
+            "title": "Đang xử lý import...",
+            "hint": "Bạn sẽ nhận thông báo khi hoàn tất."
+          },
+          "result": {
+            "success": "{count} requests đã được tạo thành công",
+            "errors": "{count} dòng lỗi",
+            "errorDetail": "Dòng {row}: {message}"
+          },
+          "preview": {
+            "title": "Xem trước trước khi import",
+            "validRows": "{count} dòng sẵn sàng import",
+            "errorRows": "{count} dòng lỗi (sẽ bị bỏ qua)",
+            "warningRows": "{count} dòng có thể trùng lặp",
+            "duplicateInFile": "Dòng trùng lặp trong file này",
+            "duplicateRecent": "Request tương tự đã được tạo trong 24 giờ qua",
+            "confirmButton": "Import {count} dòng",
+            "type": "Loại",
+            "message": "Chi tiết",
+            "include": "Bao gồm",
+            "error": "Lỗi",
+            "warning": "Cảnh báo"
+          },
+          "error": {
+            "fileTooLarge": "File phải dưới 5MB",
+            "invalidFormat": "Chỉ chấp nhận file .csv và .xlsx",
+            "reporterNotFound": "Email '{email}' không phải thành viên của tenant"
+          }
+        }
       },
       "detail": {
         "header": {

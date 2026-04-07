@@ -5,6 +5,7 @@ export var NotificationEventType;
     NotificationEventType["REQUEST_STATUS_CHANGED"] = "REQUEST_STATUS_CHANGED";
     NotificationEventType["REQUEST_COMMENTED"] = "REQUEST_COMMENTED";
     NotificationEventType["REQUEST_MENTIONED"] = "REQUEST_MENTIONED";
+    NotificationEventType["BULK_IMPORT_COMPLETED"] = "BULK_IMPORT_COMPLETED";
     NotificationEventType["SLA_NEAR_BREACH_RESPONSE"] = "SLA_NEAR_BREACH_RESPONSE";
     NotificationEventType["SLA_NEAR_BREACH_RESOLUTION"] = "SLA_NEAR_BREACH_RESOLUTION";
 })(NotificationEventType || (NotificationEventType = {}));

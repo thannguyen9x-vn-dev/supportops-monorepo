@@ -6,5 +6,5 @@ const AI_MODEL_IDS = ['claude-sonnet-4-20250514', 'claude-opus-4-20250514', 'gpt
 export class UpdateAiSettingsDto {
   @ApiProperty({ enum: AI_MODEL_IDS })
   @IsEnum(AI_MODEL_IDS)
-  defaultModel!: string;
+  defaultModel!: (typeof AI_MODEL_IDS)[number];
 }

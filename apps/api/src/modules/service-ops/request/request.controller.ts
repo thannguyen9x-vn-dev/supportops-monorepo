@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   Param,
@@ -10,16 +11,27 @@ import {
   Patch,
   Post,
   Query,
+  Res,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { memoryStorage } from 'multer';
+import type { Response } from 'express';
 import { CurrentPermissions } from '../../../common/decorators/current-permissions.decorator';
 import { CurrentTenant } from '../../../common/decorators/current-tenant.decorator';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Permissions } from '../../../common/decorators/permissions.decorator';
+import type { UploadedBinaryFile } from '../../../common/types/uploaded-file.type';
 import { AssignRequestDto } from './dto/assign-request.dto';
+import { BulkCreateRequestDto } from './dto/bulk-create-request.dto';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { CreateRequestCommentDto } from './dto/create-request-comment.dto';
 import { CreateRequestWorkLogDto } from './dto/create-request-work-log.dto';
+import { ImportConfirmDto } from './dto/import-confirm.dto';
+import { ImportJobStatusResponseDto } from './dto/import-job-status-response.dto';
 import { RequestAssigneeResponseDto } from './dto/request-assignee-response.dto';
 import { RequestCommentResponseDto } from './dto/request-comment-response.dto';
 import { RequestCommentQueryDto } from './dto/request-comment-query.dto';
@@ -31,13 +43,19 @@ import { RequestWorkLogResponseDto } from './dto/request-work-log-response.dto';
 import { UpdateRequestStatusDto } from './dto/update-request-status.dto';
 import { WatchRequestResponseDto } from './dto/watch-request-response.dto';
 import { WatcherListResponseDto } from './dto/watcher-list-response.dto';
+import { RequestBulkService } from './request-bulk.service';
+import { RequestImportService } from './request-import.service';
 import { RequestService } from './request.service';
 
 @ApiTags('Service Requests')
 @ApiBearerAuth()
 @Controller('requests')
 export class RequestController {
-  constructor(private readonly requestService: RequestService) {}
+  constructor(
+    private readonly requestService: RequestService,
+    private readonly requestImportService: RequestImportService,
+    private readonly requestBulkService: RequestBulkService,
+  ) {}
 
   @Get()
   @Permissions({ any: ['request.read.all', 'request.read.own'] })
@@ -80,6 +98,81 @@ export class RequestController {
   @ApiOperation({ summary: 'List active request assignees in current tenant' })
   listAssignees(@CurrentTenant() tenantId: string): Promise<RequestAssigneeResponseDto[]> {
     return this.requestService.listAssignees(tenantId);
+  }
+
+  @Get('import/template')
+  @Permissions({ all: ['request.import'] })
+  @ApiOperation({ summary: 'Download import template (CSV/XLSX)' })
+  @Header('Content-Disposition', 'attachment')
+  async downloadTemplate(
+    @CurrentTenant() tenantId: string,
+    @Query('format') format: 'csv' | 'xlsx' = 'csv',
+    @Res() res: Response,
+  ): Promise<void> {
+    const normalizedFormat = format === 'xlsx' ? 'xlsx' : 'csv';
+    const buffer = await this.requestImportService.downloadTemplate(tenantId, normalizedFormat);
+    res.setHeader(
+      'Content-Type',
+      normalizedFormat === 'xlsx'
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'text/csv',
+    );
+    res.send(buffer);
+  }
+
+  @Post('import/upload')
+  @Permissions({ all: ['request.import'] })
+  @ApiOperation({ summary: 'Upload import file and enqueue import job' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+      required: ['file'],
+    },
+  })
+  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
+  async uploadImportFile(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser('sub') userId: string,
+    @UploadedFile() file?: UploadedBinaryFile,
+  ) {
+    return this.requestImportService.uploadAndEnqueue(tenantId, userId, file);
+  }
+
+  @Get('import/jobs/:jobId')
+  @Permissions({ all: ['request.import'] })
+  @ApiOperation({ summary: 'Get import job status' })
+  getImportJobStatus(
+    @CurrentTenant() tenantId: string,
+    @Param('jobId', ParseUUIDPipe) jobId: string,
+  ): Promise<ImportJobStatusResponseDto> {
+    return this.requestImportService.getJobStatus(tenantId, jobId);
+  }
+
+  @Post('import/jobs/:jobId/confirm')
+  @Permissions({ all: ['request.import'] })
+  @ApiOperation({ summary: 'Confirm import job and enqueue phase 2' })
+  confirmImport(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser('sub') userId: string,
+    @Param('jobId', ParseUUIDPipe) jobId: string,
+    @Body() dto: ImportConfirmDto,
+  ) {
+    return this.requestImportService.confirmJob(tenantId, userId, jobId, dto);
+  }
+
+  @Post('bulk')
+  @Permissions({ all: ['request.import'] })
+  @ApiOperation({ summary: 'Create service requests in bulk (JSON)' })
+  bulkCreate(
+    @CurrentTenant() tenantId: string,
+    @CurrentUser('sub') userId: string,
+    @Body() dto: BulkCreateRequestDto,
+  ) {
+    return this.requestBulkService.bulkCreate(tenantId, userId, dto);
   }
 
   @Get(':id')

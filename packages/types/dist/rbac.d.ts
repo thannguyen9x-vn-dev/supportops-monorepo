@@ -16,6 +16,7 @@ export declare const RBAC_PERMISSIONS: {
     readonly REQUEST_CLOSE: "request.close";
     readonly REQUEST_REOPEN: "request.reopen";
     readonly REQUEST_ESCALATE: "request.escalate";
+    readonly REQUEST_IMPORT: "request.import";
     readonly COMMENT_CREATE_PUBLIC: "comment.create.public";
     readonly COMMENT_CREATE_INTERNAL: "comment.create.internal";
     readonly COMMENT_READ_INTERNAL: "comment.read.internal";

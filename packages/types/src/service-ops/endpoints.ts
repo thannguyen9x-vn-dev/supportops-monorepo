@@ -13,6 +13,11 @@ export const SERVICE_OPS_ENDPOINTS = {
     UNASSIGN: (id: string) => `/requests/${id}/unassign`,
     COMMENTS: (id: string) => `/requests/${id}/comments`,
     WORK_LOG: (id: string) => `/requests/${id}/work-log`,
+    IMPORT_TEMPLATE: "/requests/import/template",
+    IMPORT_UPLOAD: "/requests/import/upload",
+    IMPORT_JOB_STATUS: (jobId: string) => `/requests/import/jobs/${jobId}`,
+    IMPORT_JOB_CONFIRM: (jobId: string) => `/requests/import/jobs/${jobId}/confirm`,
+    BULK_CREATE: "/requests/bulk",
   },
   ASSIGNMENTS: {
     LIST: "/assignments",

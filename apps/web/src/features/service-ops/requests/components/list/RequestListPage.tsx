@@ -1,7 +1,7 @@
 "use client";
 
 import AddIcon from "@mui/icons-material/Add";
-import { Alert, Box, Button, Typography } from "@mui/material";
+import { Alert, Box, Button, Stack, Typography } from "@mui/material";
 import { FormDialog } from "@supportops/ui-dialog";
 import { useDialog } from "@supportops/ui";
 import type { RequestAssignee } from "@supportops/types";
@@ -16,6 +16,7 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { requestService } from "@/features/service-ops/requests/services/request.service";
 
 import { RequestIntakeView, REQUEST_INTAKE_FORM_ID } from "../RequestIntakeView";
+import { ImportRequestButton } from "../import/ImportRequestButton";
 import styles from "../request-list-screen.module.css";
 import { useRequestFiltersBar } from "./RequestFiltersBar";
 import { RequestTabBar, useRequestTabs } from "./RequestTabBar";
@@ -176,7 +177,17 @@ export function RequestListPage() {
       <FormDialog cancelLabel={t("actions.cancel")} dialog={createDialog} formId={REQUEST_INTAKE_FORM_ID} submitLabel={t("actions.submitRequest")} title={t("actions.newRequest")}>
         <RequestIntakeView modal onSuccess={(createdRequest) => { filters.setPageIndex(0); query.setRows((current) => [mapServiceRequestToRow(createdRequest, assigneesById), ...current]); createDialog.close(); void query.loadRequests(); }} />
       </FormDialog>
-      <EntityListLayout headerActions={<Button onClick={createDialog.open} startIcon={<AddIcon />} variant="contained">{t("actions.newRequest")}</Button>} headerLeft={<Box><Typography sx={{ fontSize: 32, fontWeight: 700, lineHeight: 1.2 }} variant="h4">{t("title")}</Typography><Typography color="text.secondary" variant="subtitle1">{t("subtitle")}</Typography></Box>}>
+      <EntityListLayout
+        headerActions={(
+          <Stack direction="row" spacing={1}>
+            <ImportRequestButton />
+            <Button onClick={createDialog.open} startIcon={<AddIcon />} variant="contained">
+              {t("actions.newRequest")}
+            </Button>
+          </Stack>
+        )}
+        headerLeft={<Box><Typography sx={{ fontSize: 32, fontWeight: 700, lineHeight: 1.2 }} variant="h4">{t("title")}</Typography><Typography color="text.secondary" variant="subtitle1">{t("subtitle")}</Typography></Box>}
+      >
         {query.loadError ? <Alert action={<Button color="inherit" onClick={() => void query.loadRequests()} size="small">{t("actions.retry")}</Button>} severity="error" sx={{ mb: 2 }}>{query.loadError}</Alert> : null}
         <div className={styles.tableViewport}>
           <EntityTable

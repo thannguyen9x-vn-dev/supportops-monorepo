@@ -6,6 +6,7 @@ export * from "./domain";
 export * from "./dto";
 export * from "./ui";
 export * from "./types/file.types";
+export * from "./types/import.types";
 export * from "./core/endpoints";
 export * from "./service-ops/endpoints";
 export * from "./schemas/auth.schema";

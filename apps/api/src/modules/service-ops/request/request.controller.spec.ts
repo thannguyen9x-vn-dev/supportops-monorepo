@@ -18,12 +18,21 @@ describe('RequestController', () => {
     unwatchRequest: jest.fn(),
     getWatchers: jest.fn(),
   };
+  const importService = {
+    downloadTemplate: jest.fn(),
+    uploadAndEnqueue: jest.fn(),
+    getJobStatus: jest.fn(),
+    confirmJob: jest.fn(),
+  };
+  const bulkService = {
+    bulkCreate: jest.fn(),
+  };
 
   let controller: RequestController;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    controller = new RequestController(service as any);
+    controller = new RequestController(service as any, importService as any, bulkService as any);
   });
 
   it('delegates list and tab-counts calls', async () => {
@@ -64,5 +73,22 @@ describe('RequestController', () => {
     expect(service.watchRequest).toHaveBeenCalledWith('t1', 'u1', 'r1');
     expect(service.unwatchRequest).toHaveBeenCalledWith('t1', 'u1', 'r1');
     expect(service.getWatchers).toHaveBeenCalledWith('t1', 'r1');
+  });
+
+  it('delegates import and bulk methods', async () => {
+    importService.uploadAndEnqueue.mockResolvedValue({ jobId: 'j1', status: 'queued' });
+    importService.getJobStatus.mockResolvedValue({ jobId: 'j1', status: 'processing' });
+    importService.confirmJob.mockResolvedValue({ jobId: 'j1', status: 'queued' });
+    bulkService.bulkCreate.mockResolvedValue({ created: 1, failed: 0, errors: [] });
+
+    await controller.uploadImportFile('t1', 'u1', { originalname: 'f.csv' } as any);
+    await controller.getImportJobStatus('t1', 'f9f2114a-6e49-4e41-8cb0-1496f85f4a39');
+    await controller.confirmImport('t1', 'u1', 'f9f2114a-6e49-4e41-8cb0-1496f85f4a39', { skipRowIndices: [] });
+    await controller.bulkCreate('t1', 'u1', { items: [] } as any);
+
+    expect(importService.uploadAndEnqueue).toHaveBeenCalled();
+    expect(importService.getJobStatus).toHaveBeenCalled();
+    expect(importService.confirmJob).toHaveBeenCalled();
+    expect(bulkService.bulkCreate).toHaveBeenCalledWith('t1', 'u1', { items: [] });
   });
 });

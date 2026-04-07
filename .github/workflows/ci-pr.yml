@@ -62,3 +62,31 @@ jobs:
 
       - name: Build api
         run: pnpm --filter @supportops/api build
+
+  ai-service-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ai-service dependencies
+        run: |
+          cd apps/ai-service
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run ai-service tests with coverage gate
+        run: |
+          cd apps/ai-service
+          START_TS=$(date +%s)
+          pytest -q --cov=. --cov-report=term-missing --cov-fail-under=80
+          END_TS=$(date +%s)
+          DURATION=$((END_TS - START_TS))
+          echo "## AI Service pytest runtime" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Duration: ${DURATION}s (target: <10s)" >> "$GITHUB_STEP_SUMMARY"

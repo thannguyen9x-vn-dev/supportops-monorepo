@@ -3,120 +3,124 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const vitest_1 = require("vitest");
 const sla_check_job_1 = require("./sla-check.job");
-const { logMock } = vitest_1.vi.hoisted(() => ({
-    logMock: vitest_1.vi.fn(),
-}));
-vitest_1.vi.mock('../logger', () => ({
-    log: logMock,
-}));
-function createPrismaMock(records) {
-    return {
-        slaRecord: {
-            findMany: vitest_1.vi.fn().mockResolvedValue(records),
-            update: vitest_1.vi.fn().mockResolvedValue({}),
-        },
-        requestActivity: {
-            create: vitest_1.vi.fn().mockResolvedValue({}),
-        },
-        $transaction: vitest_1.vi.fn().mockResolvedValue([]),
-    };
-}
-(0, vitest_1.describe)('runSlaCheck', () => {
+(0, vitest_1.describe)('runSlaCheckJob', () => {
+    let prisma;
+    let queue;
     (0, vitest_1.beforeEach)(() => {
         vitest_1.vi.clearAllMocks();
         vitest_1.vi.useFakeTimers();
-        vitest_1.vi.setSystemTime(new Date('2026-01-01T00:08:00.000Z'));
-    });
-    (0, vitest_1.it)('updates changed records and writes SLA warning activity on at-risk transition', async () => {
-        const prisma = createPrismaMock([
-            {
-                id: 'sla-1',
-                tenantId: 'tenant-1',
-                requestId: 'req-1',
-                type: 'ASSIGNMENT',
-                health: client_1.SlaHealth.ON_TRACK,
-                createdAt: new Date('2026-01-01T00:00:00.000Z'),
-                targetAt: new Date('2026-01-01T00:10:00.000Z'),
-                breachedAt: null,
-                isBreached: false,
+        vitest_1.vi.setSystemTime(new Date('2026-03-29T10:00:00.000Z'));
+        prisma = {
+            slaRecord: {
+                findMany: vitest_1.vi.fn().mockResolvedValue([]),
+                update: vitest_1.vi.fn().mockResolvedValue({}),
             },
-        ]);
-        const result = await (0, sla_check_job_1.runSlaCheck)(prisma);
-        (0, vitest_1.expect)(result).toEqual({
-            total: 1,
-            changed: 1,
-            atRisk: 1,
-            breached: 0,
-        });
-        (0, vitest_1.expect)(prisma.$transaction).toHaveBeenCalledTimes(1);
-        (0, vitest_1.expect)(prisma.requestActivity.create).toHaveBeenCalledWith(vitest_1.expect.objectContaining({
-            data: vitest_1.expect.objectContaining({
-                type: client_1.RequestActivityType.SLA_WARNING,
-                title: 'SLA at risk',
+            slaPolicy: {
+                findMany: vitest_1.vi.fn().mockResolvedValue([]),
+            },
+        };
+        queue = {
+            add: vitest_1.vi.fn().mockResolvedValue({}),
+        };
+    });
+    (0, vitest_1.it)('skips paused records via query filter (pausedAt != null)', async () => {
+        await (0, sla_check_job_1.runSlaCheckJob)(prisma, queue);
+        (0, vitest_1.expect)(prisma.slaRecord.findMany).toHaveBeenCalledWith(vitest_1.expect.objectContaining({
+            where: vitest_1.expect.objectContaining({
+                pausedAt: null,
             }),
         }));
-        (0, vitest_1.expect)(logMock).toHaveBeenCalledWith('INFO', 'SLA check completed', result);
     });
-    (0, vitest_1.it)('keeps breached records updated without creating duplicate activity when health does not change', async () => {
-        const breachedAt = new Date('2026-01-01T00:04:00.000Z');
-        const prisma = createPrismaMock([
-            {
-                id: 'sla-2',
-                tenantId: 'tenant-1',
-                requestId: 'req-2',
-                type: 'RESOLUTION',
-                health: client_1.SlaHealth.BREACHED,
-                createdAt: new Date('2026-01-01T00:00:00.000Z'),
-                targetAt: new Date('2026-01-01T00:03:00.000Z'),
-                breachedAt,
-                isBreached: true,
+    (0, vitest_1.it)('skips records that already have nearBreachNotifiedAt (idempotent)', async () => {
+        await (0, sla_check_job_1.runSlaCheckJob)(prisma, queue);
+        (0, vitest_1.expect)(prisma.slaRecord.findMany).toHaveBeenCalledWith(vitest_1.expect.objectContaining({
+            where: vitest_1.expect.objectContaining({
+                nearBreachNotifiedAt: null,
+            }),
+        }));
+        (0, vitest_1.expect)(prisma.slaRecord.update).not.toHaveBeenCalled();
+        (0, vitest_1.expect)(queue.add).not.toHaveBeenCalled();
+    });
+    (0, vitest_1.it)('enqueues near-breach when minutesRemaining <= threshold', async () => {
+        const record = {
+            id: 's1',
+            tenantId: 't1',
+            requestId: 'r1',
+            type: client_1.SlaType.ASSIGNMENT,
+            targetAt: new Date('2026-03-29T10:20:00.000Z'),
+            totalPausedSeconds: 0,
+            request: {
+                tenantId: 't1',
+                assigneeId: 'u1',
+                serviceType: { code: 'IT' },
             },
+        };
+        prisma.slaRecord.findMany.mockResolvedValue([record]);
+        prisma.slaPolicy.findMany.mockResolvedValue([
+            { tenantId: 't1', serviceTypeCode: 'IT', nearBreachThresholdMinutes: 30 },
         ]);
-        const result = await (0, sla_check_job_1.runSlaCheck)(prisma);
-        (0, vitest_1.expect)(result).toEqual({
-            total: 1,
-            changed: 0,
-            atRisk: 0,
-            breached: 1,
-        });
+        await (0, sla_check_job_1.runSlaCheckJob)(prisma, queue);
+        (0, vitest_1.expect)(queue.add).toHaveBeenCalledWith('sla.near-breach', vitest_1.expect.objectContaining({ requestId: 'r1', tenantId: 't1', assigneeId: 'u1' }));
         (0, vitest_1.expect)(prisma.slaRecord.update).toHaveBeenCalledWith(vitest_1.expect.objectContaining({
-            where: { id: 'sla-2' },
-            data: vitest_1.expect.objectContaining({
-                isBreached: true,
-                breachedAt,
-            }),
+            where: { id: 's1' },
+            data: vitest_1.expect.objectContaining({ nearBreachNotifiedAt: vitest_1.expect.any(Date) }),
         }));
-        (0, vitest_1.expect)(prisma.$transaction).not.toHaveBeenCalled();
-        (0, vitest_1.expect)(prisma.requestActivity.create).not.toHaveBeenCalled();
     });
-    (0, vitest_1.it)('marks SLA as breached when target window is invalid (edge case targetAt <= createdAt)', async () => {
-        const prisma = createPrismaMock([
-            {
-                id: 'sla-3',
-                tenantId: 'tenant-1',
-                requestId: 'req-3',
-                type: 'ASSIGNMENT',
-                health: client_1.SlaHealth.ON_TRACK,
-                createdAt: new Date('2026-01-01T00:08:00.000Z'),
-                targetAt: new Date('2026-01-01T00:07:00.000Z'),
-                breachedAt: null,
-                isBreached: false,
+    (0, vitest_1.it)('marks breached and enqueues breached job when minutesRemaining <= 0', async () => {
+        const record = {
+            id: 's2',
+            tenantId: 't1',
+            requestId: 'r2',
+            type: client_1.SlaType.RESOLUTION,
+            targetAt: new Date('2026-03-29T09:30:00.000Z'),
+            totalPausedSeconds: 0,
+            request: {
+                tenantId: 't1',
+                assigneeId: 'u2',
+                serviceType: { code: 'IT' },
             },
-        ]);
-        const result = await (0, sla_check_job_1.runSlaCheck)(prisma);
-        (0, vitest_1.expect)(result.breached).toBe(1);
-        (0, vitest_1.expect)(prisma.$transaction).toHaveBeenCalledTimes(1);
-        (0, vitest_1.expect)(prisma.requestActivity.create).toHaveBeenCalledWith(vitest_1.expect.objectContaining({
-            data: vitest_1.expect.objectContaining({
-                type: client_1.RequestActivityType.SLA_BREACHED,
-                title: 'SLA breached',
+        };
+        prisma.slaRecord.findMany.mockResolvedValue([record]);
+        await (0, sla_check_job_1.runSlaCheckJob)(prisma, queue);
+        (0, vitest_1.expect)(prisma.slaRecord.update).toHaveBeenCalledWith({
+            where: { id: 's2' },
+            data: { isBreached: true, health: client_1.SlaHealth.BREACHED },
+        });
+        (0, vitest_1.expect)(queue.add).toHaveBeenCalledWith('sla.breached', vitest_1.expect.objectContaining({ requestId: 'r2', tenantId: 't1', assigneeId: 'u2' }));
+    });
+    (0, vitest_1.it)('skips RESOLVED/CLOSED/CANCELLED/WAITING_FOR_CUSTOMER requests by filter', async () => {
+        await (0, sla_check_job_1.runSlaCheckJob)(prisma, queue);
+        (0, vitest_1.expect)(prisma.slaRecord.findMany).toHaveBeenCalledWith(vitest_1.expect.objectContaining({
+            where: vitest_1.expect.objectContaining({
+                request: {
+                    status: {
+                        notIn: vitest_1.expect.arrayContaining(['RESOLVED', 'CLOSED', 'CANCELLED', 'WAITING_FOR_CUSTOMER']),
+                    },
+                },
             }),
         }));
     });
-    (0, vitest_1.it)('propagates prisma errors', async () => {
-        const prisma = createPrismaMock([]);
-        prisma.slaRecord.findMany.mockRejectedValueOnce(new Error('db down'));
-        await (0, vitest_1.expect)((0, sla_check_job_1.runSlaCheck)(prisma)).rejects.toThrow('db down');
+    (0, vitest_1.it)('uses totalPausedSeconds when computing adjustedTarget', async () => {
+        const record = {
+            id: 's3',
+            tenantId: 't1',
+            requestId: 'r3',
+            type: client_1.SlaType.ASSIGNMENT,
+            targetAt: new Date('2026-03-29T09:59:40.000Z'),
+            totalPausedSeconds: 30,
+            request: {
+                tenantId: 't1',
+                assigneeId: 'u3',
+                serviceType: { code: 'IT' },
+            },
+        };
+        prisma.slaRecord.findMany.mockResolvedValue([record]);
+        prisma.slaPolicy.findMany.mockResolvedValue([
+            { tenantId: 't1', serviceTypeCode: 'IT', nearBreachThresholdMinutes: 5 },
+        ]);
+        await (0, sla_check_job_1.runSlaCheckJob)(prisma, queue);
+        (0, vitest_1.expect)(queue.add).toHaveBeenCalledWith('sla.near-breach', vitest_1.expect.objectContaining({ requestId: 'r3' }));
+        (0, vitest_1.expect)(prisma.slaRecord.update).toHaveBeenCalledWith(vitest_1.expect.objectContaining({ where: { id: 's3' } }));
     });
 });
 //# sourceMappingURL=sla-check.job.test.js.map

@@ -10,11 +10,28 @@ const { workerConstructorMock, queueConstructorMock, queueAddMock } = vi.hoisted
 
 vi.mock('@prisma/client', () => ({
   PrismaClient: vi.fn(),
+  Prisma: {},
+  NotificationEventType: {
+    BULK_IMPORT_COMPLETED: 'BULK_IMPORT_COMPLETED',
+  },
+  RequestPriority: {
+    LOW: 'LOW',
+    MEDIUM: 'MEDIUM',
+    HIGH: 'HIGH',
+    URGENT: 'URGENT',
+  },
   RequestStatus: {
+    SUBMITTED: 'SUBMITTED',
     RESOLVED: 'RESOLVED',
     CLOSED: 'CLOSED',
     CANCELLED: 'CANCELLED',
     WAITING_FOR_CUSTOMER: 'WAITING_FOR_CUSTOMER',
+  },
+  SourceChannel: {
+    API: 'API',
+  },
+  UserStatus: {
+    ACTIVE: 'ACTIVE',
   },
   SlaHealth: {
     BREACHED: 'BREACHED',
@@ -43,8 +60,8 @@ describe('startWorkers', () => {
   it('creates SLA and email workers with shared redis connection', () => {
     const workers = startWorkers();
 
-    expect(workers).toHaveLength(3);
-    expect(workerConstructorMock).toHaveBeenCalledTimes(3);
+    expect(workers).toHaveLength(4);
+    expect(workerConstructorMock).toHaveBeenCalledTimes(4);
     expect(workerConstructorMock).toHaveBeenNthCalledWith(
       1,
       QUEUE_NAMES.SLA_MONITOR,
@@ -60,6 +77,12 @@ describe('startWorkers', () => {
     expect(workerConstructorMock).toHaveBeenNthCalledWith(
       3,
       QUEUE_NAMES.EMAIL_DIGEST,
+      expect.any(Function),
+      { connection: redisConfig },
+    );
+    expect(workerConstructorMock).toHaveBeenNthCalledWith(
+      4,
+      QUEUE_NAMES.IMPORT_REQUESTS,
       expect.any(Function),
       { connection: redisConfig },
     );

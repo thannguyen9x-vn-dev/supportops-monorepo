@@ -514,7 +514,46 @@
           "previous": "Previous page",
           "next": "Next page"
         },
-        "emptyState": "No requests match current filters."
+        "emptyState": "No requests match current filters.",
+        "import": {
+          "button": "Import",
+          "modal": {
+            "title": "Import Service Requests"
+          },
+          "upload": {
+            "title": "Upload CSV or Excel file",
+            "hint": "Max 5MB · Max 500 rows · CSV or .xlsx",
+            "downloadTemplate": "Download Template"
+          },
+          "processing": {
+            "title": "Processing import...",
+            "hint": "You will receive a notification when done."
+          },
+          "result": {
+            "success": "{count} requests created successfully",
+            "errors": "{count} rows failed",
+            "errorDetail": "Row {row}: {message}"
+          },
+          "preview": {
+            "title": "Review before importing",
+            "validRows": "{count} rows ready to import",
+            "errorRows": "{count} rows with errors (will be skipped)",
+            "warningRows": "{count} possible duplicates",
+            "duplicateInFile": "Duplicate row within this file",
+            "duplicateRecent": "Similar request created in the last 24 hours",
+            "confirmButton": "Import {count} rows",
+            "type": "Type",
+            "message": "Issue details",
+            "include": "Include",
+            "error": "Error",
+            "warning": "Warning"
+          },
+          "error": {
+            "fileTooLarge": "File must be under 5MB",
+            "invalidFormat": "Only .csv and .xlsx files are supported",
+            "reporterNotFound": "Reporter email '{email}' is not a member of this tenant"
+          }
+        }
       },
       "detail": {
         "header": {

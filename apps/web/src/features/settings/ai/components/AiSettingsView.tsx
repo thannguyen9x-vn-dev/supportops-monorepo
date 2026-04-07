@@ -23,7 +23,7 @@ import type { AiModelId } from "@/features/ai-assistant/types";
 import { useAiSettings } from "../hooks/useAiSettings";
 
 export function AiSettingsView() {
-  const t = useTranslations("settings.ai");
+  const t = useTranslations("pages.ai");
   const { defaultModel, isLoading, isSaving, loadError, saveSuccess, saveError, handleSave } =
     useAiSettings();
   const [selected, setSelected] = useState<AiModelId | null>(null);

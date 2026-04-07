@@ -51,6 +51,7 @@ const vitest_1 = require("vitest");
             EMAIL_IMMEDIATE: 'email-immediate',
             EMAIL_DIGEST: 'email-digest',
             SLA_MONITOR: 'sla-monitor',
+            IMPORT_REQUESTS: 'import-requests',
         });
         (0, vitest_1.expect)(redisConfig).toEqual({
             host: 'localhost',

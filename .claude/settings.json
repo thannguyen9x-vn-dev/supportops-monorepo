@@ -14,10 +14,19 @@
       "Bash(pnpm --filter @supportops/web add @tanstack/react-query)",
       "Bash(pnpm --filter @supportops/web typecheck)",
       "Read(//Users/thannguyennham/.claude/**)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(xargs cat:*)",
+      "Bash(grep -v \".js$\\\\|node_modules\")",
+      "Bash(ls -la /Users/thannguyennham/projects/supportops/supportops-monorepo/apps/web/src/app/*/dashboard/reports/)",
+      "Bash(npx prisma:*)",
+      "Bash(npx dotenv-cli:*)",
+      "Bash(mv prisma/.env prisma/.env.bak)",
+      "Bash(mv prisma/.env.bak prisma/.env)",
+      "Bash(pnpm --filter @supportops/api typecheck)"
     ],
     "additionalDirectories": [
-      "/Users/thannguyennham/.claude"
+      "/Users/thannguyennham/.claude",
+      "/Users/thannguyennham/projects/supportops/supportops-monorepo/docs/tasks/v1"
     ]
   }
 }

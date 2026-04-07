@@ -3,6 +3,7 @@ export const QUEUE_NAMES = {
   EMAIL_IMMEDIATE: 'email-immediate',
   EMAIL_DIGEST: 'email-digest',
   SLA_MONITOR: 'sla-monitor',
+  IMPORT_REQUESTS: 'import-requests',
 } as const;
 
 function parseRedisPort(value: string | undefined): number {

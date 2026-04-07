@@ -13,6 +13,11 @@ export declare const SERVICE_OPS_ENDPOINTS: {
         readonly UNASSIGN: (id: string) => string;
         readonly COMMENTS: (id: string) => string;
         readonly WORK_LOG: (id: string) => string;
+        readonly IMPORT_TEMPLATE: "/requests/import/template";
+        readonly IMPORT_UPLOAD: "/requests/import/upload";
+        readonly IMPORT_JOB_STATUS: (jobId: string) => string;
+        readonly IMPORT_JOB_CONFIRM: (jobId: string) => string;
+        readonly BULK_CREATE: "/requests/bulk";
     };
     readonly ASSIGNMENTS: {
         readonly LIST: "/assignments";

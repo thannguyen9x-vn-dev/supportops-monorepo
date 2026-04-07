@@ -21,6 +21,7 @@ describe('worker config', () => {
       EMAIL_IMMEDIATE: 'email-immediate',
       EMAIL_DIGEST: 'email-digest',
       SLA_MONITOR: 'sla-monitor',
+      IMPORT_REQUESTS: 'import-requests',
     });
     expect(redisConfig).toEqual({
       host: 'localhost',

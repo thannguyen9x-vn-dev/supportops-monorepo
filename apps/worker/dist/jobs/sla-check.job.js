@@ -1,34 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.runSlaCheck = runSlaCheck;
+exports.runSlaCheckJob = runSlaCheckJob;
 const client_1 = require("@prisma/client");
-const logger_1 = require("../logger");
-const ACTIVE_REQUEST_STATUSES = [
-    client_1.RequestStatus.SUBMITTED,
-    client_1.RequestStatus.TRIAGE,
-    client_1.RequestStatus.ASSIGNED,
-    client_1.RequestStatus.IN_PROGRESS,
+const INACTIVE_REQUEST_STATUSES = [
+    client_1.RequestStatus.RESOLVED,
+    client_1.RequestStatus.CLOSED,
+    client_1.RequestStatus.CANCELLED,
+    client_1.RequestStatus.WAITING_FOR_CUSTOMER,
 ];
-function computeHealth(now, createdAt, targetAt) {
-    if (now >= targetAt) {
-        return client_1.SlaHealth.BREACHED;
-    }
-    const totalMs = targetAt.getTime() - createdAt.getTime();
-    if (totalMs <= 0) {
-        return client_1.SlaHealth.BREACHED;
-    }
-    const elapsedMs = now.getTime() - createdAt.getTime();
-    if (elapsedMs / totalMs >= 0.8) {
-        return client_1.SlaHealth.AT_RISK;
-    }
-    return client_1.SlaHealth.ON_TRACK;
-}
-async function runSlaCheck(prisma) {
-    const now = new Date();
+const DEFAULT_NEAR_BREACH_THRESHOLD_MINUTES = 30;
+async function runSlaCheckJob(prisma, notificationQueue) {
+    const now = Date.now();
     const records = await prisma.slaRecord.findMany({
         where: {
+            isBreached: false,
+            nearBreachNotifiedAt: null,
+            pausedAt: null,
             request: {
-                status: { in: [...ACTIVE_REQUEST_STATUSES] },
+                status: {
+                    notIn: INACTIVE_REQUEST_STATUSES,
+                },
             },
         },
         select: {
@@ -36,79 +27,93 @@ async function runSlaCheck(prisma) {
             tenantId: true,
             requestId: true,
             type: true,
-            health: true,
-            createdAt: true,
             targetAt: true,
-            breachedAt: true,
-            isBreached: true,
+            totalPausedSeconds: true,
+            request: {
+                select: {
+                    tenantId: true,
+                    assigneeId: true,
+                    serviceType: {
+                        select: {
+                            code: true,
+                        },
+                    },
+                },
+            },
         },
     });
-    let changed = 0;
-    let atRisk = 0;
+    const thresholdMap = await buildThresholdMap(prisma, records);
+    let nearBreachNotified = 0;
     let breached = 0;
     for (const record of records) {
-        const nextHealth = computeHealth(now, record.createdAt, record.targetAt);
-        const isChanged = record.health !== nextHealth;
-        if (nextHealth === client_1.SlaHealth.AT_RISK) {
-            atRisk += 1;
-        }
-        if (nextHealth === client_1.SlaHealth.BREACHED) {
+        const serviceTypeCode = record.request.serviceType.code;
+        const thresholdKey = `${record.tenantId}:${serviceTypeCode}`;
+        const thresholdMinutes = thresholdMap.get(thresholdKey) ?? DEFAULT_NEAR_BREACH_THRESHOLD_MINUTES;
+        const adjustedTarget = new Date(record.targetAt.getTime() + record.totalPausedSeconds * 1000);
+        const minutesRemaining = (adjustedTarget.getTime() - now) / 60000;
+        if (minutesRemaining <= 0) {
             breached += 1;
-        }
-        if (!isChanged) {
             await prisma.slaRecord.update({
                 where: { id: record.id },
                 data: {
-                    lastCalculatedAt: now,
-                    ...(nextHealth === client_1.SlaHealth.BREACHED
-                        ? {
-                            isBreached: true,
-                            breachedAt: record.breachedAt ?? now,
-                        }
-                        : {}),
+                    isBreached: true,
+                    health: client_1.SlaHealth.BREACHED,
                 },
+            });
+            await notificationQueue.add('sla.breached', {
+                type: record.type,
+                requestId: record.requestId,
+                tenantId: record.request.tenantId,
+                assigneeId: record.request.assigneeId,
             });
             continue;
         }
-        changed += 1;
-        await prisma.$transaction([
-            prisma.slaRecord.update({
+        if (minutesRemaining <= thresholdMinutes) {
+            nearBreachNotified += 1;
+            await notificationQueue.add('sla.near-breach', {
+                type: record.type,
+                requestId: record.requestId,
+                tenantId: record.request.tenantId,
+                assigneeId: record.request.assigneeId,
+                minutesRemaining: Math.round(minutesRemaining),
+            });
+            await prisma.slaRecord.update({
                 where: { id: record.id },
                 data: {
-                    health: nextHealth,
-                    lastCalculatedAt: now,
-                    isBreached: nextHealth === client_1.SlaHealth.BREACHED,
-                    breachedAt: nextHealth === client_1.SlaHealth.BREACHED ? record.breachedAt ?? now : null,
+                    nearBreachNotifiedAt: new Date(now),
                 },
-            }),
-            prisma.requestActivity.create({
-                data: {
-                    tenantId: record.tenantId,
-                    requestId: record.requestId,
-                    type: nextHealth === client_1.SlaHealth.BREACHED ? client_1.RequestActivityType.SLA_BREACHED : client_1.RequestActivityType.SLA_WARNING,
-                    title: nextHealth === client_1.SlaHealth.BREACHED ? 'SLA breached' : 'SLA at risk',
-                    description: nextHealth === client_1.SlaHealth.BREACHED
-                        ? `SLA ${record.type} has breached target time.`
-                        : `SLA ${record.type} is at risk (>= 80% elapsed).`,
-                    actorId: null,
-                    metadata: {
-                        source: 'worker.sla-check',
-                        previousHealth: record.health,
-                        nextHealth,
-                        slaType: record.type,
-                        calculatedAt: now.toISOString(),
-                    },
-                },
-            }),
-        ]);
+            });
+        }
     }
-    const result = {
-        total: records.length,
-        changed,
-        atRisk,
+    return {
+        checked: records.length,
+        nearBreachNotified,
         breached,
     };
-    (0, logger_1.log)('INFO', 'SLA check completed', result);
-    return result;
+}
+async function buildThresholdMap(prisma, records) {
+    const uniquePairs = new Set(records.map((record) => `${record.tenantId}:${record.request.serviceType.code}`));
+    if (uniquePairs.size === 0) {
+        return new Map();
+    }
+    const pairs = [...uniquePairs].map((item) => {
+        const [tenantId, serviceTypeCode] = item.split(':');
+        return { tenantId: tenantId ?? '', serviceTypeCode: serviceTypeCode ?? '' };
+    });
+    const thresholdRows = await prisma.slaPolicy.findMany({
+        where: {
+            OR: pairs,
+            isActive: true,
+        },
+        select: {
+            tenantId: true,
+            serviceTypeCode: true,
+            nearBreachThresholdMinutes: true,
+        },
+    });
+    return new Map(thresholdRows.map((row) => [
+        `${row.tenantId}:${row.serviceTypeCode}`,
+        row.nearBreachThresholdMinutes,
+    ]));
 }
 //# sourceMappingURL=sla-check.job.js.map

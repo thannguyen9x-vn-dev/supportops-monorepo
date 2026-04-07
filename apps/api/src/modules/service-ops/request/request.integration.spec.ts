@@ -3,6 +3,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { SlaService } from '../sla/sla.service';
 import { RequestController } from './request.controller';
+import { RequestBulkService } from './request-bulk.service';
+import { RequestImportService } from './request-import.service';
 import { RequestService } from './request.service';
 
 describe('RequestModule Integration', () => {
@@ -23,6 +25,8 @@ describe('RequestModule Integration', () => {
         },
         { provide: EventEmitter2, useValue: { emitAsync: jest.fn() } },
         { provide: SlaService, useValue: { pauseSla: jest.fn(), resumeSla: jest.fn() } },
+        { provide: RequestImportService, useValue: { uploadAndEnqueue: jest.fn() } },
+        { provide: RequestBulkService, useValue: { bulkCreate: jest.fn() } },
       ],
     }).compile();
   });

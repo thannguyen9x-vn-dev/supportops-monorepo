@@ -1,5 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Job, Queue, Worker } from 'bullmq';
+import { readFile, unlink } from 'fs/promises';
+import { join } from 'path';
 import { QUEUE_NAMES, redisConfig } from './config';
 import {
   EmailImmediateJobData,
@@ -9,6 +11,7 @@ import {
   RedisLike,
 } from './jobs/email-dispatch.job';
 import { runSlaCheckJob } from './jobs/sla-check.job';
+import { ImportRequestsJobData, MinioClientLike, processImportRequestsJob } from './jobs/import-requests.job';
 
 function createPlaceholderProcessor(queueName: string): (job: Job) => Promise<void> {
   return async (job: Job): Promise<void> => {
@@ -62,6 +65,38 @@ function createMailService(): MailServiceLike {
   };
 }
 
+function createObjectStorageAdapter(): MinioClientLike {
+  const storageRoot = join(process.cwd(), 'storage');
+  return {
+    async getObject(objectKey: string): Promise<Buffer> {
+      const normalizedKey = normalizeObjectKey(objectKey);
+      return readFile(join(storageRoot, normalizedKey));
+    },
+    async removeObject(objectKey: string): Promise<void> {
+      const normalizedKey = normalizeObjectKey(objectKey);
+      try {
+        await unlink(join(storageRoot, normalizedKey));
+      } catch (error) {
+        if (isFileNotFoundError(error)) {
+          return;
+        }
+        throw error;
+      }
+    },
+  };
+}
+
+function normalizeObjectKey(objectKey: string): string {
+  return objectKey
+    .replace(/^\/+/, '')
+    .replace(/\.\.+/g, '')
+    .replace(/\\/g, '/');
+}
+
+function isFileNotFoundError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT';
+}
+
 export function startWorkers(): Worker[] {
   const connection = redisConfig;
   const prisma = new PrismaClient();
@@ -71,6 +106,7 @@ export function startWorkers(): Worker[] {
   const digestQueue = new Queue(QUEUE_NAMES.EMAIL_DIGEST, { connection });
   const redis = createRedisAdapter(digestQueue);
   const mailService = createMailService();
+  const minioClient = createObjectStorageAdapter();
 
   void scheduleSlaCheck(slaQueue).catch((error: unknown) => {
     const message = error instanceof Error ? error.message : String(error);
@@ -107,6 +143,16 @@ export function startWorkers(): Worker[] {
       QUEUE_NAMES.EMAIL_DIGEST,
       async (job: Job) => {
         await processEmailDigestWorker(job, { redis, mailService, digestQueue });
+      },
+      { connection },
+    ),
+  );
+
+  workers.push(
+    new Worker(
+      QUEUE_NAMES.IMPORT_REQUESTS,
+      async (job: Job) => {
+        await processImportRequestsJob(job.data as ImportRequestsJobData, { prisma, redis, minioClient });
       },
       { connection },
     ),

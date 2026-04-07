@@ -1,0 +1,88 @@
+// Mock data — dữ liệu giống y chang bài Python mock test
+// Dùng để so sánh cách React vs Vue handle cùng một data structure
+import type { Request } from '../types'
+
+export const requests: Request[] = [
+  {
+    id: 1,
+    title: 'Fix printer at Site A',
+    status: 'open',
+    priority: 'high',
+    assignee: 'Linh',
+    created_date: '2026-03-28',
+    due_date: '2026-03-30',
+    closed_date: null,
+  },
+  {
+    id: 2,
+    title: 'Prepare access card for new staff',
+    status: 'done',
+    priority: 'medium',
+    assignee: 'Minh',
+    created_date: '2026-03-25',
+    due_date: '2026-03-27',
+    closed_date: '2026-03-26',
+  },
+  {
+    id: 3,
+    title: 'VPN issue for remote engineer',
+    status: 'in_progress',
+    priority: 'high',
+    assignee: 'Linh',
+    created_date: '2026-03-29',
+    due_date: '2026-04-01',
+    closed_date: null,
+  },
+  {
+    id: 4,
+    title: 'Replace monitor in meeting room',
+    status: 'open',
+    priority: 'low',
+    assignee: null,
+    created_date: '2026-03-26',
+    due_date: '2026-03-29',
+    closed_date: null,
+  },
+  {
+    id: 5,
+    title: 'Setup laptop for intern',
+    status: 'done',
+    priority: 'high',
+    assignee: 'An',
+    created_date: '2026-03-24',
+    due_date: '2026-03-25',
+    closed_date: '2026-03-28',
+  },
+  {
+    id: 6,
+    title: 'Update network switch firmware at HQ',
+    status: 'open',
+    priority: 'medium',
+    assignee: 'Minh',
+    created_date: '2026-03-30',
+    due_date: '2026-04-03',
+    closed_date: null,
+  },
+  {
+    id: 7,
+    title: 'Reconfigure Wi-Fi in conference room B',
+    status: 'in_progress',
+    priority: 'medium',
+    assignee: null,
+    created_date: '2026-03-31',
+    due_date: '2026-04-02',
+    closed_date: null,
+  },
+  {
+    id: 8,
+    title: 'Install security camera at entrance',
+    status: 'open',
+    priority: 'high',
+    assignee: 'An',
+    created_date: '2026-04-01',
+    due_date: '2026-04-05',
+    closed_date: null,
+  },
+]
+
+export const TODAY = '2026-04-02'
